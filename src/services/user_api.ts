@@ -1,7 +1,6 @@
 import axios from "axios";
-import dotenv from "dotenv";
 
-const basUrl = process.env.SERVER_API_URL;
+const baseUrl = process.env.SERVER_API_URL;
 
 // התחברות ושמירת מידע מהשרת ל-localStorage
 export const loginUser = async (userData: {
@@ -26,10 +25,10 @@ export const loginUser = async (userData: {
   localStorage.setItem("email", data.email);
   localStorage.setItem("grade", data.grade);
   localStorage.setItem("rank", data.rank);
-  localStorage.setItem("id", data.id);
+  localStorage.setItem("userId", data.id);
 
   return data;
-};
+}
 
 export const updateUser = async (userData: {
   email: string;
@@ -55,7 +54,7 @@ export const updateUser = async (userData: {
     if (newValue && newValue !== oldValue) {
       changedFields[key] = String(newValue);
     }
-  });
+  })
 
   // תמיד נשלח סיסמה אם קיימת
   if (userData.password) {
@@ -149,10 +148,10 @@ const checkTokenExp = async () => {
 setInterval(checkTokenExp, 100000);
 
 const deleteUser = async () => {
-  const accessToken = localStorage.getItem("accessToken");
-  const userId = localStorage.getItem("userId");
+const accessToken = localStorage.getItem("accessToken");
+const userId = localStorage.getItem("userId");
 
-  const response = await axios.delete(`${basUrl}/deleteUser`, {
+const response = await axios.delete(`${basUrl}/deleteUser`, {
     params: { userId: userId },
     headers: {
       Authorization: "jwt " + accessToken,
@@ -182,4 +181,16 @@ const logout = async () => {
     localStorage.clear();
     throw error;
   }
+    const accessToken = localStorage.getItem("accessToken");
+    const userId = localStorage.getItem("userId");
+    
+    const response = await axios.delete(`${baseUrl}/deleteUser`, {
+      params: { userId: userId },
+      headers: {
+        Authorization: "jwt " + accessToken 
+      }
+    });
+}
+
+
 };

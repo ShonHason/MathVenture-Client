@@ -1,4 +1,5 @@
 import axios from "axios";
+const baseUrl = process.env.SERVER_API_URL;
 
 export const getAllLessonsByUserId = async (
   userId: string
@@ -58,20 +59,57 @@ export const updateCurrentSubjectList = async (
   return updatedTopics;
 };
 
-/*
-const startLesson()שולח את השם +כיתה דירוג התלמיד ונושא השיעור הנבחר
 
-const getAllLessonsByUser
 
-const getDynamicQuestion 
-#should send grade + rank + subject
+const startLesson = async (userSubject: {
+  subject: string;
+}) => {  
 
-const sendUser*/
+  const userData = {
+    userId: localStorage.getItem("userId"),
+    grade: localStorage.getItem("grade"),
+    rank : localStorage.getItem("rank"),
+    subject: userSubject.subject,
+  };  
 
-//const updateCurnnetSunjectList []מערך של נושאים כל נושא מופיע בשורה אחרת כלומר שימוש בmap
+  const accessToken = localStorage.getItem("accessToken");
+  const response = await axios.post(`${process.env.API_URL}/lessons/start`, userData, {
+    headers: {
+      Authorization: "jwt " + accessToken,  // השתמשתי במשתנה במקום לקרוא שוב מ-localStorage
+    },
+  });
 
-// const getCurrentSubjectList []
+  return response.data;
+};
 
-//continueLesson() השיעור מה27.3 של רותם על חיסור על 50
 
-//localstorage=userId,Username,email,parent_email,token,grade,rank,subjects[]?
+//const getDynamicQuestion 
+//should send grade + rank + subject
+
+
+
+
+const continueLesson = async (userSubject: {
+  lessonId: string;
+}) => {
+  const userData = {
+    userId: localStorage.getItem("userId"),
+    lessonId: userSubject.lessonId,
+  };
+  const response = await axios.post(`${process.env.API_URL}/lessons/continue`, userData, {
+    headers: {
+      Authorization: "jwt " + localStorage.getItem("accessToken"),
+    },
+  });
+  return response.data;
+}
+const deleteLesson = async (lessonId:string ) => {
+const response = await axios.delete(`${baseUrl}/deleteLesson/${lessonId}`, {
+  headers: {
+    Authorization: "jwt " + localStorage.getItem("accessToken"),
+  },
+});
+return response.data;
+
+}
+
