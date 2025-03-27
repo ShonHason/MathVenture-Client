@@ -1,7 +1,6 @@
 import axios from "axios";
-import dotenv from "dotenv";
 
-const basUrl = process.env.SERVER_API_URL;
+const baseUrl = process.env.SERVER_API_URL;
 
 // התחברות ושמירת מידע מהשרת ל-localStorage
 export const loginUser = async (userData: {
@@ -26,10 +25,10 @@ export const loginUser = async (userData: {
   localStorage.setItem("email", data.email);
   localStorage.setItem("grade", data.grade);
   localStorage.setItem("rank", data.rank);
-  localStorage.setItem("id", data.id);
+  localStorage.setItem("userId", data.id);
 
   return data;
-};
+}
 
 export const updateUser = async (userData: {
   email: string;
@@ -55,7 +54,7 @@ export const updateUser = async (userData: {
     if (newValue && newValue !== oldValue) {
       changedFields[key] = String(newValue);
     }
-  });
+  })
 
   // תמיד נשלח סיסמה אם קיימת
   if (userData.password) {
@@ -84,9 +83,9 @@ export const updateUser = async (userData: {
 
   console.log("Updated data:", response.data);
   return response.data;
+}
 
-
-const register = async(userDate:{
+const register = async(userData:{
 username: string;
 email: string;
 password:string;
@@ -95,7 +94,7 @@ parent_phone: string;
 grade: string;
 rank: string;
 })=>{
-const respone = await axios.post(`${basUrl}/register`);
+const respone = await axios.post(`${baseUrl}/register`, userData);
 localStorage.setItem("userId" , respone.data.userId);
 localStorage.setItem("username" , respone.data.username);
 localStorage.setItem("rank" , respone.data.rank);
@@ -127,7 +126,7 @@ const checkTokenExp = async () => {
           return;
         }
   
-        const newToken = await axios.post((`${basUrl}/auth/refresh/`),{refreshToken});
+        const newToken = await axios.post((`${baseUrl}/auth/refresh/`),{refreshToken});
         if (!newToken) {
           console.warn('Token refresh failed, redirecting to login');
           localStorage.removeItem('accessToken');
@@ -153,7 +152,7 @@ const deleteUser = async () => {
     const accessToken = localStorage.getItem("accessToken");
     const userId = localStorage.getItem("userId");
     
-    const response = await axios.delete(`${basUrl}/deleteUser`, {
+    const response = await axios.delete(`${baseUrl}/deleteUser`, {
       params: { userId: userId },
       headers: {
         Authorization: "jwt " + accessToken 
@@ -166,7 +165,7 @@ const logout = async () => {
     const userId = localStorage.getItem("userId");
 
     try {
-        const response = await axios.post(`${basUrl}/logout`, 
+        const response = await axios.post(`${baseUrl}/logout`, 
             { userId: userId }, 
             { 
                 headers: {
