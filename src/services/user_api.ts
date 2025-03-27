@@ -93,7 +93,7 @@ const register = async (userDate: {
   grade: string;
   rank: string;
 }) => {
-  const respone = await axios.post(`${basUrl}/register`);
+  const respone = await axios.post(`${baseUrl}/register`);
   localStorage.setItem("userId", respone.data.userId);
   localStorage.setItem("username", respone.data.username);
   localStorage.setItem("rank", respone.data.rank);
@@ -124,7 +124,7 @@ const checkTokenExp = async () => {
         return;
       }
 
-      const newToken = await axios.post(`${basUrl}/auth/refresh/`, {
+      const newToken = await axios.post(`${baseUrl}/auth/refresh/`, {
         refreshToken,
       });
       if (!newToken) {
@@ -151,7 +151,7 @@ const deleteUser = async () => {
 const accessToken = localStorage.getItem("accessToken");
 const userId = localStorage.getItem("userId");
 
-const response = await axios.delete(`${basUrl}/deleteUser`, {
+const response = await axios.delete(`${baseUrl}/deleteUser`, {
     params: { userId: userId },
     headers: {
       Authorization: "jwt " + accessToken,
@@ -165,7 +165,7 @@ const logout = async () => {
 
   try {
     const response = await axios.post(
-      `${basUrl}/logout`,
+      `${baseUrl}/logout`,
       { userId: userId },
       {
         headers: {
@@ -181,16 +181,8 @@ const logout = async () => {
     localStorage.clear();
     throw error;
   }
-    const accessToken = localStorage.getItem("accessToken");
-    const userId = localStorage.getItem("userId");
     
-    const response = await axios.delete(`${baseUrl}/deleteUser`, {
-      params: { userId: userId },
-      headers: {
-        Authorization: "jwt " + accessToken 
-      }
-    });
 }
 
 
-};
+
