@@ -3,7 +3,7 @@ import SideBar from "../features/SideBar";
 import React, { useContext, useEffect } from "react";
 import LessonsContext from "../context/LessonsContext";
 import "./HomePage.css";
-import HomePageContent from "./HelpPage";
+import HomePageContent from "../ui/HomePageContent";
 // import NavigationContext from "../context/NavigationContext";
 
 interface SideBarProps {
