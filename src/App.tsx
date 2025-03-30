@@ -20,6 +20,8 @@ import SettingsPage from "./pages/SettingsPage";
 import { ChatPage } from "./pages/chat";
 import StartLessons from "./pages/StartLessons";
 import Lesson from "./pages/Lesson";
+import InSession from "./pages/InSession";
+
 const App: React.FC = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
 
@@ -42,10 +44,12 @@ const App: React.FC = () => {
             <Route path="start-lessons" element={<StartLessons />} />
             <Route path="/home/start-lessons/:topicName" element={<Lesson />} />
           </Route>
+          <Route path="/lessons" element={<InSession   />} />
           <Route path="/quiz" element={<QuizPage />} />
           <Route path="/plan" element={<ChoosePlanPage />} />
           <Route path="chat" element={<ChatPage />} />
           <Route path="*" element={<PageNotFound />} />
+          
         </Routes>
       </Router>
     </LessonsContext.Provider>

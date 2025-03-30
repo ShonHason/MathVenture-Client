@@ -1,0 +1,47 @@
+.button-container {
+    display: flex;
+    justify-content: center; /* מרכז את הכפתורים */
+    flex-wrap: wrap; /* מאפשר לפרוס את הכפתורים בשורות שונות אם יש צורך */
+    padding: 10px; /* מרווח קטן מסביב למיכל */
+    margin: 0; /* הסרת margin */
+    width: 100%; /* תופס את כל רוחב הדף */
+    gap: 8px; /* מרווח קטן יותר בין הכפתורים */
+}
+
+.button {
+    background-color: #FFDD57; /* צהוב רך, צבע שמח ונעים */
+    color: #333; /* צבע טקסט כהה במקום לבן - יותר קריא על רקע צהוב */
+    font-size: 18px; /* גודל פונט גדול וקריא */
+    padding: 15px 20px; /* כפתורים בגודל הגיוני עם פחות מרווח אופקי */
+    border: none; /* הסרת גבולות */
+    cursor: pointer;
+    border-radius: 12px; /* קצוות מעוגלות */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15); /* צל עדין */
+    transition: all 0.3s ease; /* מעבר חלק בזמן לחיצה */
+    margin: 4px; /* מרווח קטן יותר בין הכפתורים */
+    flex: 0 0 auto; /* הכפתורים לא ימתחו ולא יתכווצו */
+}
+
+.button:hover {
+    background-color: #FFB20F; /* צבע בהיר יותר כשלוחצים */
+    transform: scale(1.05); /* הכפתור יגדל קלות בעת ריחוף */
+}
+
+.button:active {
+    background-color: #F7A700; /* צבע כהה יותר כאשר הכפתור נלחץ */
+}
+
+.button:focus {
+    outline: none;
+    box-shadow: 0 0 10px #FFB20F; /* הוספת הילה בהירה סביב הכפתור */
+}
+
+.button-text {
+    font-weight: bold; /* טקסט מודגש */
+    font-family: 'Comic Sans MS', cursive, sans-serif; /* פונט ידידותי לילדים */
+}
+
+.button-icon {
+    margin-right: 8px; /* מרווח בין אייקון לכיתוב */
+    font-size: 22px;
+}
