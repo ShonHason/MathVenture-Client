@@ -15,7 +15,6 @@ import HelpContext from "../context/HelpContext";
 import { useContext, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import path from "path";
-
 interface SideBarProps {
   // onLessons: () => void;
 }
@@ -85,6 +84,7 @@ const SideBar: React.FC<SideBarProps> = () => {
               <MenuItem
                 className="menu-item menu-item-start-lesson"
                 icon={<PlayCircleOutlined />}
+                onClick={() => navigate("/home/start-lessons")}
               >
                 התחלת שיעור
               </MenuItem>

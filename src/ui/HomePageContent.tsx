@@ -1,40 +1,60 @@
 import React, { useContext, useState } from "react";
 import "./HomePageContent.css";
-import LessonsContext from "../context/LessonsContext";
-const predefinedTopics = [
+import LessonsContext, { Topic, Question } from "../context/LessonsContext";
+
+const predefinedSubjects = [
   "חיבור עד 10",
   "חיסור עד 10",
   "כפל עד 10",
   "חלוקה עד 10",
 ];
 
-const HomePageContent: React.FC = () => {
-  const [draftTopics, setDraftTopics] = useState<string[]>([]);
-  const [selectedTopic, setSelectedTopic] = useState<string>("");
-  const [showAddTopicModal, setShowAddTopicModal] = useState<boolean>(false);
-  const lessonsContext = useContext(LessonsContext);
-  if (!lessonsContext) {
-    throw new Error(
-      "HomePageContent must be used within a LessonsContext.Provider"
-    );
+export const generateTopic = (
+  subject: string,
+  grade: string,
+  rank: number
+): Topic => {
+  const dummyQuestions: Question[] = [];
+  for (let i = 1; i <= 3; i++) {
+    dummyQuestions.push({
+      question: `(${grade}, רמה ${rank}) מהי התוצאה של ${i * rank} + ${rank}?`,
+      options: [
+        `${i * rank + rank}`,
+        `${i * rank + rank + 1}`,
+        `${i * rank + rank - 1}`,
+        `${i * rank}`,
+      ],
+      correctAnswer: `${i * rank + rank}`,
+    });
   }
+
+  return {
+    subject,
+    grade,
+    rank,
+    questions: dummyQuestions,
+  };
+};
+
+const HomePageContent: React.FC = () => {
+  const lessonsContext = useContext(LessonsContext);
+  const [selectedSubject, setSelectedSubject] = useState<string>("");
+  const [selectedRank, setSelectedRank] = useState<number>(1);
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  if (!lessonsContext) return null;
+
   const { topics, setTopics } = lessonsContext;
-  const handleAddDraftTopic = () => {
-    if (selectedTopic && !draftTopics.includes(selectedTopic)) {
-      setDraftTopics([...draftTopics, selectedTopic]);
-      setSelectedTopic("");
+
+  const handleAddTopic = () => {
+    const grade = localStorage.getItem("grade") || "א'";
+    if (selectedSubject) {
+      const newTopic = generateTopic(selectedSubject, grade, selectedRank);
+      setTopics([...topics, newTopic]);
+      setSelectedSubject("");
+      setSelectedRank(1);
+      setShowAddModal(false);
     }
-  };
-
-  const handleSaveTopics = () => {
-    setTopics([...topics, ...draftTopics]);
-    setDraftTopics([]);
-    setShowAddTopicModal(false);
-  };
-
-  const handleCancel = () => {
-    setDraftTopics([]);
-    setShowAddTopicModal(false);
   };
 
   return (
@@ -46,58 +66,57 @@ const HomePageContent: React.FC = () => {
         ) : (
           topics.map((topic, index) => (
             <div key={index} className="lesson-item">
-              {topic}
+              {topic.subject} - כיתה {topic.grade} - רמה {topic.rank}
             </div>
           ))
         )}
       </div>
 
       <button
-        onClick={() => setShowAddTopicModal(true)}
+        onClick={() => setShowAddModal(true)}
         className="add-topic-button"
       >
         להוספת נושא
       </button>
 
-      {showAddTopicModal && (
+      {showAddModal && (
         <div className="modal-overlay">
           <div className="add-topic-modal">
-            <p className="modal-title">הוספה בנושאי שיעורים :</p>
+            <p className="modal-title">הוספת שיעור</p>
+
             <select
-              value={selectedTopic}
-              onChange={(e) => setSelectedTopic(e.target.value)}
+              value={selectedSubject}
+              onChange={(e) => setSelectedSubject(e.target.value)}
               className="topic-select"
             >
               <option value="">בחר נושא</option>
-              {predefinedTopics.map((topic, index) => (
-                <option key={index} value={topic}>
-                  {topic}
+              {predefinedSubjects.map((subj, index) => (
+                <option key={index} value={subj}>
+                  {subj}
                 </option>
               ))}
             </select>
 
-            <button onClick={handleAddDraftTopic} className="add-topic-button">
-              הוספה לנושאים זמניים
-            </button>
-
-            <div className="draft-topics">
-              <p className="section-title">:נושאים </p>
-              {draftTopics.length > 0 ? (
-                draftTopics.map((topic, index) => (
-                  <div key={index} className="topic-item">
-                    {topic}
-                  </div>
-                ))
-              ) : (
-                <p>אין נושאים </p>
-              )}
-            </div>
+            <select
+              value={selectedRank}
+              onChange={(e) => setSelectedRank(Number(e.target.value))}
+              className="topic-select"
+            >
+              {[1, 2, 3, 4, 5].map((rank) => (
+                <option key={rank} value={rank}>
+                  רמת קושי {rank}
+                </option>
+              ))}
+            </select>
 
             <div className="modal-buttons">
-              <button onClick={handleSaveTopics} className="add-topic-button">
+              <button onClick={handleAddTopic} className="add-topic-button">
                 שמירה
               </button>
-              <button onClick={handleCancel} className="cancel-button">
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="cancel-button"
+              >
                 ביטול
               </button>
             </div>

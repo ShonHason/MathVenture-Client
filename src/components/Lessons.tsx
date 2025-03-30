@@ -5,9 +5,7 @@ import LessonsContext from "../context/LessonsContext";
 const Lessons: React.FC = () => {
   const lessonsContext = useContext(LessonsContext);
 
-  if (!lessonsContext) {
-    return null;
-  }
+  if (!lessonsContext) return null;
 
   const { topics } = lessonsContext;
 
@@ -15,17 +13,16 @@ const Lessons: React.FC = () => {
     <div className="lessons-container">
       <div className="lessons-header">
         <span>נושא השיעור</span>
-        <span>המועד</span>
-        <span>סטטוס</span>
+        <span>כיתה</span>
+        <span>רמת קושי</span>
         <span>פעולה</span>
       </div>
       {topics.length > 0 ? (
         topics.map((topic, index) => (
           <div key={index} className="lessons-row">
-            <span>{topic}</span>
-            <span>27.4.23</span>{" "}
-            {/* Example date; replace with dynamic data if needed */}
-            <span>נשלח</span> {/* Example status */}
+            <span>{topic.subject}</span>
+            <span>{topic.grade}</span>
+            <span>{topic.rank}</span>
             <button className="lessons-action-button">צפייה</button>
           </div>
         ))

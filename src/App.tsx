@@ -9,7 +9,7 @@ import LoginRegistration from "./pages/login";
 import HomePage from "./pages/HomePage";
 import Lessons from "./components/Lessons";
 import PageNotFound from "./pages/PageNotFound";
-import LessonsContext from "./context/LessonsContext";
+import LessonsContext, { Topic } from "./context/LessonsContext";
 import QuizPage from "./pages/quiz";
 import ChoosePlanPage from "./pages/plan";
 import HelpPage from "./pages/HelpPage";
@@ -18,8 +18,10 @@ import HelpPage from "./pages/HelpPage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import { ChatPage } from "./pages/chat";
+import StartLessons from "./pages/StartLessons";
+import Lesson from "./pages/Lesson";
 const App: React.FC = () => {
-  const [topics, setTopics] = useState<string[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
 
   return (
     <LessonsContext.Provider
@@ -37,6 +39,8 @@ const App: React.FC = () => {
             <Route path="help" element={<HelpPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="start-lessons" element={<StartLessons />} />
+            <Route path="/home/start-lessons/:topicName" element={<Lesson />} />
           </Route>
           <Route path="/quiz" element={<QuizPage />} />
           <Route path="/plan" element={<ChoosePlanPage />} />
