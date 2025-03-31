@@ -328,6 +328,8 @@ const QuizPage: React.FC = () => {
           }
         });
 
+        navigate("/home");
+
         // Set state for displaying results
         setAverageScore(avgScore);
         setLevel(calculatedLevel);
@@ -345,9 +347,6 @@ const QuizPage: React.FC = () => {
     }
   };
 
-  const navigateToPlan = () => {
-    navigate("/home");
-  };
 
   // Image uploader component
   const renderImageUploader = () => (
@@ -598,13 +597,7 @@ const QuizPage: React.FC = () => {
           <Title level={1}>:רמת התלמיד</Title>
           <Title level={1}>{level}</Title>
 
-          <Button
-            type="primary"
-            onClick={navigateToPlan}
-            style={{ marginTop: "20px" }}
-          >
-            המשך לבחירת תוכנית
-          </Button>
+  
         </div>
       )}
     </Space>
