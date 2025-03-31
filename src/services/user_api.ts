@@ -2,34 +2,31 @@ import axios from "axios";
 
 const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 
-// התחברות ושמירת מידע מהשרת ל-localStorage
+// Login and store data to localStorage
 export const loginUser = async (userData: {
   email: string;
   password: string;
 }) => {
   console.log("Logging in with:", userData);
 
-  const response = await axios.post(
-    `${process.env.API_URL}/user/login`,
-    userData
-  );
-
+  const response = await axios.post(`${baseUrl}/user/login`, userData);
   const data = response.data;
   console.log("Login response:", data);
 
-  // שמירת הנתונים שהתקבלו ב-localStorage
+  // Save returned fields in localStorage
   localStorage.setItem("accessToken", data.accessToken);
   localStorage.setItem("refreshToken", data.refreshToken);
   localStorage.setItem("username", data.username);
-  localStorage.setItem("imageUrl", data.imagePath);
+  localStorage.setItem("imageUrl", data.imageUrl); // Ensure backend returns imageUrl
   localStorage.setItem("email", data.email);
   localStorage.setItem("grade", data.grade);
   localStorage.setItem("rank", data.rank);
-  localStorage.setItem("userId", data.id);
+  localStorage.setItem("userId", data._id);
 
   return data;
-}
+};
 
+// End of registration: update additional user details
 export const endOfRegistration = async (userData: {
   userId?: string;
   imageUrl?: string;
@@ -39,11 +36,9 @@ export const endOfRegistration = async (userData: {
   parent_email?: string;
   parent_name?: string;
   parent_phone?: string;
-
-  // ... כל שדה אחר שאתה עשוי לרצות לשלוח
+  // ... any additional fields
 }) => {
-  // שליחת כל הנתונים ישירות לבאקאנד ללא בדיקה
-  console.log("baseUrl : " + baseUrl)
+  console.log("baseUrl: " + baseUrl);
   console.log("Sending user data:", userData);
   const response = await axios.put(
     `${baseUrl}/user/endOfRegistration`,
@@ -55,7 +50,7 @@ export const endOfRegistration = async (userData: {
     }
   );
 
-  // עדכון ה-localStorage עם הערכים החדשים
+  // Update localStorage with new data
   Object.entries(userData).forEach(([key, value]) => {
     if (value !== undefined) {
       localStorage.setItem(key, String(value));
@@ -64,23 +59,23 @@ export const endOfRegistration = async (userData: {
 
   console.log("Updated data:", response.data);
   return response.data;
-
 };
 
-  const register = async (userData: {
-    email : string;
-    password : string;
-    username : string;
-  }) => {
-    const respone = await axios.post(`${baseUrl}/user/register`, userData); // תיקון סוגריים
-    console.log("Registration response:", respone.data);
-    localStorage.setItem("accessToken", respone.data.accessToken);
-    localStorage.setItem("email", respone.data.email);
-    localStorage.setItem("refreshToken", respone.data.refreshToken);
-    localStorage.setItem("userId", respone.data._id);
+// Registration function
+export const register = async (userData: {
+  email: string;
+  password: string;
+  username: string;
+}) => {
+  const response = await axios.post(`${baseUrl}/user/register`, userData);
+  console.log("Registration response:", response.data);
+  localStorage.setItem("accessToken", response.data.accessToken);
+  localStorage.setItem("email", response.data.email);
+  localStorage.setItem("refreshToken", response.data.refreshToken);
+  localStorage.setItem("userId", response.data._id);
+};
 
-  };
-
+// Check token expiration and refresh if needed
 const checkTokenExp = async () => {
   console.log("Checking Refresh token...");
 
@@ -106,11 +101,6 @@ const checkTokenExp = async () => {
       });
       if (!newToken) {
         console.warn("Token refresh failed, redirecting to login");
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("userId");
-        localStorage.removeItem("username");
-        localStorage.removeItem("imgUrl");
         localStorage.clear();
         window.location.href = "/login";
       }
@@ -124,26 +114,28 @@ const checkTokenExp = async () => {
 };
 setInterval(checkTokenExp, 100000);
 
-const deleteUser = async () => {
-const accessToken = localStorage.getItem("accessToken");
-const userId = localStorage.getItem("userId");
+// Delete user
+export const deleteUser = async () => {
+  const accessToken = localStorage.getItem("accessToken");
+  const userId = localStorage.getItem("userId");
 
-const response = await axios.delete(`${baseUrl}/user/deleteUser`, {
-    params: { userId: userId },
+  const response = await axios.delete(`${baseUrl}/user/deleteUser`, {
+    params: { userId },
     headers: {
       Authorization: "jwt " + accessToken,
     },
   });
 };
 
-const logout = async () => {
+// Logout user
+export const logout = async () => {
   const accessToken = localStorage.getItem("accessToken");
   const userId = localStorage.getItem("userId");
 
   try {
     const response = await axios.post(
       `${baseUrl}/user/logout`,
-      { userId: userId },
+      { userId },
       {
         headers: {
           Authorization: "jwt " + accessToken,
@@ -158,8 +150,7 @@ const logout = async () => {
     localStorage.clear();
     throw error;
   }
-    
-}
+};
 
 export default {
   loginUser,
@@ -168,4 +159,3 @@ export default {
   deleteUser,
   logout,
 };
-
