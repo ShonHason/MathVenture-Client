@@ -7,12 +7,12 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import full_logo from "../images/full_logo.png";
-import  register  from "../services/user_api"; // Adjusted to destructure the register method
+import user_api from "../services/user_api"; // Import your user_api which includes loginUser
 
 const { Title } = Typography;
 
 interface LoginFormValues {
-  parent_email: string;
+  email: string;        // Use 'email'
   password: string;
 }
 
@@ -28,12 +28,19 @@ export const LoginRegistration: React.FC = () => {
   const [registerForm] = Form.useForm();
   const navigate = useNavigate();
 
+  // Login function now uses 'email'
   const onLoginFinish = async (values: LoginFormValues) => {
     try {
-      console.log("Login Success:", values);
-      // Add your login logic here
-      // navigate("/dashboard") or handle login
+      console.log("Login Attempt:", values);
+      // Call the loginUser function from user_api using 'email'
+      await user_api.loginUser({
+        email: values.email,
+        password: values.password,
+      });
+      message.success("Login successful!");
+      navigate("/home"); // Redirect after successful login
     } catch (error) {
+      console.error("Login failed:", error);
       message.error("Login failed");
     }
   };
@@ -41,15 +48,16 @@ export const LoginRegistration: React.FC = () => {
   const onRegisterFinish = async (values: RegisterFormValues) => {
     try {
       const { confirmPassword, ...registrationData } = values;
-      console.log("Registration Success:", registrationData);
+      console.log("Registration Attempt:", registrationData);
       
+      // Map the registration data as needed
       const mappedData = {
         email: registrationData.email,
         password: registrationData.password,
         username: registrationData.username,
       };
       
-      await register.register(mappedData); // Explicitly calling the register method
+      await user_api.register(mappedData);
       message.success("Registration successful");
       navigate("/quiz");
     } catch (error) {
@@ -91,7 +99,7 @@ export const LoginRegistration: React.FC = () => {
           !ברוכים הבאים למטיברס
         </Title>
         <Title level={2} style={{ textAlign: "center" }}>
-          :בחרו אחת מן האופציות הבאות{" "}
+          :בחרו אחת מן האופציות הבאות
         </Title>
         <Tabs
           defaultActiveKey="1"
@@ -100,15 +108,15 @@ export const LoginRegistration: React.FC = () => {
               key: "1",
               label: "התחברות",
               children: (
-                <Form 
+                <Form
                   form={loginForm}
-                  name="login" 
-                  onFinish={onLoginFinish} 
+                  name="login"
+                  onFinish={onLoginFinish}
                   layout="vertical"
                 >
                   <Form.Item
                     label="אימייל"
-                    name="parent_email"
+                    name="email" // Changed to "email"
                     rules={[
                       { required: true, message: "אנא הכנס את האימייל שלך!" },
                     ]}
@@ -119,10 +127,7 @@ export const LoginRegistration: React.FC = () => {
                     label="סיסמא"
                     name="password"
                     rules={[
-                      {
-                        required: true,
-                        message: "אנא הכנס את הסיסמא שלך!",
-                      },
+                      { required: true, message: "אנא הכנס את הסיסמא שלך!" },
                     ]}
                   >
                     <Input.Password placeholder="הכנס סיסמא" />
@@ -148,7 +153,7 @@ export const LoginRegistration: React.FC = () => {
                   <Form.Item
                     label="שם המשתמש"
                     name="username"
-                    rules={[{ required: true, message: "אנא הכנס את שם  המשתמש!" }]}
+                    rules={[{ required: true, message: "אנא הכנס את שם המשתמש!" }]}
                   >
                     <Input placeholder="שם המשתמש" />
                   </Form.Item>
@@ -156,11 +161,8 @@ export const LoginRegistration: React.FC = () => {
                     label="אימייל"
                     name="email"
                     rules={[
-                      { 
-                        required: true, 
-                        message: "אנא הכנס את האימייל שלך!",
-                        type: 'email' 
-                      }
+                      { required: true, message: "אנא הכנס את האימייל שלך!" },
+                      { type: "email", message: "האימייל אינו תקין!" },
                     ]}
                   >
                     <Input placeholder="אנא הכנס את האימייל שלך!" />
@@ -168,12 +170,7 @@ export const LoginRegistration: React.FC = () => {
                   <Form.Item
                     label="סיסמא"
                     name="password"
-                    rules={[
-                      {
-                        required: true,
-                        message: "אנא הכנס סיסמא!",
-                      },
-                    ]}
+                    rules={[{ required: true, message: "אנא הכנס סיסמא!" }]}
                   >
                     <Input.Password placeholder="צור סיסמא" />
                   </Form.Item>
@@ -182,18 +179,13 @@ export const LoginRegistration: React.FC = () => {
                     name="confirmPassword"
                     dependencies={["password"]}
                     rules={[
-                      {
-                        required: true,
-                        message: "אנא אשר את הסיסמא!",
-                      },
+                      { required: true, message: "אנא אשר את הסיסמא!" },
                       ({ getFieldValue }) => ({
                         validator(_, value) {
                           if (!value || getFieldValue("password") === value) {
                             return Promise.resolve();
                           }
-                          return Promise.reject(
-                            new Error("הסיסמאות אינן תואמות!")
-                          );
+                          return Promise.reject(new Error("הסיסמאות אינן תואמות!"));
                         },
                       }),
                     ]}
@@ -211,7 +203,6 @@ export const LoginRegistration: React.FC = () => {
           ]}
         />
 
-        {/* Social Media Login Section */}
         <Space
           direction="horizontal"
           style={{
@@ -221,21 +212,9 @@ export const LoginRegistration: React.FC = () => {
           }}
           align="center"
         >
-          <Button
-            icon={<GoogleOutlined />}
-            style={{ width: "30%" }}
-            size="large"
-          ></Button>
-          <Button
-            icon={<AppleOutlined />}
-            style={{ width: "30%" }}
-            size="large"
-          ></Button>
-          <Button
-            icon={<FacebookOutlined />}
-            style={{ width: "30%" }}
-            size="large"
-          ></Button>
+          <Button icon={<GoogleOutlined />} style={{ width: "30%" }} size="large"></Button>
+          <Button icon={<AppleOutlined />} style={{ width: "30%" }} size="large"></Button>
+          <Button icon={<FacebookOutlined />} style={{ width: "30%" }} size="large"></Button>
         </Space>
       </Space>
     </Space>
