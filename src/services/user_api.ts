@@ -22,6 +22,11 @@ export const loginUser = async (userData: {
   localStorage.setItem("grade", data.grade);
   localStorage.setItem("rank", data.rank);
   localStorage.setItem("userId", data._id);
+  localStorage.setItem("DateOfBirth", data.DateOfBirth);
+  localStorage.setItem("parent_email", data.parent_email);
+  localStorage.setItem("parent_name", data.parent_name);
+  localStorage.setItem("parent_phone", data.parent_phone);
+
 
   return data;
 };
@@ -47,7 +52,7 @@ export const endOfRegistration = async (userData: {
       headers: {
         Authorization: "jwt " + localStorage.getItem("accessToken"),
       },
-    }
+    }    
   );
 
   // Update localStorage with new data
@@ -58,6 +63,16 @@ export const endOfRegistration = async (userData: {
   });
 
   console.log("Updated data:", response.data);
+  localStorage.setItem("imageUrl", response.data.imageUrl);
+  localStorage.setItem("grade", response.data.grade);
+  localStorage.setItem("rank", response.data.rank);
+  localStorage.setItem("DateOfBirth", response.data.DateOfBirth);
+  localStorage.setItem("parent_email", response.data.parent_email);
+  localStorage.setItem("parent_name", response.data.parent_name);
+  localStorage.setItem("parent_phone", response.data.parent_phone);
+  localStorage.setItem("username", response.data.username);
+  
+  
   return response.data;
 };
 
@@ -96,7 +111,7 @@ const checkTokenExp = async () => {
         return;
       }
 
-      const newToken = await axios.post(`${baseUrl}/auth/refresh/`, {
+      const newToken = await axios.post(`${baseUrl}/user/refresh`, {
         refreshToken,
       });
       if (!newToken) {

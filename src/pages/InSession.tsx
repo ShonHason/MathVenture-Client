@@ -1,171 +1,141 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import Avatar3D from '../components/Avatar3D';
-import LessonButtons from '../components/LessonButtons';
 import Transcript from '../components/Transcript';
 import './InSession.css';
 
-// שימוש בכתובת ישירה למודל מהאינטרנט (דורסת את ה-CORS כי היא מאותו דומיין)
 const DIRECT_MODEL_URL = 'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb';
-
-// ממשק לתשובות מהצ'אט
-interface ChatResponse {
-  text: string;
-  question?: string;
-}
+const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 
 const InSession: React.FC = () => {
-  // מצב לתמלול הנוכחי
+  const [started, setStarted] = useState<boolean>(false);
   const [transcriptText, setTranscriptText] = useState<string>('');
-  // מצב לציון האם האווטאר מדבר
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
-  // מצב לטעינת תשובה מהצ'אט
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  // מצב לשאלה הנוכחית
-  const [currentQuestion, setCurrentQuestion] = useState<string>('');
-  
-  // פונקציה לקבלת תשובה מהצ'אט (סימולציה)
-  const fetchChatResponse = async (action: string, question?: string): Promise<ChatResponse> => {
-    setIsLoading(true);
-    
-    // סימולציה של זמן תגובה מהשרת
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        let response: ChatResponse;
-        
-        switch(action) {
-          case 'start':
-            response = {
-              text: 'שלום! אני כאן כדי לעזור לך בלימוד מתמטיקה. הנה שאלה ראשונה: כמה זה 3 + 2?',
-              question: '3 + 2 = ?'
-            };
-            break;
-          case 'time-out':
-            response = {
-              text: 'הפסקה קצרה. ניתן להמשיך בשיעור כשתהיה מוכן.',
-            };
-            break;
-          case 'explanation':
-            response = {
-              text: `בתרגיל ${currentQuestion || '3 + 2 = ?'} עליך לחבר את המספרים. חשוב על כמה זה אם יש לך 3 פריטים ואתה מוסיף עוד 2 פריטים.`,
-            };
-            break;
-          case 'slow':
-            response = {
-              text: `אסביר לאט יותר: בתרגיל ${currentQuestion || '3 + 2 = ?'}, אנחנו סופרים 3 פריטים ראשונים: אחד, שניים, שלושה. אחר כך אנחנו מוסיפים עוד 2 פריטים: ארבע, חמש. וביחד יש לנו 5 פריטים.`,
-            };
-            break;
-          case 'scan':
-            response = {
-              text: `בדקתי את התשובה שלך לשאלה ${currentQuestion || '3 + 2 = ?'}. יפה מאוד! התשובה נכונה - 5. הנה שאלה חדשה: כמה זה 4 + 3?`,
-              question: '4 + 3 = ?'
-            };
-            break;
-          case 'clean':
-            response = {
-              text: `הלוח נוקה. אתה יכול לנסות שוב את השאלה: ${currentQuestion || '3 + 2 = ?'}`,
-            };
-            break;
-          case 'end-lesson':
-            response = {
-              text: 'מסיים את השיעור. עבדת נהדר היום! השגת תוצאות טובות מאוד בפתרון תרגילי החיבור.',
-            };
-            break;
-          default:
-            response = {
-              text: 'לא הבנתי את הבקשה. האם תוכל לחזור עליה?',
-            };
-        }
-        
-        setIsLoading(false);
-        resolve(response);
-      }, 800); // זמן סימולציה של תשובה מהשרת
-    });
-  };
-  
-  // אפקט לטעינת שאלה ראשונית בעת טעינת הדף
-  useEffect(() => {
-    const loadInitialQuestion = async () => {
-      const response = await fetchChatResponse('start');
-      setTranscriptText(response.text);
-      if (response.question) {
-        setCurrentQuestion(response.question);
+  const [status, setStatus] = useState<string>('Idle');
+
+  // This function continuously listens for user speech and processes it.
+  const listenLoop = async () => {
+    try {
+      setStatus('Listening...');
+      // Call your STT endpoint to capture the user's speech.
+      const sttResponse = await axios.post(`${baseUrl}/api/speak`);
+      const userTranscript = sttResponse.data.transcript;
+      console.log("User transcript:", userTranscript);
+
+      if (userTranscript && userTranscript.trim().length > 0) {
+        setTranscriptText(`You said: ${userTranscript}`);
+
+        // Send the user's transcript to your chat endpoint.
+        setStatus('Processing your request...');
+        const chatResponse = await axios.post(`${baseUrl}/api/chat`, {
+          question: userTranscript,
+          context: '', // Optional: pass any context if needed
+        });
+        const aiText = chatResponse.data.answer;
+        console.log("AI answer:", aiText);
+        setTranscriptText(aiText);
+
+        // Convert the AI answer to speech via your TTS endpoint.
+        setStatus('Converting text to speech...');
+        const ttsResponse = await axios.post(`${baseUrl}/api/tts`,
+          { text: aiText },
+          { responseType: 'arraybuffer' }
+        );
+        const audioBlob = new Blob([ttsResponse.data], { type: 'audio/mp3' });
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+
+        // Animate the avatar while the audio plays.
+        setStatus('Speaking...');
+        setIsSpeaking(true);
+        audio.play().then(() => {
+          audio.onended = () => {
+            setIsSpeaking(false);
+            // After finishing the AI response, restart the listening loop.
+            listenLoop();
+          };
+        }).catch(error => {
+          console.error("Audio play failed:", error);
+        });
+      } else {
+        // If no speech was captured, simply loop again.
+        listenLoop();
       }
-    };
-    
-    loadInitialQuestion();
-    
-    // בדיקה אם האווטאר נראה
-    console.log("InSession component mounted");
-  }, []);
-  
-  // אפקט להתחלת דיבור עם כל שינוי בטקסט
-  useEffect(() => {
-    if (!transcriptText || isLoading) return;
-    
-    // מתחילים את אנימציית הדיבור
-    setIsSpeaking(true);
-    console.log("Speaking started");
-    
-    // מדמים זמן דיבור שמתאים לאורך הטקסט
-    const speakingTime = Math.min(10000, transcriptText.length * 80); // מקסימום 10 שניות
-    
-    const timer = setTimeout(() => {
-      setIsSpeaking(false);
-      console.log("Speaking stopped");
-    }, speakingTime);
-    
-    return () => clearTimeout(timer);
-  }, [transcriptText, isLoading]);
-  
-  // טיפול בפעולות מקומפוננטת הכפתורים
-  const handleButtonAction = async (action: string) => {
-    console.log(`פעולה שהתקבלה בדף InSession: ${action}`);
-    
-    // קבלת תשובה מהצ'אט בהתאם לפעולה
-    const response = await fetchChatResponse(action);
-    
-    // עדכון התמלול עם התשובה שהתקבלה
-    setTranscriptText(response.text);
-    
-    // אם יש שאלה חדשה, נעדכן אותה
-    if (response.question) {
-      setCurrentQuestion(response.question);
-    }
-    
-    // טיפול במקרים מיוחדים
-    if (action === 'end-lesson') {
+    } catch (error) {
+      console.error("Error in listenLoop:", error);
+      setStatus('Error occurred');
+      // Optionally try again after a delay.
       setTimeout(() => {
-        alert('השיעור הסתיים בהצלחה!');
-        // כאן אפשר להוסיף ניווט לעמוד אחר
-        // history.push('/lesson-completed');
-      }, 3000);
+        listenLoop();
+      }, 2000);
+    }
+  };
+
+  // Start the conversation only after the user clicks the button.
+  const startConversation = async () => {
+    setStarted(true);
+    try {
+      setIsLoading(true);
+      setStatus('Greeting...');
+      // Define a constant greeting message.
+      const greeting = "we love you rani so much";
+      console.log("Greeting message:", greeting);
+
+      // Convert the greeting to speech using your TTS endpoint.
+      const ttsResponse = await axios.post(
+        `${baseUrl}/api/tts`,
+        { text: greeting },
+        { responseType: 'arraybuffer' }
+      );
+      const audioBlob = new Blob([ttsResponse.data], { type: 'audio/mp3' });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      const audio = new Audio(audioUrl);
+
+      setStatus('Speaking greeting...');
+      setIsSpeaking(true);
+      audio.play().then(() => {
+        audio.onended = () => {
+          setIsSpeaking(false);
+          // After greeting, start listening for the user automatically.
+          listenLoop();
+        };
+      }).catch(error => {
+        console.error("Audio play failed:", error);
+      });
+    } catch (error) {
+      console.error("Error during greeting:", error);
+      setStatus('Error during greeting');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="in-session-page">
-      <div className="session-container">
-        {/* אזור האווטאר והתמלול */}
-        <div className="chat-area">
-          <Avatar3D 
-            modelSrc={DIRECT_MODEL_URL}
-            isSpeaking={isSpeaking} 
-            speech={transcriptText} 
-            fallbackImageSrc="https://via.placeholder.com/300/f0f0f0/333?text=Avatar"
-          />
-          <Transcript text={transcriptText} isLoading={isLoading} />
+      {!started ? (
+        <div className="start-container">
+          <button onClick={startConversation}>
+            Start Conversation
+          </button>
         </div>
-        
-        {/* קומפוננטת הכפתורים עם טיפול בפעולות */}
-        <LessonButtons onActionPerformed={handleButtonAction} />
-        
-        {/* אזור הגריד לכתיבת תשובות */}
-        <div className="answer-grid">
-          {currentQuestion && (
-            <div className="current-question">{currentQuestion}</div>
-          )}
+      ) : (
+        <div className="session-container">
+          <div className="chat-area">
+            <Avatar3D
+              modelSrc={DIRECT_MODEL_URL}
+              isSpeaking={isSpeaking}
+              speech={transcriptText}
+              fallbackImageSrc="https://via.placeholder.com/300/f0f0f0/333?text=Avatar"
+            />
+            <Transcript text={transcriptText} isLoading={isLoading} />
+          </div>
+          {/* Status display for debugging */}
+          <div className="status-display">
+            <p>Status: {status}</p>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
