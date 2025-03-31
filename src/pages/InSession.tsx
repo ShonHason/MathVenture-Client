@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Avatar3D from '../components/Avatar3D';
 import Transcript from '../components/Transcript';
+import DrawableMathNotebook from '../components/DrawableMathNotebook';
+import LessonButtons from '../components/LessonButtons'; // Import your LessonButtons component
 import './InSession.css';
 
 const DIRECT_MODEL_URL = 'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb';
@@ -14,7 +16,7 @@ const InSession: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [status, setStatus] = useState<string>('Idle');
 
-  // This function continuously listens for user speech and processes it.
+  // Function to continuously listen for user speech and process it.
   const listenLoop = async () => {
     try {
       setStatus('Listening...');
@@ -30,15 +32,16 @@ const InSession: React.FC = () => {
         setStatus('Processing your request...');
         const chatResponse = await axios.post(`${baseUrl}/api/chat`, {
           question: userTranscript,
-          context: '', // Optional: pass any context if needed
+          context: '', // Optional context
         });
         const aiText = chatResponse.data.answer;
         console.log("AI answer:", aiText);
         setTranscriptText(aiText);
 
-        // Convert the AI answer to speech via your TTS endpoint.
+        // Convert the AI answer to speech using your TTS endpoint.
         setStatus('Converting text to speech...');
-        const ttsResponse = await axios.post(`${baseUrl}/api/tts`,
+        const ttsResponse = await axios.post(
+          `${baseUrl}/api/tts`,
           { text: aiText },
           { responseType: 'arraybuffer' }
         );
@@ -59,30 +62,32 @@ const InSession: React.FC = () => {
           console.error("Audio play failed:", error);
         });
       } else {
-        // If no speech was captured, simply loop again.
+        // If no speech was captured, loop again.
         listenLoop();
       }
     } catch (error) {
       console.error("Error in listenLoop:", error);
       setStatus('Error occurred');
-      // Optionally try again after a delay.
+      // Optionally retry after a delay.
       setTimeout(() => {
         listenLoop();
       }, 2000);
     }
   };
 
-  // Start the conversation only after the user clicks the button.
+  // Start the conversation only after the user clicks the start button.
   const startConversation = async () => {
     setStarted(true);
     try {
       setIsLoading(true);
       setStatus('Greeting...');
-      // Define a constant greeting message.
-      const greeting = "we love you rani so much";
+      const name = localStorage.getItem("username") || "User"; // Retrieve username from localStorage
+      
+      // Define a personalized greeting message.
+      const greeting = `שלום ${name}, אני המורה הפרטי שלך להיום, היום נדבר על חוקי חיבור וחיסור`;
       console.log("Greeting message:", greeting);
 
-      // Convert the greeting to speech using your TTS endpoint.
+      // Convert the greeting to speech via your TTS endpoint.
       const ttsResponse = await axios.post(
         `${baseUrl}/api/tts`,
         { text: greeting },
@@ -97,7 +102,7 @@ const InSession: React.FC = () => {
       audio.play().then(() => {
         audio.onended = () => {
           setIsSpeaking(false);
-          // After greeting, start listening for the user automatically.
+          // After greeting, start listening automatically.
           listenLoop();
         };
       }).catch(error => {
@@ -111,11 +116,19 @@ const InSession: React.FC = () => {
     }
   };
 
+  // Helper button to reset the conversation.
+  const resetConversation = () => {
+    setStarted(false);
+    setTranscriptText('');
+    setIsSpeaking(false);
+    setStatus('Idle');
+  };
+
   return (
     <div className="in-session-page">
       {!started ? (
         <div className="start-container">
-          <button onClick={startConversation}>
+          <button onClick={startConversation} className="start-button">
             Start Conversation
           </button>
         </div>
@@ -130,10 +143,22 @@ const InSession: React.FC = () => {
             />
             <Transcript text={transcriptText} isLoading={isLoading} />
           </div>
-          {/* Status display for debugging */}
+          {/* Display LessonButtons component */}
+          <div className="lesson-buttons-area">
+            <LessonButtons />
+          </div>
+          {/* Grid area for status and helper buttons */}
           <div className="status-display">
             <p>Status: {status}</p>
           </div>
+          <div className="helper-buttons">
+            <button onClick={resetConversation} className="reset-button">
+              Reset Conversation
+            </button>
+            {/* Additional helper buttons can be added here */}
+          </div>
+          {/* Math Notebook Grid at the bottom */}
+          <DrawableMathNotebook question={'wow'}  />
         </div>
       )}
     </div>
