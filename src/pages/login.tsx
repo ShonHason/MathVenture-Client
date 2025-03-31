@@ -1,5 +1,5 @@
 import React from "react";
-import { Form, Input, Button, Tabs, Typography, Space } from "antd";
+import { Form, Input, Button, Tabs, Typography, Space, message } from "antd";
 import {
   GoogleOutlined,
   AppleOutlined,
@@ -7,35 +7,55 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import full_logo from "../images/full_logo.png";
-import register from "../services/user_api";
+import  register  from "../services/user_api"; // Adjusted to destructure the register method
 
 const { Title } = Typography;
 
-interface FormValues {
+interface LoginFormValues {
+  parent_email: string;
+  password: string;
+}
+
+interface RegisterFormValues {
+  username: string;
   email: string;
   password: string;
-  name?: string;
-  confirmPassword?: string;
+  confirmPassword: string;
 }
 
 export const LoginRegistration: React.FC = () => {
+  const [loginForm] = Form.useForm();
+  const [registerForm] = Form.useForm();
   const navigate = useNavigate();
 
-  const onLoginFinish = (values: FormValues) => {
-    console.log("Login Success:", values);
+  const onLoginFinish = async (values: LoginFormValues) => {
+    try {
+      console.log("Login Success:", values);
+      // Add your login logic here
+      // navigate("/dashboard") or handle login
+    } catch (error) {
+      message.error("Login failed");
+    }
   };
 
-  const onRegisterFinish = (values: FormValues) => {
-    const { confirmPassword, ...registrationData } = values;
-    console.log("Registration Success:", registrationData);
-    const mappedData = {
-      email: registrationData.email,
-      username: registrationData.name || "",
-      password: registrationData.password,
-    };
-    const response = register.register(mappedData);
-
-    navigate("/quiz");
+  const onRegisterFinish = async (values: RegisterFormValues) => {
+    try {
+      const { confirmPassword, ...registrationData } = values;
+      console.log("Registration Success:", registrationData);
+      
+      const mappedData = {
+        email: registrationData.email,
+        password: registrationData.password,
+        username: registrationData.username,
+      };
+      
+      await register.register(mappedData); // Explicitly calling the register method
+      message.success("Registration successful");
+      navigate("/quiz");
+    } catch (error) {
+      message.error("Registration failed");
+      console.error(error);
+    }
   };
 
   return (
@@ -67,9 +87,6 @@ export const LoginRegistration: React.FC = () => {
             style={{ width: "300px", height: "auto" }}
           />
         </Title>
-        {/* <Title level={2} style={{ textAlign: "center" }}>
-          Welcome to Mathventure!{" "}
-        </Title> */}
         <Title level={2} style={{ textAlign: "center" }}>
           !ברוכים הבאים למטיברס
         </Title>
@@ -83,7 +100,12 @@ export const LoginRegistration: React.FC = () => {
               key: "1",
               label: "התחברות",
               children: (
-                <Form name="login" onFinish={onLoginFinish} layout="vertical">
+                <Form 
+                  form={loginForm}
+                  name="login" 
+                  onFinish={onLoginFinish} 
+                  layout="vertical"
+                >
                   <Form.Item
                     label="אימייל"
                     name="parent_email"
@@ -118,6 +140,7 @@ export const LoginRegistration: React.FC = () => {
               label: "הרשמה",
               children: (
                 <Form
+                  form={registerForm}
                   name="register"
                   onFinish={onRegisterFinish}
                   layout="vertical"
@@ -132,7 +155,13 @@ export const LoginRegistration: React.FC = () => {
                   <Form.Item
                     label="אימייל"
                     name="email"
-                    rules={[{ required: true, message: "" }]}
+                    rules={[
+                      { 
+                        required: true, 
+                        message: "אנא הכנס את האימייל שלך!",
+                        type: 'email' 
+                      }
+                    ]}
                   >
                     <Input placeholder="אנא הכנס את האימייל שלך!" />
                   </Form.Item>
@@ -186,25 +215,25 @@ export const LoginRegistration: React.FC = () => {
         <Space
           direction="horizontal"
           style={{
-            width: "75%",
+            width: "100%",
             marginTop: "20px",
             justifyContent: "space-between",
-          }} // horizontal layout
+          }}
           align="center"
         >
           <Button
             icon={<GoogleOutlined />}
-            style={{ width: "700%" }}
+            style={{ width: "30%" }}
             size="large"
           ></Button>
           <Button
             icon={<AppleOutlined />}
-            style={{ width: "700%" }}
+            style={{ width: "30%" }}
             size="large"
           ></Button>
           <Button
             icon={<FacebookOutlined />}
-            style={{ width: "700%" }}
+            style={{ width: "30%" }}
             size="large"
           ></Button>
         </Space>

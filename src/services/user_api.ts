@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseUrl = process.env.SERVER_API_URL;
+const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 
 // התחברות ושמירת מידע מהשרת ל-localStorage
 export const loginUser = async (userData: {
@@ -30,7 +30,7 @@ export const loginUser = async (userData: {
   return data;
 }
 
-export const updateUser = async (userData: {
+export const endOfRegistration = async (userData: {
   userId?: string;
   imageUrl?: string;
   grade?: string;
@@ -39,11 +39,14 @@ export const updateUser = async (userData: {
   parent_email?: string;
   parent_name?: string;
   parent_phone?: string;
+
   // ... כל שדה אחר שאתה עשוי לרצות לשלוח
 }) => {
   // שליחת כל הנתונים ישירות לבאקאנד ללא בדיקה
+  console.log("baseUrl : " + baseUrl)
+  console.log("Sending user data:", userData);
   const response = await axios.put(
-    `${process.env.API_URL}/user/endOfRegistration`,
+    `${baseUrl}/user/endOfRegistration`,
     userData,
     {
       headers: {
@@ -64,18 +67,19 @@ export const updateUser = async (userData: {
 
 };
 
-const register = async (userDate: {
-  email : string;
-  username : string;
-  password: string;
+  const register = async (userData: {
+    email : string;
+    password : string;
+    username : string;
+  }) => {
+    const respone = await axios.post(`${baseUrl}/user/register`, userData); // תיקון סוגריים
+    console.log("Registration response:", respone.data);
+    localStorage.setItem("accessToken", respone.data.accessToken);
+    localStorage.setItem("email", respone.data.email);
+    localStorage.setItem("refreshToken", respone.data.refreshToken);
+    localStorage.setItem("userId", respone.data._id);
 
-}) => {
-  const respone = await axios.post(`${baseUrl}/user/register`);
-  localStorage.setItem("userId", respone.data._id);
-  localStorage.setItem("email", respone.data.email);
-  localStorage.setItem("refreshToken", respone.data.refreshToken);
-  localStorage.setItem("accessToken", respone.data.accessToken);
-};
+  };
 
 const checkTokenExp = async () => {
   console.log("Checking Refresh token...");
@@ -159,7 +163,7 @@ const logout = async () => {
 
 export default {
   loginUser,
-  updateUser,
+  endOfRegistration,
   register,
   deleteUser,
   logout,

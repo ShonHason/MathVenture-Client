@@ -1,10 +1,10 @@
 import axios from "axios";
-const baseUrl = process.env.SERVER_API_URL;
+const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 
 export const getAllLessonsByUserId = async (
   userId: string
 ): Promise<string[]> => {
-  const response = await axios.get(`${process.env.API_URL}/lessons/${userId}`, {
+  const response = await axios.get(`${baseUrl}/lessons/${userId}`, {
     headers: {
       Authorization: "jwt " + localStorage.getItem("accessToken"),
     },
@@ -15,7 +15,7 @@ export const getCurrentSubjectList = async (
   userId: string
 ): Promise<string[]> => {
   const response = await axios.get(
-    `${process.env.API_URL}/subjects/${userId}`,
+    `${baseUrl}/subjects/${userId}`,
     {
       headers: {
         Authorization: "jwt " + localStorage.getItem("accessToken"),
@@ -61,6 +61,26 @@ export const updateCurrentSubjectList = async (
 
 
 
+const startLesson = async (userSubject: {
+  subject: string;
+}) => {  
+
+  const userData = {
+    userId: localStorage.getItem("userId"),
+    grade: localStorage.getItem("grade"),
+    rank : localStorage.getItem("rank"),
+    subject: userSubject.subject,
+  };  
+
+  const accessToken = localStorage.getItem("accessToken");
+  const response = await axios.post(`${process.env.API_URL}/lessons/start`, userData, {
+    headers: {
+      Authorization: "jwt " + accessToken,  // השתמשתי במשתנה במקום לקרוא שוב מ-localStorage
+    },
+  });
+  console.log("response", response.data);
+  return response.data;
+};
 
 
 //const getDynamicQuestion 
