@@ -7,6 +7,7 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import full_logo from "../images/full_logo.png";
+import register from "../services/user_api";
 
 const { Title } = Typography;
 
@@ -25,7 +26,15 @@ export const LoginRegistration: React.FC = () => {
   };
 
   const onRegisterFinish = (values: FormValues) => {
-    console.log("Registration Success:", values);
+    const { confirmPassword, ...registrationData } = values;
+    console.log("Registration Success:", registrationData);
+    const mappedData = {
+      email: registrationData.email,
+      username: registrationData.name || "",
+      password: registrationData.password,
+    };
+    const response = register.register(mappedData);
+
     navigate("/quiz");
   };
 
@@ -77,7 +86,7 @@ export const LoginRegistration: React.FC = () => {
                 <Form name="login" onFinish={onLoginFinish} layout="vertical">
                   <Form.Item
                     label="אימייל"
-                    name="email"
+                    name="parent_email"
                     rules={[
                       { required: true, message: "אנא הכנס את האימייל שלך!" },
                     ]}
@@ -114,11 +123,11 @@ export const LoginRegistration: React.FC = () => {
                   layout="vertical"
                 >
                   <Form.Item
-                    label="שם ההורה"
-                    name="name"
-                    rules={[{ required: true, message: "אנא הכנס את שמך!" }]}
+                    label="שם המשתמש"
+                    name="username"
+                    rules={[{ required: true, message: "אנא הכנס את שם  המשתמש!" }]}
                   >
-                    <Input placeholder="שם ההורה" />
+                    <Input placeholder="שם המשתמש" />
                   </Form.Item>
                   <Form.Item
                     label="אימייל"

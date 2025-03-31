@@ -10,7 +10,7 @@ export const loginUser = async (userData: {
   console.log("Logging in with:", userData);
 
   const response = await axios.post(
-    `${process.env.API_URL}/auth/login`,
+    `${process.env.API_URL}/user/login`,
     userData
   );
 
@@ -31,44 +31,20 @@ export const loginUser = async (userData: {
 }
 
 export const updateUser = async (userData: {
-  email: string;
-  password: string;
-  username: string;
-  imageUrl: string;
-  grade: string;
-  rank: string;
+  userId?: string;
+  imageUrl?: string;
+  grade?: string;
+  rank?: string;
+  DateOfBirth?: string;
+  parent_email?: string;
+  parent_name?: string;
+  parent_phone?: string;
+  // ... כל שדה אחר שאתה עשוי לרצות לשלוח
 }) => {
-  // שליפת ערכים קיימים מה-localStorage
-  const oldData = {
-    email: localStorage.getItem("email") || "",
-    username: localStorage.getItem("username") || "",
-    imageUrl: localStorage.getItem("imageUrl") || "",
-    grade: localStorage.getItem("grade") || "",
-    rank: localStorage.getItem("rank") || "",
-  };
-
-  // בדיקה אילו שדות השתנו
-  const changedFields: Record<string, string> = {};
-  Object.entries(userData).forEach(([key, newValue]) => {
-    const oldValue = oldData[key as keyof typeof oldData];
-    if (newValue && newValue !== oldValue) {
-      changedFields[key] = String(newValue);
-    }
-  })
-
-  // תמיד נשלח סיסמה אם קיימת
-  if (userData.password) {
-    changedFields.password = userData.password;
-  }
-
-  if (Object.keys(changedFields).length === 0) {
-    console.log("No changes detected.");
-    return { message: "No changes" };
-  }
-
+  // שליחת כל הנתונים ישירות לבאקאנד ללא בדיקה
   const response = await axios.put(
-    `${process.env.API_URL}/auth/update`,
-    changedFields,
+    `${process.env.API_URL}/user/endOfRegistration`,
+    userData,
     {
       headers: {
         Authorization: "jwt " + localStorage.getItem("accessToken"),
@@ -77,29 +53,26 @@ export const updateUser = async (userData: {
   );
 
   // עדכון ה-localStorage עם הערכים החדשים
-  Object.entries(changedFields).forEach(([key, value]) => {
-    localStorage.setItem(key, String(value));
+  Object.entries(userData).forEach(([key, value]) => {
+    if (value !== undefined) {
+      localStorage.setItem(key, String(value));
+    }
   });
 
   console.log("Updated data:", response.data);
   return response.data;
+
 };
+
 const register = async (userDate: {
-  username: string;
-  email: string;
+  email : string;
+  username : string;
   password: string;
-  parent_email: string;
-  parent_phone: string;
-  grade: string;
-  rank: string;
+
 }) => {
-  const respone = await axios.post(`${baseUrl}/register`);
-  localStorage.setItem("userId", respone.data.userId);
-  localStorage.setItem("username", respone.data.username);
-  localStorage.setItem("rank", respone.data.rank);
-  localStorage.setItem("grade", respone.data.grade);
+  const respone = await axios.post(`${baseUrl}/user/register`);
+  localStorage.setItem("userId", respone.data._id);
   localStorage.setItem("email", respone.data.email);
-  localStorage.setItem("parent_email", respone.data.parent_email);
   localStorage.setItem("refreshToken", respone.data.refreshToken);
   localStorage.setItem("accessToken", respone.data.accessToken);
 };
@@ -151,7 +124,7 @@ const deleteUser = async () => {
 const accessToken = localStorage.getItem("accessToken");
 const userId = localStorage.getItem("userId");
 
-const response = await axios.delete(`${baseUrl}/deleteUser`, {
+const response = await axios.delete(`${baseUrl}/user/deleteUser`, {
     params: { userId: userId },
     headers: {
       Authorization: "jwt " + accessToken,
@@ -165,7 +138,7 @@ const logout = async () => {
 
   try {
     const response = await axios.post(
-      `${baseUrl}/logout`,
+      `${baseUrl}/user/logout`,
       { userId: userId },
       {
         headers: {
@@ -184,5 +157,11 @@ const logout = async () => {
     
 }
 
-
+export default {
+  loginUser,
+  updateUser,
+  register,
+  deleteUser,
+  logout,
+};
 
