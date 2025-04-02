@@ -13,10 +13,8 @@ const StartLessons: React.FC = () => {
 
   const handleStartLesson = (topic: Topic) => {
     console.log("Starting lesson:", topic);
-    navigate(`/home/start-lessons/${encodeURIComponent(topic.subject)}`, {
-      state: { topic },
-    });
-    // שליחה לניווט או שמירה ב-localStorage
+    // Navigate to the InSession page and pass the topic in the state.
+    navigate("/lessons", { state: { topic } });
   };
 
   return (

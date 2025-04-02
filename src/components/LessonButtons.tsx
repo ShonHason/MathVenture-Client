@@ -18,13 +18,6 @@ const LessonButtons: React.FC<LessonButtonsProps> = ({ onActionPerformed }) => {
       case 'slow':
         console.log('הסבר איטי יותר');
         break;
-      case 'scan':
-        console.log('סורק את הלוח');
-        openScanner();
-        break;
-      case 'clean':
-        console.log('ניקוי הלוח');
-        break;
       case 'end-lesson':
         console.log('סיימת את השיעור');
         break;
@@ -53,12 +46,6 @@ const LessonButtons: React.FC<LessonButtonsProps> = ({ onActionPerformed }) => {
       </button>
       <button className="button black-button" onClick={() => handleButtonClick('slow')}>
         לאט יותר
-      </button>
-      <button className="button" onClick={() => handleButtonClick('scan')}>
-        לסריקת הלוח
-      </button>
-      <button className="button" onClick={() => handleButtonClick('clean')}>
-        ניקוי לוח
       </button>
       <button className="button" onClick={() => handleButtonClick('end-lesson')}>
         סיים שיעור

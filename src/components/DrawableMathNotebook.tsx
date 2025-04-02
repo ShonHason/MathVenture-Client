@@ -92,13 +92,28 @@ const DrawableMathNotebook: React.FC<DrawableMathNotebookProps> = ({ question })
     drawGrid(ctx, canvas.width, canvas.height);
   };
 
+  // פונקציה לטיפול בלחצן סריקה
+  const handleScan = () => {
+    console.log('לחצן סריקה נלחץ');
+    // כאן ניתן להוסיף את הלוגיקה לביצוע סריקה
+  };
+
   return (
     <div className="drawable-notebook-container">
-      <div className="question-placeholder">{question}</div>
-      <canvas ref={canvasRef} className="drawable-canvas" />
-      <button onClick={handleClearCanvas} className="clear-canvas-button">
-        נקה ציור
-      </button>
+      <div className="canvas-container">
+        <canvas ref={canvasRef} className="drawable-canvas" />
+        {/* השאלה מוצגת על המשטח */}
+        <div className="question-overlay">{question}</div>
+        {/* קבוצת לחצנים מופיעה על המשטח בתחתית */}
+        <div className="button-group">
+          <button onClick={handleScan} className="scan-button">
+            סריקה
+          </button>
+          <button onClick={handleClearCanvas} className="clear-canvas-button">
+            נקה ציור
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
