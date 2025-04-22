@@ -61,26 +61,29 @@ export const updateCurrentSubjectList = async (
 
 
 
-const startLesson = async (userSubject: {
-  subject: string;
-}) => {  
-
+export const startLesson = async (userSubject: { subject: string }) => {
   const userData = {
     userId: localStorage.getItem("userId"),
-    grade: localStorage.getItem("grade"),
-    rank : localStorage.getItem("rank"),
+    grade:   localStorage.getItem("grade"),
+    rank:    localStorage.getItem("rank"),
+    username: localStorage.getItem("username"),
     subject: userSubject.subject,
-  };  
+  };
 
   const accessToken = localStorage.getItem("accessToken");
-  const response = await axios.post(`${process.env.API_URL}/lessons/start`, userData, {
-    headers: {
-      Authorization: "jwt " + accessToken,  // השתמשתי במשתנה במקום לקרוא שוב מ-localStorage
-    },
-  });
-  console.log("response", response.data);
+  const response = await axios.post(
+    `${baseUrl}/lessons/start`,
+    userData,
+    {
+      headers: {
+        Authorization: "jwt " + accessToken,
+      },
+    }
+  );
+
   return response.data;
 };
+
 
 
 //const getDynamicQuestion 

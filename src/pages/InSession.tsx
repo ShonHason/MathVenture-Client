@@ -8,7 +8,7 @@ import LessonButtons from '../components/LessonButtons';
 import RealTimeRecorder from '../components/RealTimeRecorder';
 import AudioUnlocker from '../components/AudioUnlocker';
 import './InSession.css';
-
+import { startLesson } from '../services/lessons_api'; 
 const DIRECT_MODEL_URL = 'https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb';
 const socketServerUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 
@@ -20,18 +20,20 @@ const InSession: React.FC = () => {
   const [userTranscript, setUserTranscript] = useState<string>('');
   const [aiTranscript, setAiTranscript] = useState<string>('');
 
-  // Other states.
+  // Other states.     
   const [processing, setProcessing] = useState<boolean>(false);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [status, setStatus] = useState<string>('לחץ "התחל שיחה" כדי לפתוח את השיחה');
   const [listening, setListening] = useState<boolean>(false);
   const [hasStarted, setHasStarted] = useState<boolean>(false);
+  
+  // New state to store lesson information.
+  const [lesson, setLesson] = useState<string>(" ");
 
-  // Reference for the silence timer (only monitoring userTranscript).
+  // Reference for the silence timer.
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Whenever userTranscript updates (and if conversation has started & we're not processing), reset the silence timer.
   useEffect(() => {
     if (!hasStarted) return;
     if (processing) return;
@@ -49,21 +51,20 @@ const InSession: React.FC = () => {
     };
   }, [userTranscript, processing, hasStarted]);
 
-  // Process the userTranscript: send to chat endpoint, generate TTS audio, then play it.
+  // Process the userTranscript function remains unchanged.
   const processTranscript = async (input: string) => {
     try {
       setProcessing(true);
       setStatus('מעבד את הבקשה שלך...');
-      // Clear user input so that it won't trigger further processing.
-      setUserTranscript('');
-
-      // Send the user input to your chat endpoint.
+      setUserTranscript(''); 
       const chatResponse = await axios.post(`${socketServerUrl}/api/chat`, {
         question: input,
         context: topic || {},
+        lessonId: lesson, // Example usage if lesson id is needed
       });
+      console.log("lessonid:",lesson)
       const aiText: string = chatResponse.data.answer;
-      setAiTranscript(aiText); // Display the AI answer.
+      setAiTranscript(aiText);
 
       setStatus('ממיר טקסט לדיבור...');
       const ttsResponse = await axios.post(
@@ -77,7 +78,6 @@ const InSession: React.FC = () => {
 
       setStatus('מדבר...');
       setIsSpeaking(true);
-      // This play() call should now succeed because the user already clicked "Start Conversation".
       audio.play().then(() => {
         audio.onended = () => {
           setIsSpeaking(false);
@@ -96,22 +96,40 @@ const InSession: React.FC = () => {
     }
   };
 
-  // Handle the first user interaction that starts the conversation.
-  const handleStartConversation = () => {
-    // Unlock the audio context.
-    if (window.AudioContext) {
-      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-      const audioCtx = new AudioContext();
-      if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-    }
+  // Updated handleStartConversation function that saves newLesson in state.
+ // wherever you keep your API helpers
+
+// inside your component
+const handleStartConversation = async () => {
+  try {
+    setStatus('מנסה להתחיל...');
+
+    // call your shared helper, passing along the subject
+    const lesson = await startLesson({
+      subject: JSON.stringify(topic.subject),
+    });
+
+    console.log("lesson created:", lesson);
+    setLesson(lesson._id);        // Save the lesson ID
     setHasStarted(true);
     setListening(true);
     setStatus('מקשיב...');
-  };
 
-  // Reset conversation state.
+    // resume AudioContext if needed
+    if (window.AudioContext || (window as any).webkitAudioContext) {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      const audioCtx = new AudioContext();
+      if (audioCtx.state === 'suspended') {
+        await audioCtx.resume();
+      }
+    }
+  } catch (error) {
+    console.error('Error starting conversation:', error);
+    setStatus('שגיאה בהתחלת השיחה');
+  }
+};
+
+
   const resetConversation = () => {
     setUserTranscript('');
     setAiTranscript('');
@@ -137,7 +155,8 @@ const InSession: React.FC = () => {
     );
   }
 
-  // Once started, render the full conversation interface.
+  // The rest of your component can now use `lesson` for additional features.
+  // For example, you can display lesson details or pass them down as props.
   return (
     <div className="in-session-page">
       <AudioUnlocker />
@@ -146,7 +165,6 @@ const InSession: React.FC = () => {
           <Avatar3D
             modelSrc={DIRECT_MODEL_URL}
             isSpeaking={isSpeaking}
-            // Display either the AI answer or the user input.
             speech={aiTranscript || userTranscript}
             fallbackImageSrc="https://via.placeholder.com/300/f0f0f0/333?text=Avatar"
           />
@@ -154,7 +172,7 @@ const InSession: React.FC = () => {
           {listening && <RealTimeRecorder onTranscript={setUserTranscript} />}
         </div>
         <div className="lesson-buttons-area">
-          <LessonButtons />
+          <LessonButtons /> {/* Pass lesson to child component if needed */}
         </div>
         <div className="status-display">
           <p>סטטוס: {status}</p>
