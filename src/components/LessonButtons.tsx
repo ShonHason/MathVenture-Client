@@ -1,53 +1,64 @@
+// src/components/LessonButtons.tsx
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useLessons } from '../context/LessonsContext';
 import './LessonButtons.css';
 
 interface LessonButtonsProps {
-  onActionPerformed?: (action: string) => void;
+  lessonId: string;
 }
 
-const LessonButtons: React.FC<LessonButtonsProps> = ({ onActionPerformed }) => {
-  const handleButtonClick = (action: string) => {
-    // טיפול מקומי בלחיצה על כפתור
-    switch (action) {
-      case 'time-out':
-        console.log('הפסקה');
-        break;
-      case 'explanation':
-        console.log('הסבר נוסף');
-        break;
-      case 'slow':
-        console.log('הסבר איטי יותר');
-        break;
-      case 'end-lesson':
-        console.log('סיימת את השיעור');
-        break;
-      default:
-        console.log('פעולה לא מוכרת');
-    }
-    
-    // העברת הפעולה לקומפוננטת האב אם נדרש
-    if (onActionPerformed) {
-      onActionPerformed(action);
-    }
-  };
+const LessonButtons: React.FC<LessonButtonsProps> = ({ lessonId }) => {
+  const navigate = useNavigate();
+  const { setTopics } = useLessons();
 
-  const openScanner = () => {
-    // כאן יוכל להיות הקוד שפותח את אפשרות העלאת תמונה או סריקה עם המצלמה
-    console.log('הסריקה החלה!');
+  // Base URL of your backend (adjust or move to env)
+  const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:4000';
+
+  const handleFinishLesson = async () => {
+    try {
+      // 1) Update lesson endTime on the server
+      const patchRes = await fetch(
+        `${API_BASE}/lessons/${lessonId}`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ endTime: new Date().toISOString() }),
+        }
+      );
+      if (!patchRes.ok) {
+        throw new Error(`Server responded ${patchRes.status}`);
+      }
+
+      // 2) Refresh the user's lessons list
+      const userId = localStorage.getItem('userId');
+      if (userId) {
+        const listRes = await fetch(`${API_BASE}/lessons/users/${userId}`);
+        if (!listRes.ok) throw new Error(`Fetch lessons failed: ${listRes.status}`);
+        const updatedLessons = await listRes.json();
+        setTopics(updatedLessons);
+      }
+
+      // 3) Navigate back to lessons overview
+      navigate('/home/lessons');
+    } catch (err) {
+      console.error('Error finishing lesson:', err);
+      alert('לא הצלחנו לסיים את השיעור. נסה שוב.');
+    }
   };
 
   return (
     <div className="button-container">
-      <button className="button" onClick={() => handleButtonClick('time-out')}>
+      <button className="button" onClick={() => navigate(-1)}>
         הפסקה
       </button>
-      <button className="button" onClick={() => handleButtonClick('explanation')}>
+      <button className="button" onClick={() => alert('הסבר נוסף...')}>
         הסבר נוסף
       </button>
-      <button className="button black-button" onClick={() => handleButtonClick('slow')}>
+      <button className="button black-button" onClick={() => alert('למד לאט יותר...')}>
         לאט יותר
       </button>
-      <button className="button" onClick={() => handleButtonClick('end-lesson')}>
+      <button className="button" onClick={handleFinishLesson}>
         סיים שיעור
       </button>
     </div>

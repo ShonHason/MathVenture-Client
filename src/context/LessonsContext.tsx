@@ -1,38 +1,48 @@
-import { createContext } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+} from "react";
 
-export interface Question {
-  question: string;
-  options: string[];
-  correctAnswer: string;
-}
-
+// 1. Export the Topic shape (including optional _id for resumed lessons)
 export interface Topic {
+  _id?: string;
   subject: string;
   grade: string;
   rank: number;
-  questions: Question[];
+  // you can add questions here if you like:
+  questions?: any[];
 }
 
-export interface LessonsContextType {
+// 2. Define what the hook will provide
+interface LessonsContextType {
   topics: Topic[];
   setTopics: React.Dispatch<React.SetStateAction<Topic[]>>;
 }
 
-const LessonsContext = createContext<LessonsContextType | null>(null);
+// 3. Create the context
+const LessonsContext = createContext<LessonsContextType | undefined>(
+  undefined
+);
 
-export default LessonsContext;
+// 4. Provider component
+export const LessonsProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const [topics, setTopics] = useState<Topic[]>([]);
+  return (
+    <LessonsContext.Provider value={{ topics, setTopics }}>
+      {children}
+    </LessonsContext.Provider>
+  );
+};
 
-// import { createContext, Dispatch, SetStateAction } from "react";
-
-// export interface LessonsContextType {
-//   // onLessons: () => void;
-//   // isMenuLessonsActive: boolean;
-//   // setIsMenuLessonsActive: React.Dispatch<React.SetStateAction<boolean>>;
-//   topics: string[]; // Add topics state
-//   setTopics: React.Dispatch<React.SetStateAction<string[]>>; // Add setTopics function
-// }
-
-// // Provide a default value for TypeScript, even if it is temporary
-// const LessonsContext = createContext<LessonsContextType | null>(null);
-
-// export default LessonsContext;
+// 5. Custom hook for consuming
+export function useLessons(): LessonsContextType {
+  const ctx = useContext(LessonsContext);
+  if (!ctx) {
+    throw new Error("`useLessons` must be used within a `LessonsProvider`");
+  }
+  return ctx;
+}

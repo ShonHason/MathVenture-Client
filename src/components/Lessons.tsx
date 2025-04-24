@@ -1,34 +1,38 @@
-import React, { useContext } from "react";
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useLessons } from "../context/LessonsContext";
 import "./Lessons.css";
-import LessonsContext from "../context/LessonsContext";
 
 const Lessons: React.FC = () => {
-  const lessonsContext = useContext(LessonsContext);
-
-  if (!lessonsContext) return null;
-
-  const { topics } = lessonsContext;
+  const { topics } = useLessons();
+  const navigate = useNavigate();
 
   return (
     <div className="lessons-container">
       <div className="lessons-header">
-        <span>נושא השיעור</span>
+        <span>נושא</span>
         <span>כיתה</span>
-        <span>רמת קושי</span>
+        <span>רמה</span>
         <span>פעולה</span>
       </div>
+
       {topics.length > 0 ? (
-        topics.map((topic, index) => (
-          <div key={index} className="lessons-row">
-            <span>{topic.subject}</span>
-            <span>{topic.grade}</span>
-            <span>{topic.rank}</span>
-            <button className="lessons-action-button">צפייה</button>
+        topics.map((t) => (
+          <div key={t._id} className="lessons-row">
+            <span>{t.subject}</span>
+            <span>{t.grade}</span>
+            <span>{t.rank}</span>
+            <button
+              className="lessons-action-button"
+              onClick={() => navigate(`/home/lessons/${t._id}`)}
+            >
+              המשך שיעור
+            </button>
           </div>
         ))
       ) : (
         <div className="lessons-row">
-          <span>אין נושאים זמינים</span>
+          <span>אין שיעורים</span>
         </div>
       )}
     </div>

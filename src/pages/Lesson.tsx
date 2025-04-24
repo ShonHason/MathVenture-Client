@@ -1,68 +1,59 @@
-import React, { useState } from "react";
-import { useParams, useLocation } from "react-router-dom";
-import { Topic } from "../context/LessonsContext";
+// src/pages/Lesson.tsx
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import Transcript from "../components/Transcript";
 import "./Lesson.css";
-import { useNavigate } from "react-router-dom";
+
+type ChatMessage = {
+  role: "system" | "user" | "assistant";
+  content: string;
+};
 
 const Lesson: React.FC = () => {
-  const { topicName } = useParams();
-  const location = useLocation();
-  const topic = (location.state as { topic: Topic })?.topic;
+  const { lessonId } = useParams<{ lessonId: string }>();
   const navigate = useNavigate();
-  const handleBack = () => {
-    navigate("/home/start-lessons");
-  };
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [subject, setSubject]   = useState<string>("");
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [loading, setLoading]   = useState<boolean>(true);
 
-  if (!topic) return <p>לא נמצא נושא: {topicName}</p>;
+  useEffect(() => {
+    if (!lessonId) return;
+    fetch(`${process.env.REACT_APP_API_URL || ""}/lessons/${lessonId}`)
+      .then(res => {
+        if (!res.ok) throw new Error("Failed to load lesson");
+        return res.json();
+      })
+      .then(data => {
+        setSubject(data.subject);
+        setMessages(data.messages);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [lessonId]);
 
-  const currentQuestion = topic.questions[currentIndex];
-  const progress = ((currentIndex + 1) / topic.questions.length) * 100;
+  if (loading) return <p>טוען שיעור…</p>;
+  if (!lessonId) return <p>לא נמצא מזהה שיעור.</p>;
 
   return (
     <div className="lesson-container">
-      <h2>{topic.subject}</h2>
-      <p>כיתה: {topic.grade}</p>
-      <p>רמת קושי: {topic.rank}</p>
-      <button className="back-button" onClick={handleBack}>
-        ⬅ חזרה
+      <button className="back-button"
+        onClick={() => navigate("/home/lessons")}>
+        ← חזרה
       </button>
-
-      {/* Progress bar */}
-      <div className="progress-bar-wrapper">
-        <div className="progress-bar" style={{ width: `${progress}%` }}></div>
-      </div>
-
-      {/* שאלה נוכחית */}
-      <div className="questions-section">
-        <div className="question-card">
-          <div className="question">{currentQuestion.question}</div>
-          <div className="options">
-            {currentQuestion.options.map((opt, idx) => (
-              <button key={idx} className="option-button">
-                {opt}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* כפתורי ניווט */}
-        <div className="navigation-buttons">
-          <button
-            className="nav-button"
-            onClick={() => setCurrentIndex((prev) => prev - 1)}
-            disabled={currentIndex === 0}
-          >
-            הקודם
-          </button>
-          <button
-            className="nav-button"
-            onClick={() => setCurrentIndex((prev) => prev + 1)}
-            disabled={currentIndex === topic.questions.length - 1}
-          >
-            הבא
-          </button>
-        </div>
+      <h2>{subject}</h2>
+      <div className="messages">
+        {messages.map((msg, idx) => (
+          <Transcript
+            key={idx}
+            text={
+              msg.role === "user"
+                ? `אתה: ${msg.content}`
+                : msg.role === "assistant"
+                ? `מדריך: ${msg.content}`
+                : msg.content
+            }
+          />
+        ))}
       </div>
     </div>
   );
