@@ -131,23 +131,79 @@ const QuizPage: React.FC = () => {
     setQuestionPool(groupedQuestions);
   }, [selectedGrade, selectedSubjects]);
 
-  // Image upload handlers
-  const beforeUpload = (file: RcFile) => {
+  // Add this function to compress/resize images before upload
+  const compressImage = (file: RcFile): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      // Max dimensions for profile picture
+      const maxWidth = 300;
+      const maxHeight = 300;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          // Calculate new dimensions while maintaining aspect ratio
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxWidth) {
+            height = (height * maxWidth) / width;
+            width = maxWidth;
+          }
+
+          if (height > maxHeight) {
+            width = (width * maxHeight) / height;
+            height = maxHeight;
+          }
+
+          // Create canvas and draw resized image
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // Convert to blob with reduced quality
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                reject(new Error("Failed to compress image"));
+              }
+            },
+            file.type,
+            0.7 // 70% quality - adjust as needed
+          );
+        };
+        img.onerror = () => reject(new Error("Failed to load image"));
+        img.src = event.target?.result as string;
+      };
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Update the beforeUpload function to include compression
+  const beforeUpload = async (file: RcFile) => {
     const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
     if (!isJpgOrPng) {
       message.error("ניתן להעלות רק קבצי JPG/PNG!");
       setUploadStatus("error");
       setUploadMessage("השגיאה: ניתן להעלות רק קבצי JPG/PNG");
+      return false;
     }
     const isLt2M = file.size / 1024 / 1024 < 2;
     if (!isLt2M) {
       message.error("גודל התמונה חייב להיות קטן מ-2MB!");
       setUploadStatus("error");
       setUploadMessage("השגיאה: גודל התמונה חייב להיות קטן מ-2MB");
+      return false;
     }
     return isJpgOrPng && isLt2M;
   };
 
+  // Update the handleImageChange function
   const handleImageChange: UploadProps["onChange"] = (info) => {
     if (info.file.status === "uploading") {
       setLoading(true);
@@ -155,31 +211,41 @@ const QuizPage: React.FC = () => {
       setUploadMessage("");
       return;
     }
-    if (info.file.status === "done") {
-      try {
-        const imageUrl =
-          info.file.response?.url ||
-          URL.createObjectURL(info.file.originFileObj as Blob);
-        setImageUrl(imageUrl);
-        localStorage.setItem("imageUrl", imageUrl);
-        setLoading(false);
-        setUploadStatus("success");
-        setUploadMessage("התמונה הועלתה בהצלחה");
-        message.success("התמונה הועלתה בהצלחה!");
-      } catch (error) {
+
+    if (info.file.status === "done" || info.file.status === "error") {
+      if (info.file.originFileObj) {
+        // Compress the image first
+        compressImage(info.file.originFileObj)
+          .then((blob) => {
+            // Convert compressed blob to data URL
+            const reader = new FileReader();
+            reader.onload = () => {
+              const dataUrl = reader.result as string;
+              // Store compressed image URL (with reasonable size)
+              setImageUrl(dataUrl);
+              localStorage.setItem("imageUrl", dataUrl);
+              setLoading(false);
+              setUploadStatus("success");
+              setUploadMessage("התמונה הועלתה בהצלחה");
+              message.success("התמונה הועלתה בהצלחה!");
+            };
+            reader.readAsDataURL(blob);
+          })
+          .catch((error) => {
+            console.error("Image compression failed:", error);
+            setLoading(false);
+            setUploadStatus("error");
+            setUploadMessage("אירעה שגיאה בעיבוד התמונה");
+            message.error("אירעה שגיאה בעיבוד התמונה");
+          });
+      } else {
         setLoading(false);
         setUploadStatus("error");
-        setUploadMessage("אירעה שגיאה בהעלאת התמונה");
-        message.error("אירעה שגיאה בהעלאת התמונה");
+        setUploadMessage("לא ניתן לגשת לקובץ התמונה");
+        message.error("לא ניתן לגשת לקובץ התמונה");
       }
-    } else if (info.file.status === "error") {
-      setLoading(false);
-      setUploadStatus("error");
-      setUploadMessage("שגיאה: לא ניתן להעלות את התמונה");
-      message.error("שגיאה: לא ניתן להעלות את התמונה");
     }
   };
-
   const uploadButton = (
     <div>
       {loading ? <LoadingOutlined /> : <PlusOutlined />}
@@ -347,7 +413,6 @@ const QuizPage: React.FC = () => {
     }
   };
 
-
   // Image uploader component
   const renderImageUploader = () => (
     <div
@@ -363,9 +428,14 @@ const QuizPage: React.FC = () => {
         listType="picture-card"
         className="avatar-uploader"
         showUploadList={false}
-        action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
         beforeUpload={beforeUpload}
         onChange={handleImageChange}
+        customRequest={({ file, onSuccess }) => {
+          // Mock a successful upload after a brief delay
+          setTimeout(() => {
+            onSuccess && onSuccess("ok");
+          }, 500);
+        }}
       >
         {imageUrl ? (
           <Badge
@@ -386,7 +456,6 @@ const QuizPage: React.FC = () => {
           uploadButton
         )}
       </Upload>
-
       {uploadStatus === "success" && (
         <div
           style={{
@@ -596,8 +665,6 @@ const QuizPage: React.FC = () => {
         <div style={{ textAlign: "center", marginTop: "30px" }}>
           <Title level={1}>:רמת התלמיד</Title>
           <Title level={1}>{level}</Title>
-
-  
         </div>
       )}
     </Space>

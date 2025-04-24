@@ -1,29 +1,32 @@
 import React, { useEffect, useState } from "react";
 import "./PersonalInfo.css";
-import profileImg from "../images/profile.png";
+import defaultProfileImg from "../images/profile.png";
 
 const PersonalInfo = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [className, setClassName] = useState("");
+  const [profileImage, setProfileImage] = useState(defaultProfileImg);
 
   useEffect(() => {
     const storedName = localStorage.getItem("name");
     const storedEmail = localStorage.getItem("email");
     const storedPhone = localStorage.getItem("parent_phone");
     const storedClass = localStorage.getItem("grade");
+    const storedImage = localStorage.getItem("imageUrl");
 
     if (storedName) setName(storedName);
     if (storedEmail) setEmail(storedEmail);
     if (storedPhone) setPhone(storedPhone);
     if (storedClass) setClassName(storedClass);
+    if (storedImage) setProfileImage(storedImage);
   }, []);
 
   return (
     <div className="personal-info-container">
       <div className="personal-info-profile-image">
-        <img src={profileImg} alt="Profile" />
+        <img src={profileImage} alt="Profile" />
       </div>
       <div className="personal-info-input-group">
         <span className="inputs">
