@@ -1,119 +1,144 @@
-import React, { useRef, useEffect } from 'react';
+// src/components/DrawableMathNotebook.tsx
+import React, { useRef, useEffect, useState } from 'react';
+import Tesseract from 'tesseract.js';
 import './DrawableMathNotebook.css';
 
 interface DrawableMathNotebookProps {
   question: string;
+  onRecognize: (text: string) => void;
 }
 
-const DrawableMathNotebook: React.FC<DrawableMathNotebookProps> = ({ question }) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  // Use refs to track drawing state without causing re-renders
-  const isDrawingRef = useRef<boolean>(false);
+const DrawableMathNotebook: React.FC<DrawableMathNotebookProps> = ({ question, onRecognize }) => {
+  const gridRef = useRef<HTMLCanvasElement>(null);
+  const drawRef = useRef<HTMLCanvasElement>(null);
+  const isDrawingRef = useRef(false);
   const lastPosRef = useRef<{ x: number; y: number } | null>(null);
+  const [ocrLoading, setOcrLoading] = useState(false);
+  const [recognizedText, setRecognizedText] = useState<string>('');
 
-  // Draw the grid on the canvas.
-  const drawGrid = (ctx: CanvasRenderingContext2D, width: number, height: number, gridSize: number = 30) => {
-    ctx.clearRect(0, 0, width, height);
+  // ציור הרשת
+  const drawGrid = (
+    ctx: CanvasRenderingContext2D,
+    w: number,
+    h: number,
+    size: number = 30
+  ) => {
+    ctx.clearRect(0, 0, w, h);
     ctx.beginPath();
     ctx.strokeStyle = '#ccc';
-    for (let x = 0; x <= width; x += gridSize) {
+    for (let x = 0; x <= w; x += size) {
       ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
+      ctx.lineTo(x, h);
     }
-    for (let y = 0; y <= height; y += gridSize) {
+    for (let y = 0; y <= h; y += size) {
       ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
+      ctx.lineTo(w, y);
     }
     ctx.stroke();
   };
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    const grid = gridRef.current!;
+    const draw = drawRef.current!;
+    const w = grid.offsetWidth;
+    const h = grid.offsetHeight;
+    grid.width = w; grid.height = h;
+    draw.width = w; draw.height = h;
 
-    // Set canvas dimensions to match its display size.
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-    drawGrid(ctx, canvas.width, canvas.height);
+    const gctx = grid.getContext('2d')!;
+    drawGrid(gctx, w, h);
 
-    // Event handlers for drawing.
-    const handleMouseDown = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+    const dctx = draw.getContext('2d')!;
+    const md = (e: MouseEvent) => {
+      const r = draw.getBoundingClientRect();
       isDrawingRef.current = true;
+      lastPosRef.current = { x: e.clientX - r.left, y: e.clientY - r.top };
+    };
+    const mm = (e: MouseEvent) => {
+      if (!isDrawingRef.current || !lastPosRef.current) return;
+      const r = draw.getBoundingClientRect();
+      const x = e.clientX - r.left;
+      const y = e.clientY - r.top;
+      dctx.beginPath();
+      dctx.moveTo(lastPosRef.current.x, lastPosRef.current.y);
+      dctx.lineTo(x, y);
+      dctx.strokeStyle = 'black';
+      dctx.lineWidth = 6;
+      dctx.stroke();
       lastPosRef.current = { x, y };
     };
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDrawingRef.current) return;
-      const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      if (lastPosRef.current) {
-        ctx.beginPath();
-        ctx.moveTo(lastPosRef.current.x, lastPosRef.current.y);
-        ctx.lineTo(x, y);
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        lastPosRef.current = { x, y };
-      }
-    };
-
-    const handleMouseUpOrLeave = () => {
+    const mu = () => {
       isDrawingRef.current = false;
       lastPosRef.current = null;
     };
 
-    // Attach event listeners.
-    canvas.addEventListener('mousedown', handleMouseDown);
-    canvas.addEventListener('mousemove', handleMouseMove);
-    canvas.addEventListener('mouseup', handleMouseUpOrLeave);
-    canvas.addEventListener('mouseleave', handleMouseUpOrLeave);
+    draw.addEventListener('mousedown', md);
+    draw.addEventListener('mousemove', mm);
+    draw.addEventListener('mouseup', mu);
+    draw.addEventListener('mouseleave', mu);
 
-    // Cleanup on unmount.
     return () => {
-      canvas.removeEventListener('mousedown', handleMouseDown);
-      canvas.removeEventListener('mousemove', handleMouseMove);
-      canvas.removeEventListener('mouseup', handleMouseUpOrLeave);
-      canvas.removeEventListener('mouseleave', handleMouseUpOrLeave);
+      draw.removeEventListener('mousedown', md);
+      draw.removeEventListener('mousemove', mm);
+      draw.removeEventListener('mouseup', mu);
+      draw.removeEventListener('mouseleave', mu);
     };
   }, []);
 
-  // Clears the canvas and redraws the grid.
   const handleClearCanvas = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    drawGrid(ctx, canvas.width, canvas.height);
+    const draw = drawRef.current!;
+    const ctx = draw.getContext('2d')!;
+    ctx.clearRect(0, 0, draw.width, draw.height);
+    setRecognizedText('');
   };
 
-  // פונקציה לטיפול בלחצן סריקה
-  const handleScan = () => {
-    console.log('לחצן סריקה נלחץ');
-    // כאן ניתן להוסיף את הלוגיקה לביצוע סריקה
+  const handleScan = async () => {
+    const grid = gridRef.current!;
+    const draw = drawRef.current!;
+    grid.style.visibility = 'hidden';
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    setOcrLoading(true);
+    try {
+      const dataUrl = draw.toDataURL('image/png');
+      // @ts-ignore: tessedit options not in TS WorkerOptions
+      const options: any = {
+        tessedit_char_whitelist: '0123456789()+-*/= ',
+        tessedit_pageseg_mode: Tesseract.PSM.SINGLE_BLOCK,
+      };
+      const { data: { text } } = await Tesseract.recognize(dataUrl, 'eng+heb', options);
+      const trimmed = text.trim();
+      setRecognizedText(trimmed);
+      onRecognize(trimmed);
+    } catch (err) {
+      console.error('OCR error:', err);
+      setRecognizedText('');
+      onRecognize('');
+    } finally {
+      setOcrLoading(false);
+      grid.style.visibility = 'visible';
+      handleClearCanvas();
+    }
   };
 
   return (
     <div className="drawable-notebook-container">
       <div className="canvas-container">
-        <canvas ref={canvasRef} className="drawable-canvas" />
-        {/* השאלה מוצגת על המשטח */}
+        <canvas ref={gridRef} className="grid-canvas" />
+        <canvas ref={drawRef} className="drawable-canvas" />
         <div className="question-overlay">{question}</div>
-        {/* קבוצת לחצנים מופיעה על המשטח בתחתית */}
         <div className="button-group">
-          <button onClick={handleScan} className="scan-button">
-            סריקה
+          <button onClick={handleScan} className="scan-button" disabled={ocrLoading}>
+            {ocrLoading ? 'מזהה…' : 'סריקה'}
           </button>
           <button onClick={handleClearCanvas} className="clear-canvas-button">
             נקה ציור
           </button>
         </div>
       </div>
+      {recognizedText && (
+        <div className="recognized-text-display">תוצאה: <strong>{recognizedText}</strong></div>
+      )}
     </div>
   );
 };

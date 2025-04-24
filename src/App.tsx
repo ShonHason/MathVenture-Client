@@ -21,6 +21,7 @@ import { ChatPage } from "./pages/chat";
 import StartLessons from "./pages/StartLessons";
 import Lesson from "./pages/Lesson";
 import InSession from "./pages/InSession";
+import DrawableMathNotebook from "./components/DrawableMathNotebook";
 
 const App: React.FC = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -49,6 +50,9 @@ const App: React.FC = () => {
           <Route path="/plan" element={<ChoosePlanPage />} />
           <Route path="chat" element={<ChatPage />} />
           <Route path="*" element={<PageNotFound />} />
+          <Route path="/scan" element={< DrawableMathNotebook question={""} onRecognize={function (text: string): void {
+            throw new Error("Function not implemented.");
+          } }/>} />
           
         </Routes>
       </Router>

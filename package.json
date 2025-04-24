@@ -12,6 +12,7 @@
   "author": "Shon Hasson, Rotem Ziv, Dan Akrabi, Roey Biton",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/vision": "^5.1.0",
     "@sendgrid/mail": "^8.1.4",
     "@types/react-router-dom": "^5.3.3",
     "@types/three": "^0.162.0",
@@ -35,6 +36,7 @@
     "react-scripts": "^5.0.1",
     "sendgrid": "^5.2.3",
     "socket.io-client": "^4.8.1",
+    "tesseract.js": "^6.0.1",
     "three": "^0.162.0"
   },
   "devDependencies": {
