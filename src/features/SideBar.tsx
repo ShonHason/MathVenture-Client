@@ -94,12 +94,12 @@ const SideBar: React.FC<SideBarProps> = () => {
           {/* Bottom Menu Items */}
           <div className="menu-bottom">
             <Menu>
-              <MenuItem
+              {/* <MenuItem
                 className="menu-item menu-item-upgrade"
                 icon={<RocketOutlined />}
               >
                 שדרוג
-              </MenuItem>
+              </MenuItem> */}
               <MenuItem
                 className="menu-item menu-item-profile"
                 icon={<UserOutlined />}

@@ -1,13 +1,7 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import "./HomePageContent.css";
 import LessonsContext, { Topic, Question } from "../context/LessonsContext";
-
-const predefinedSubjects = [
-  "חיבור עד 10",
-  "חיסור עד 10",
-  "כפל עד 10",
-  "חלוקה עד 10",
-];
+import { subjectsByGrade } from "../components/SubjectByGrade";
 
 export const generateTopic = (
   subject: string,
@@ -41,6 +35,13 @@ const HomePageContent: React.FC = () => {
   const [selectedSubject, setSelectedSubject] = useState<string>("");
   const [selectedRank, setSelectedRank] = useState<number>(1);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [predefinedSubjects, setPredefinedSubjects] = useState<string[]>([]);
+  useEffect(() => {
+    const rawGrade = localStorage.getItem("grade") || "";
+    if (rawGrade && subjectsByGrade[rawGrade]) {
+      setPredefinedSubjects(subjectsByGrade[rawGrade]);
+    }
+  }, []);
 
   if (!lessonsContext) return null;
 
