@@ -1,11 +1,13 @@
 .in-session-page {
-    width: 100%;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    background-color: #f5f5f5;
-    padding: 20px;
-  }
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center; /* <-- Add this line */
+  background-color: #f5f5f5;
+  padding: 20px;
+}
+
   
   .session-container {
     width: 100%;
@@ -15,7 +17,29 @@
     align-items: center;
     gap: 20px;
   }
+  .start-title {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #333;
+  }
   
+  .start-button {
+    padding: 1.25rem 2.5rem;
+    font-size: 1.5rem;
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    cursor: pointer;
+  }
+  
+  .start-button:hover {
+    background-color: #357ab8;
+    transform: scale(1.05);
+  }
+
   .chat-area {
     width: 100%;
     display: flex;
@@ -68,4 +92,10 @@
     font-size: 16px;
     cursor: pointer;
   }
-  
+  .start-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    max-width: 90%;
+  }
