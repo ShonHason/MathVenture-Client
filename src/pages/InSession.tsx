@@ -25,7 +25,8 @@ const InSession: React.FC = () => {
   const [pauseUntil, setPauseUntil] = useState<number | null>(null);
   const [processing, setProcessing] = useState<boolean>(false);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const isPaused = pauseUntil !== null && pauseUntil > Date.now();
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [status, setStatus] = useState<string>(
     'לחץ "התחל שיחה" כדי לפתוח את השיחה'
   );
@@ -75,6 +76,7 @@ const InSession: React.FC = () => {
       const audioBlob = new Blob([ttsResponse.data], { type: "audio/mp3" });
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
+      audioRef.current = audio;
 
       setStatus("מדבר...");
       setIsSpeaking(true);
@@ -139,6 +141,13 @@ const InSession: React.FC = () => {
       const until = Date.now() + minutes * 60 * 1000;
       setPauseUntil(until);
       setStatus(`הפסקה ל-${minutes} דקות`);
+
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        audioRef.current = null;
+      }
+
       setListening(false);
       setIsSpeaking(false);
       setProcessing(false);
@@ -153,6 +162,15 @@ const InSession: React.FC = () => {
       setStatus("השיעור הסתיים");
       setListening(false);
       setHasStarted(false);
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+        audioRef.current = null;
+      }
+
+      setIsSpeaking(false);
+      setProcessing(false);
+
       navigate("/home");
     }
   };
@@ -216,7 +234,10 @@ const InSession: React.FC = () => {
           {listening && <RealTimeRecorder onTranscript={setUserTranscript} />}
         </div>
         <div className="lesson-buttons-area">
-          <LessonButtons onActionPerformed={handleLessonAction} />
+          <LessonButtons
+            onActionPerformed={handleLessonAction}
+            disabled={isPaused}
+          />
         </div>
         <div className="status-display">
           <p>סטטוס: {status}</p>
