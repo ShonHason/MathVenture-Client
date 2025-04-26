@@ -1,14 +1,19 @@
-import profileImg from "../images/profile.png";
+import React from "react";
+import defaultProfileImg from "../images/profile.png";
 import "./Profile.css";
+
 function Profile() {
-  let userName = "רותם";
-  let userClass = "כיתה ג";
+  const storedName = localStorage.getItem("name") || "תלמיד/ה";
+  const rawGrade = localStorage.getItem("grade") || "";
+  const storedClass = `כיתה ${rawGrade}׳`;
+  const storedImage = localStorage.getItem("imageUrl") || defaultProfileImg;
+
   return (
     <div className="profile-container">
-      <img src={profileImg} alt="profile" className="profile-picture" />
+      <img src={storedImage} alt="profile" className="profile-picture" />
       <div className="name-class-container">
-        <h1 className="profile-username">{userName}</h1>
-        <p className="profile-userclass">{userClass}</p>
+        <h1 className="profile-username">{storedName}</h1>
+        <p className="profile-userclass">{storedClass}</p>
       </div>
     </div>
   );

@@ -1,12 +1,32 @@
-import React from "react";
-import "./PersonalInfo.css"; // Ensure the CSS file is correctly linked
-import profileImg from "../images/profile.png";
+import React, { useEffect, useState } from "react";
+import "./PersonalInfo.css";
+import defaultProfileImg from "../images/profile.png";
 
 const PersonalInfo = () => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [className, setClassName] = useState("");
+  const [profileImage, setProfileImage] = useState(defaultProfileImg);
+
+  useEffect(() => {
+    const storedName = localStorage.getItem("name");
+    const storedEmail = localStorage.getItem("email");
+    const storedPhone = localStorage.getItem("parent_phone");
+    const storedClass = localStorage.getItem("grade");
+    const storedImage = localStorage.getItem("imageUrl");
+
+    if (storedName) setName(storedName);
+    if (storedEmail) setEmail(storedEmail);
+    if (storedPhone) setPhone(storedPhone);
+    if (storedClass) setClassName(storedClass);
+    if (storedImage) setProfileImage(storedImage);
+  }, []);
+
   return (
     <div className="personal-info-container">
       <div className="personal-info-profile-image">
-        <img src={profileImg} alt="Profile" />
+        <img src={profileImage} alt="Profile" />
       </div>
       <div className="personal-info-input-group">
         <span className="inputs">
@@ -16,6 +36,8 @@ const PersonalInfo = () => {
             type="text"
             id="name"
             placeholder="הכנס שם מלא"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
           />
         </span>
         <span className="inputs">
@@ -25,6 +47,8 @@ const PersonalInfo = () => {
             type="email"
             id="email"
             placeholder="example@gmail.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </span>
         <span className="inputs">
@@ -34,6 +58,8 @@ const PersonalInfo = () => {
             type="tel"
             id="phone"
             placeholder="0504939124"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
           />
         </span>
         <span className="inputs">
@@ -43,10 +69,22 @@ const PersonalInfo = () => {
             type="text"
             id="class"
             placeholder=" הכנס כיתה"
+            value={className}
+            onChange={(e) => setClassName(e.target.value)}
           />
         </span>
       </div>
-      <button className="personal-info-save-button">Save Change</button>
+      <button
+        className="personal-info-save-button"
+        onClick={() => {
+          localStorage.setItem("name", name);
+          localStorage.setItem("email", email);
+          localStorage.setItem("phone", phone);
+          localStorage.setItem("class", className);
+        }}
+      >
+        Save Change
+      </button>
     </div>
   );
 };
