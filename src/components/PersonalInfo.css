@@ -77,6 +77,17 @@
   /* overflow: hidden; */
   margin-bottom: 20px;
 }
+.personal-info-profile-image {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  border-radius: 30px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
 .personal-info-profile-image img {
   width: 90px;
   height: 90px;
@@ -97,4 +108,19 @@
 }
 .personal-info-save-button:hover {
   background-color: #0056b3;
+}
+
+.edit-icon-container {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background-color: #000000;
+  color: white;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease, transform 0.3s ease;
 }

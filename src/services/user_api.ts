@@ -1,7 +1,24 @@
 import axios from "axios";
 
 const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
+export const updateUserProfile = async (userData: {
+  userId: string;
+  username?: string;
+  email?: string;
+  parent_phone?: string;
+  grade?: string;
+  imageUrl?: string;
+}) => {
+  const accessToken = localStorage.getItem("accessToken");
 
+  const response = await axios.put(`${baseUrl}/user/updateProfile`, userData, {
+    headers: {
+      Authorization: "jwt " + accessToken,
+    },
+  });
+
+  return response.data;
+};
 // Login and store data to localStorage
 export const loginUser = async (userData: {
   email: string;
@@ -27,7 +44,6 @@ export const loginUser = async (userData: {
   localStorage.setItem("parent_name", data.parent_name);
   localStorage.setItem("parent_phone", data.parent_phone);
 
-
   return data;
 };
 
@@ -52,7 +68,7 @@ export const endOfRegistration = async (userData: {
       headers: {
         Authorization: "jwt " + localStorage.getItem("accessToken"),
       },
-    }    
+    }
   );
 
   // Update localStorage with new data
@@ -71,8 +87,7 @@ export const endOfRegistration = async (userData: {
   localStorage.setItem("parent_name", response.data.parent_name);
   localStorage.setItem("parent_phone", response.data.parent_phone);
   localStorage.setItem("username", response.data.username);
-  
-  
+
   return response.data;
 };
 
