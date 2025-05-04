@@ -3,13 +3,17 @@ import "./PersonalInfo.css";
 import defaultProfileImg from "../images/profile.png";
 import EditIcon from "@mui/icons-material/Edit";
 import { updateUserProfile } from "../services/user_api";
+import { useUser } from "../context/UserContext";
 
 const PersonalInfo = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [className, setClassName] = useState("");
-  const [profileImage, setProfileImage] = useState(defaultProfileImg);
+  const { user, setUser } = useUser();
+  const [name, setName] = useState(user?.username || "");
+  const [email, setEmail] = useState(user?.email || "");
+  const [phone, setPhone] = useState(user?.parent_phone || "");
+  const [className, setClassName] = useState(user?.grade || "");
+  const [profileImage, setProfileImage] = useState(
+    user?.imageUrl || defaultProfileImg
+  );
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -30,15 +34,13 @@ const PersonalInfo = () => {
 
   const onSaveButton = async (): Promise<void> => {
     try {
-      const userId = localStorage.getItem("userId");
-
-      if (!userId) {
-        console.error("User ID not found in localStorage");
+      if (!user?._id) {
+        console.error("User ID not available in context");
         return;
       }
 
       const updatedData = {
-        userId,
+        userId: user._id,
         username: name,
         email,
         parent_phone: phone,
@@ -46,14 +48,12 @@ const PersonalInfo = () => {
         imageUrl: profileImage,
       };
 
-      const response = await updateUserProfile(updatedData);
-      localStorage.setItem("name", name);
-      localStorage.setItem("email", email);
-      localStorage.setItem("parent_phone", phone);
-      localStorage.setItem("grade", className);
-      localStorage.setItem("imageUrl", profileImage); // הכי חשוב התמונה
+      const updatedUser = await updateUserProfile(updatedData);
 
-      console.log("User profile updated successfully:", response);
+      setUser((prevUser) => ({
+        ...prevUser!,
+        ...updatedUser,
+      }));
 
       alert("הפרטים נשמרו בהצלחה!");
     } catch (error) {
@@ -61,20 +61,6 @@ const PersonalInfo = () => {
       alert("קרתה שגיאה בעת שמירת השינויים.");
     }
   };
-
-  useEffect(() => {
-    const storedName = localStorage.getItem("name");
-    const storedEmail = localStorage.getItem("email");
-    const storedPhone = localStorage.getItem("parent_phone");
-    const storedClass = localStorage.getItem("grade");
-    const storedImage = localStorage.getItem("imageUrl");
-
-    if (storedName) setName(storedName);
-    if (storedEmail) setEmail(storedEmail);
-    if (storedPhone) setPhone(storedPhone);
-    if (storedClass) setClassName(storedClass);
-    if (storedImage) setProfileImage(storedImage);
-  }, []);
 
   return (
     <div className="personal-info-container">

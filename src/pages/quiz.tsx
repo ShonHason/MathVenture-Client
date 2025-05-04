@@ -28,6 +28,7 @@ import { endOfRegistration } from "../services/user_api";
 import subjectsByGrade, { SubjectsData } from "../components/SubjectByGrade";
 import allQuestions, { QuestionItem } from "../components/QuestionBank";
 import type { UploadFile, UploadProps, RcFile } from "antd/es/upload/interface";
+import { useUser } from "../context/UserContext";
 
 const { Step } = Steps;
 const { Title, Text } = Typography;
@@ -55,6 +56,7 @@ const QuizPage: React.FC = () => {
   const [selectedGrade, setSelectedGrade] = useState<string | null>(null);
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [questionPool, setQuestionPool] = useState<QuestionItem[][]>([]);
+  const { user, setUser } = useUser();
 
   // Image upload state
   const [loading, setLoading] = useState(false);
@@ -305,111 +307,177 @@ const QuizPage: React.FC = () => {
     }
   };
 
+  // const handleFinish = async () => {
+  //   try {
+  //     // Retrieve all values, including from preserved (unmounted) fields
+  //     const values = form.getFieldsValue(true);
+  //     console.log("All Form Values:", values);
+
+  //     // Normalize field names
+  //     const normalizedValues = {
+  //       parent_name:
+  //         values.parent_name || values.parentName || values.parentname || "",
+  //       parent_email:
+  //         values.parent_email || values.parentEmail || values.parentemail || "",
+  //       parent_phone:
+  //         values.parent_phone || values.parentPhone || values.parentphone || "",
+  //     };
+
+  //     console.log("Normalized Values:", normalizedValues);
+
+  //     // Validate that we have all required parent information
+  //     if (!normalizedValues.parent_name) {
+  //       message.error("אנא הזן את שם ההורה");
+  //       return;
+  //     }
+  //     if (!normalizedValues.parent_email) {
+  //       message.error("אנא הזן את אימייל ההורה");
+  //       return;
+  //     }
+  //     if (!normalizedValues.parent_phone) {
+  //       message.error("אנא הזן את מספר טלפון ההורה");
+  //       return;
+  //     }
+
+  //     // Calculate final score and level
+  //     if (currentStep > 0 && questionPool.length > 0) {
+  //       const finalStepQuestions = questionPool[currentStep - 1];
+  //       const finalStepFields = finalStepQuestions.map((q) => q.name);
+
+  //       const finalStepScore = Object.entries(values)
+  //         .filter(([key]) => finalStepFields.includes(key))
+  //         .map(([, value]) => value as number)
+  //         .reduce((acc, val) => acc + val, 0);
+
+  //       const finalScore = totalScore + finalStepScore;
+
+  //       const totalQuestions = questionPool.reduce(
+  //         (acc, group) => acc + group.length,
+  //         0
+  //       );
+  //       const avgScore = finalScore / (totalQuestions || 1);
+
+  //       // Level and rank calculation
+  //       let calculatedLevel = "";
+  //       let mappedRank = "1";
+
+  //       if (avgScore <= 2) {
+  //         calculatedLevel = " 🪱 תולעת חכמה ";
+  //         mappedRank = "1";
+  //       } else if (avgScore <= 3.5) {
+  //         calculatedLevel = "🐶 כלב מתמטי";
+  //         mappedRank = "2";
+  //       } else {
+  //         calculatedLevel = "🐯 נמר מספרים ";
+  //         mappedRank = "3";
+  //       }
+
+  //       const userData = {
+  //         userId: localStorage.getItem("userId") || "",
+  //         parent_name: normalizedValues.parent_name,
+  //         parent_email: normalizedValues.parent_email,
+  //         parent_phone: normalizedValues.parent_phone,
+  //         grade: values.grade || localStorage.getItem("grade") || "",
+  //         DateOfBirth:
+  //           values.dateOfBirth || localStorage.getItem("dateOfBirth") || "",
+  //         rank: mappedRank,
+  //         imageUrl: imageUrl || localStorage.getItem("imageUrl") || "",
+  //       };
+
+  //       console.log("Prepared User Data:", userData);
+
+  //       // Send update to server
+  //       await endOfRegistration(userData);
+
+  //       // Update localStorage
+  //       Object.entries(userData).forEach(([key, value]) => {
+  //         if (value !== undefined && key !== "userId") {
+  //           localStorage.setItem(key, String(value));
+  //         }
+  //       });
+
+  //       navigate("/home");
+
+  //       // Set state for displaying results
+  //       setAverageScore(avgScore);
+  //       setLevel(calculatedLevel);
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to submit quiz:", error);
+
+  //     if (error instanceof Error) {
+  //       console.error("Validation error details:", error.message);
+
+  //       if ("errorFields" in error) {
+  //         console.error("Error fields:", (error as any).errorFields);
+  //       }
+  //     }
+  //   }
+  // };
+
   const handleFinish = async () => {
     try {
-      // Retrieve all values, including from preserved (unmounted) fields
       const values = form.getFieldsValue(true);
-      console.log("All Form Values:", values);
 
-      // Normalize field names
       const normalizedValues = {
-        parent_name:
-          values.parent_name || values.parentName || values.parentname || "",
-        parent_email:
-          values.parent_email || values.parentEmail || values.parentemail || "",
-        parent_phone:
-          values.parent_phone || values.parentPhone || values.parentphone || "",
+        parent_name: values.parent_name || "",
+        parent_email: values.parent_email || "",
+        parent_phone: values.parent_phone || "",
       };
 
-      console.log("Normalized Values:", normalizedValues);
-
-      // Validate that we have all required parent information
-      if (!normalizedValues.parent_name) {
-        message.error("אנא הזן את שם ההורה");
-        return;
-      }
-      if (!normalizedValues.parent_email) {
-        message.error("אנא הזן את אימייל ההורה");
-        return;
-      }
-      if (!normalizedValues.parent_phone) {
-        message.error("אנא הזן את מספר טלפון ההורה");
+      if (
+        !normalizedValues.parent_name ||
+        !normalizedValues.parent_email ||
+        !normalizedValues.parent_phone
+      ) {
+        message.error("אנא הזן את כל פרטי ההורה הנדרשים");
         return;
       }
 
-      // Calculate final score and level
-      if (currentStep > 0 && questionPool.length > 0) {
-        const finalStepQuestions = questionPool[currentStep - 1];
-        const finalStepFields = finalStepQuestions.map((q) => q.name);
+      const finalStepQuestions = questionPool[currentStep - 1];
+      const finalStepFields = finalStepQuestions.map((q) => q.name);
+      const finalStepScore = Object.entries(values)
+        .filter(([key]) => finalStepFields.includes(key))
+        .map(([, value]) => value as number)
+        .reduce((acc, val) => acc + val, 0);
 
-        const finalStepScore = Object.entries(values)
-          .filter(([key]) => finalStepFields.includes(key))
-          .map(([, value]) => value as number)
-          .reduce((acc, val) => acc + val, 0);
+      const finalScore = totalScore + finalStepScore;
+      const totalQuestions = questionPool.reduce(
+        (acc, group) => acc + group.length,
+        0
+      );
+      const avgScore = finalScore / (totalQuestions || 1);
 
-        const finalScore = totalScore + finalStepScore;
+      let mappedRank = "1";
+      if (avgScore <= 2) mappedRank = "1";
+      else if (avgScore <= 3.5) mappedRank = "2";
+      else mappedRank = "3";
 
-        const totalQuestions = questionPool.reduce(
-          (acc, group) => acc + group.length,
-          0
-        );
-        const avgScore = finalScore / (totalQuestions || 1);
+      const userDataToSend = {
+        userId: user?._id,
+        parent_name: normalizedValues.parent_name,
+        parent_email: normalizedValues.parent_email,
+        parent_phone: normalizedValues.parent_phone,
+        grade: values.grade,
+        DateOfBirth: values.dateOfBirth,
+        rank: mappedRank,
+        imageUrl: imageUrl || "",
+      };
 
-        // Level and rank calculation
-        let calculatedLevel = "";
-        let mappedRank = "1";
+      const updatedUser = await endOfRegistration(userDataToSend);
 
-        if (avgScore <= 2) {
-          calculatedLevel = " 🪱 תולעת חכמה ";
-          mappedRank = "1";
-        } else if (avgScore <= 3.5) {
-          calculatedLevel = "🐶 כלב מתמטי";
-          mappedRank = "2";
-        } else {
-          calculatedLevel = "🐯 נמר מספרים ";
-          mappedRank = "3";
-        }
+      setUser((prevUser) => ({
+        ...prevUser!,
+        ...updatedUser,
+      }));
 
-        const userData = {
-          userId: localStorage.getItem("userId") || "",
-          parent_name: normalizedValues.parent_name,
-          parent_email: normalizedValues.parent_email,
-          parent_phone: normalizedValues.parent_phone,
-          grade: values.grade || localStorage.getItem("grade") || "",
-          DateOfBirth:
-            values.dateOfBirth || localStorage.getItem("dateOfBirth") || "",
-          rank: mappedRank,
-          imageUrl: imageUrl || localStorage.getItem("imageUrl") || "",
-        };
-
-        console.log("Prepared User Data:", userData);
-
-        // Send update to server
-        await endOfRegistration(userData);
-
-        // Update localStorage
-        Object.entries(userData).forEach(([key, value]) => {
-          if (value !== undefined && key !== "userId") {
-            localStorage.setItem(key, String(value));
-          }
-        });
-
-        navigate("/home");
-
-        // Set state for displaying results
-        setAverageScore(avgScore);
-        setLevel(calculatedLevel);
-      }
+      setAverageScore(avgScore);
+      setLevel(mappedRank);
+      message.success("ההרשמה הושלמה בהצלחה!");
+      navigate("/home");
     } catch (error) {
-      console.error("Failed to submit quiz:", error);
-
-      if (error instanceof Error) {
-        console.error("Validation error details:", error.message);
-
-        if ("errorFields" in error) {
-          console.error("Error fields:", (error as any).errorFields);
-        }
-      }
+      message.error("השלמת ההרשמה נכשלה");
+      console.error(error);
     }
   };
 
