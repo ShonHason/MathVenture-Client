@@ -8,7 +8,7 @@
   position: fixed;
   left: 0px;
   top: 0px;
-  background-color: rgb(53, 14, 126);
+  background-color: rgb(24, 7, 56);
   color: #ecf0f1;
   min-height: 100vh;
   height: fit-content;
@@ -37,7 +37,9 @@
 }
 
 .menu-item:hover {
-  background-color: hsla(64, 75%, 84%, 0.6);
+  background-color: hsla(286, 12%, 52%, 0.6);
+
+  border-radius: 5px;
   transition: background-color 0.6s;
 }
 
