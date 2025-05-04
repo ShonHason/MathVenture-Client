@@ -1,51 +1,38 @@
 import React, { useState } from "react";
 import "./ProfilePage.css";
-import PersonalInfo from "../components/PersonalInfo"; // Import the PersonalInfo component
-import DeleteAccount from "../components/DeleteAccount";
+import PersonalInfo from "../components/PersonalInfo";
 import PersonalArea from "../components/PersonalArea";
+import DeleteAccount from "../components/DeleteAccount";
 
-interface ProfilePageProps {}
-
-const ProfilePage: React.FC<ProfilePageProps> = () => {
-  const [activeTab, setActiveTab] = useState("details");
-
-  const handleTabChange = (tab: string): void => {
-    setActiveTab(tab);
-  };
+const ProfilePage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<"details" | "personal-area" | "delete-account">("details");
 
   return (
-    <div className="profile-container-area1">
-      <nav className="profile-nav1">
-        <ul>
-          <li
-            onClick={() => handleTabChange("details")}
-            className={activeTab === "details" ? "active1" : ""}
-          >
-            פרטים אישים
-          </li>
-          <li
-            onClick={() => handleTabChange("subscriptions")}
-            className={activeTab === "subscriptions" ? "active1" : ""}
-          >
-            מינוי תשלומים
-          </li>
-          <li
-            onClick={() => handleTabChange("personal-area")}
-            className={activeTab === "personal-area" ? "active1" : ""}
-          >
-            אזור אישי
-          </li>
-          <li
-            onClick={() => handleTabChange("delete-account")}
-            className={activeTab === "delete-account" ? "active1" : ""}
-          >
-            מחיקת חשבון
-          </li>
-        </ul>
-      </nav>
-      <div className="tab-content-container">
+    <div className="profile-page">
+      {/* segmented control */}
+      <div className="profile-tabs">
+        <div
+          className={`tab ${activeTab === "details" ? "active" : ""}`}
+          onClick={() => setActiveTab("details")}
+        >
+          פרטים אישיים
+        </div>
+        <div
+          className={`tab ${activeTab === "personal-area" ? "active" : ""}`}
+          onClick={() => setActiveTab("personal-area")}
+        >
+          אזור אישי
+        </div>
+        <div
+          className={`tab ${activeTab === "delete-account" ? "active" : ""}`}
+          onClick={() => setActiveTab("delete-account")}
+        >
+          מחיקת חשבון
+        </div>
+      </div>
+
+      <div className="profile-content">
         {activeTab === "details" && <PersonalInfo />}
-        {activeTab === "subscriptions" && <div>מידע על מינוי תשלומים כאן</div>}
         {activeTab === "personal-area" && <PersonalArea />}
         {activeTab === "delete-account" && <DeleteAccount />}
       </div>

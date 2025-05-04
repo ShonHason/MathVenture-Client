@@ -47,7 +47,7 @@ const SideBar: React.FC = () => {
           </li>
           <li
             className={`item ${isActive("/home/lessons") ? "active" : ""}`}
-            onClick={() => onClickItem("/home/lessons")}
+            onClick={() => onClickItem("/home/myLessons")}
           >
             <span className="icon"><BookOutlined /></span>
             <span className="label">כל השיעורים</span>

@@ -1,0 +1,85 @@
+/* src/features/MyLessons.css */
+
+.ml-loading,
+.ml-error,
+.ml-none {
+  text-align: center;
+  margin: 2rem 0;
+  font-size: 1.1rem;
+  color: #555;
+}
+
+.ml-container {
+  padding: 1rem;
+}
+
+.ml-title {
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  color: #333;
+  text-align: center;        /* מרכז את הכותרת */
+}
+
+/* טבלה כללית */
+.ml-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.ml-table thead {
+  background-color: #f0f4ff;
+}
+
+.ml-table th,
+.ml-table td {
+  padding: 0.75rem 1rem;
+  border: 1px solid #ddd;
+  font-size: 0.95rem;
+  color: #333;
+}
+
+.ml-table tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+.ml-table tbody tr:hover {
+  background-color: #e6eaff;
+}
+
+.ml-table th {
+  font-weight: 600;
+  color: #444;
+}
+
+/* עמודת ID צרה יותר */
+.ml-id-cell {
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* כפתור סטטוס */
+.status-btn {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 20px;
+  background: linear-gradient(90deg, #6a4cff, #8f6fff);
+  color: #fff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+/* מצב disabled לסטטוס הושלם */
+.status-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.status-btn:not(:disabled):hover {
+  opacity: 0.85;
+}
