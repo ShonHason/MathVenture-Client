@@ -11,8 +11,6 @@ import "react-toastify/dist/ReactToastify.css";
 
 import LoginRegistration from "./pages/login";
 import HomePage from "./pages/HomePage";
-import Lessons from "./components/Lessons";
-import PageNotFound from "./pages/PageNotFound";
 import QuizPage from "./pages/quiz";
 import HelpPage from "./pages/HelpPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -21,47 +19,60 @@ import { ChatPage } from "./pages/chat";
 import StartLessons from "./pages/StartLessons";
 import MyLessons from "./pages/MyLessons";
 import InSession from "./pages/InSession";
+import PageNotFound from "./pages/PageNotFound";
 
 import LessonsContext, { Topic } from "./context/LessonsContext";
 import { DisplaySettingsProvider } from "./context/DisplaySettingsContext";
+import { UserProvider } from "./context/UserContext";
 
 const App: React.FC = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
 
   return (
-    // 1) מכניסים את LessonsContext לכל האפליקציה
     <LessonsContext.Provider value={{ topics, setTopics }}>
-      {/* 2) מכניסים גם את DisplaySettingsContext (הצבעים, גודל פונטים, ניגודיות) */}
       <DisplaySettingsProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
-            <Route path="/login" element={<LoginRegistration />} />
-            <Route path="/home" element={<HomePage />}>
-              <Route path="myLessons" element={<MyLessons />} />
-              <Route path="help" element={<HelpPage />} />
-              <Route path="profile" element={<ProfilePage />} />
-              <Route path="settings" element={<SettingsPage />} />
-              <Route path="start-lessons" element={<StartLessons />} />
-              <Route path="start-lessons/:topicName" element={<InSession />} />
-            </Route>
-            <Route path="/lessons" element={<InSession />} />
-            <Route path="/quiz" element={<QuizPage />} />
-            <Route path="/chat" element={<ChatPage />} />
-            <Route path="*" element={<PageNotFound />} />
-          </Routes>
+        <UserProvider>
+          <Router>
+            <Routes>
+              {/* redirect root to login */}
+              <Route path="/" element={<Navigate to="/login" replace />} />
 
-          {/* ToastContainer גלובלי */}
-          <ToastContainer
-            position="bottom-center"
-            autoClose={3000}
-            hideProgressBar
-            newestOnTop={false}
-            closeOnClick
-            pauseOnHover
-            draggable
-          />
-        </Router>
+              {/* authentication */}
+              <Route path="/login" element={<LoginRegistration />} />
+
+              {/* protected home area with nested routes */}
+              <Route path="/home" element={<HomePage />}>
+                {/* default inside /home */}
+                <Route index element={<Navigate to="myLessons" replace />} />
+
+                <Route path="myLessons" element={<MyLessons />} />
+                <Route path="help"      element={<HelpPage />} />
+                <Route path="profile"   element={<ProfilePage />} />
+                <Route path="settings"  element={<SettingsPage />} />
+                <Route path="start-lessons"           element={<StartLessons />} />
+                <Route path="start-lessons/:topicName" element={<InSession />} />
+              </Route>
+
+              {/* other top-level pages */}
+              <Route path="/quiz"  element={<QuizPage />} />
+              <Route path="/chat"  element={<ChatPage />} />
+
+              {/* 404 */}
+              <Route path="*" element={<PageNotFound />} />
+            </Routes>
+
+            {/* global toast container */}
+            <ToastContainer
+              position="bottom-center"
+              autoClose={3000}
+              hideProgressBar
+              newestOnTop={false}
+              closeOnClick
+              pauseOnHover
+              draggable
+            />
+          </Router>
+        </UserProvider>
       </DisplaySettingsProvider>
     </LessonsContext.Provider>
   );

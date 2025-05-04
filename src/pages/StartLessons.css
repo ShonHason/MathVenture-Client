@@ -4,12 +4,13 @@
   height: auto;
   padding: 1.5rem;
   margin: 2rem auto;
-  background-color: rgb(53, 14, 126);
+  /* background-color: rgb(53, 14, 126); */
   box-sizing: border-box;
   border-radius: 20px;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  background-color: rgb(24, 7, 56);
 }
 
 .start-lessons-container .section-title {

@@ -1,20 +1,20 @@
-/* SideBar.css */
+/* src/components/SideBar.css */
 
 /* צבע הרקע של הסיידבר – תשנה כאן כרצונך */
 .sidebar-modern {
-  position: fixed;      /* תקבע את המיקום */
+  position: fixed;      /* תמיד תקבע את המיקום */
   top: 0;               /* למעלה */
   left: 0;              /* בצד שמאל */
   width: 260px;
   height: 100vh;        /* יכסה את כל גובה החלון */
-  background: #f0f4ff;  /* <-- כאן תוכל לשנות צבע */
+  background: #f0f4ff;  /* <-- כאן תוכל לשים כל צבע אחר */
   display: flex;
   flex-direction: column;
   padding: 16px;
   box-sizing: border-box;
   font-family: "Arial", sans-serif;
   overflow-y: auto;     /* גלילה פנימית במקרה שהתוכן גבוה */
-  z-index: 1000;        /* כדי שתמיד יישאר מעל התוכן */
+  z-index: 1000;        /* תמיד מעל התוכן */
 }
 
 /* קומפוננטת Profile */
@@ -50,7 +50,12 @@
   color: #555;
 }
 
-/* כותרות סעיפים */
+/* סעיפי תפריט */
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+}
+
 .section-title {
   font-size: 12px;
   font-weight: bold;
@@ -137,9 +142,9 @@
 
 @media (max-width: 480px) {
   .sidebar-modern {
+    position: relative;  /* במקרה שרוצים שהסיידבר ייעלם בגודל קטן */
     width: 100%;
     height: auto;
-    position: relative;  /* במקרה שרוצים שהסיידבר ייעלם בגודל קטן */
   }
   .sidebar-section.bottom-fixed {
     margin-top: 16px;

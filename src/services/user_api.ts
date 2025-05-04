@@ -1,37 +1,69 @@
 import axios from "axios";
 
 const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
+export const updateUserProfile = async (userData: {
+  userId: string;
+  username?: string;
+  email?: string;
+  parent_phone?: string;
+  grade?: string;
+  imageUrl?: string;
+}) => {
+  const accessToken = localStorage.getItem("accessToken");
 
-// Login and store data to localStorage
+  const response = await axios.put(`${baseUrl}/user/updateProfile`, userData, {
+    headers: {
+      Authorization: "jwt " + accessToken,
+    },
+  });
+
+  return response.data;
+};
+
+type User = {
+  _id: string;
+  username: string;
+  email: string;
+  parent_email?: string;
+  parent_name?: string;
+  parent_phone?: string;
+  grade?: string;
+  rank?: string;
+  dateOfBirth?: string;
+  imageUrl?: string;
+  accessToken: string;
+  refreshToken: string;
+  opportunities?: string;
+  twoFactorAuth?: boolean;
+};
+
 export const loginUser = async (userData: {
   email: string;
   password: string;
-}) => {
-  console.log("Logging in with:", userData);
-
+}): Promise<User> => {
   const response = await axios.post(`${baseUrl}/user/login`, userData);
   const data = response.data;
-  console.log("Login response:", data);
 
-  // Save returned fields in localStorage
-  localStorage.setItem("accessToken", data.accessToken);
-  localStorage.setItem("refreshToken", data.refreshToken);
-  localStorage.setItem("username", data.username);
-  localStorage.setItem("imageUrl", data.imageUrl); // Ensure backend returns imageUrl
-  localStorage.setItem("email", data.email);
-  localStorage.setItem("grade", data.grade);
-  localStorage.setItem("rank", data.rank);
-  localStorage.setItem("userId", data._id);
-  localStorage.setItem("DateOfBirth", data.DateOfBirth);
-  localStorage.setItem("parent_email", data.parent_email);
-  localStorage.setItem("parent_name", data.parent_name);
-  localStorage.setItem("parent_phone", data.parent_phone);
+  sessionStorage.setItem("accessToken", data.accessToken);
 
-
-  return data;
+  return {
+    _id: data._id,
+    username: data.username,
+    email: data.email,
+    parent_email: data.parent_email,
+    parent_name: data.parent_name,
+    parent_phone: data.parent_phone,
+    grade: data.grade,
+    rank: data.rank,
+    dateOfBirth: data.DateOfBirth, // הקפד על תיאום שם
+    imageUrl: data.imageUrl,
+    accessToken: data.accessToken,
+    refreshToken: data.refreshToken,
+    opportunities: data.opportunities ?? "לא ידוע", // אם קיים
+    twoFactorAuth: data.twoFactorAuth ?? false, // אם קיים
+  };
 };
 
-// End of registration: update additional user details
 export const endOfRegistration = async (userData: {
   userId?: string;
   imageUrl?: string;
@@ -41,10 +73,9 @@ export const endOfRegistration = async (userData: {
   parent_email?: string;
   parent_name?: string;
   parent_phone?: string;
-  // ... any additional fields
 }) => {
-  console.log("baseUrl: " + baseUrl);
   console.log("Sending user data:", userData);
+
   const response = await axios.put(
     `${baseUrl}/user/endOfRegistration`,
     userData,
@@ -52,28 +83,22 @@ export const endOfRegistration = async (userData: {
       headers: {
         Authorization: "jwt " + localStorage.getItem("accessToken"),
       },
-    }    
+    }
   );
 
-  // Update localStorage with new data
-  Object.entries(userData).forEach(([key, value]) => {
-    if (value !== undefined) {
-      localStorage.setItem(key, String(value));
-    }
-  });
-
-  console.log("Updated data:", response.data);
-  localStorage.setItem("imageUrl", response.data.imageUrl);
-  localStorage.setItem("grade", response.data.grade);
-  localStorage.setItem("rank", response.data.rank);
-  localStorage.setItem("DateOfBirth", response.data.DateOfBirth);
-  localStorage.setItem("parent_email", response.data.parent_email);
-  localStorage.setItem("parent_name", response.data.parent_name);
-  localStorage.setItem("parent_phone", response.data.parent_phone);
-  localStorage.setItem("username", response.data.username);
-  
-  
-  return response.data;
+  // מחזירים את האובייקט המעודכן לשימוש ב־Context
+  return {
+    _id: response.data._id,
+    username: response.data.username,
+    email: response.data.email,
+    parent_email: response.data.parent_email,
+    parent_name: response.data.parent_name,
+    parent_phone: response.data.parent_phone,
+    grade: response.data.grade,
+    rank: response.data.rank,
+    dateOfBirth: response.data.DateOfBirth,
+    imageUrl: response.data.imageUrl,
+  };
 };
 
 // Registration function

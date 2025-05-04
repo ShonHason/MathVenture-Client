@@ -8,11 +8,11 @@ import {
 import { useNavigate } from "react-router-dom";
 import full_logo from "../images/full_logo.png";
 import user_api from "../services/user_api"; // Import your user_api which includes loginUser
-
+import { useUser } from "../context/UserContext";
 const { Title } = Typography;
 
 interface LoginFormValues {
-  email: string;        // Use 'email'
+  email: string; // Use 'email'
   password: string;
 }
 
@@ -27,17 +27,23 @@ export const LoginRegistration: React.FC = () => {
   const [loginForm] = Form.useForm();
   const [registerForm] = Form.useForm();
   const navigate = useNavigate();
-
+  const { setUser } = useUser();
   // Login function now uses 'email'
   const onLoginFinish = async (values: LoginFormValues) => {
     try {
       console.log("Login Attempt:", values);
       // Call the loginUser function from user_api using 'email'
-      await user_api.loginUser({
+      const data = await user_api.loginUser({
         email: values.email,
         password: values.password,
       });
+      sessionStorage.setItem("accessToken", data.accessToken);
+      sessionStorage.setItem("refreshToken", data.refreshToken);
+
+      setUser(data);
       message.success("Login successful!");
+      sessionStorage.setItem("user", JSON.stringify(data));
+
       navigate("/home"); // Redirect after successful login
     } catch (error) {
       console.error("Login failed:", error);
@@ -49,14 +55,14 @@ export const LoginRegistration: React.FC = () => {
     try {
       const { confirmPassword, ...registrationData } = values;
       console.log("Registration Attempt:", registrationData);
-      
+
       // Map the registration data as needed
       const mappedData = {
         email: registrationData.email,
         password: registrationData.password,
         username: registrationData.username,
       };
-      
+
       await user_api.register(mappedData);
       message.success("Registration successful");
       navigate("/quiz");
@@ -153,7 +159,9 @@ export const LoginRegistration: React.FC = () => {
                   <Form.Item
                     label="שם המשתמש"
                     name="username"
-                    rules={[{ required: true, message: "אנא הכנס את שם המשתמש!" }]}
+                    rules={[
+                      { required: true, message: "אנא הכנס את שם המשתמש!" },
+                    ]}
                   >
                     <Input placeholder="שם המשתמש" />
                   </Form.Item>
@@ -185,7 +193,9 @@ export const LoginRegistration: React.FC = () => {
                           if (!value || getFieldValue("password") === value) {
                             return Promise.resolve();
                           }
-                          return Promise.reject(new Error("הסיסמאות אינן תואמות!"));
+                          return Promise.reject(
+                            new Error("הסיסמאות אינן תואמות!")
+                          );
                         },
                       }),
                     ]}
@@ -212,9 +222,21 @@ export const LoginRegistration: React.FC = () => {
           }}
           align="center"
         >
-          <Button icon={<GoogleOutlined />} style={{ width: "30%" }} size="large"></Button>
-          <Button icon={<AppleOutlined />} style={{ width: "30%" }} size="large"></Button>
-          <Button icon={<FacebookOutlined />} style={{ width: "30%" }} size="large"></Button>
+          <Button
+            icon={<GoogleOutlined />}
+            style={{ width: "30%" }}
+            size="large"
+          ></Button>
+          <Button
+            icon={<AppleOutlined />}
+            style={{ width: "30%" }}
+            size="large"
+          ></Button>
+          <Button
+            icon={<FacebookOutlined />}
+            style={{ width: "30%" }}
+            size="large"
+          ></Button>
         </Space>
       </Space>
     </Space>

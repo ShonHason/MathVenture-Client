@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import "./HomePageContent.css";
 import LessonsContext, { Topic, Question } from "../context/LessonsContext";
 import { subjectsByGrade } from "../components/SubjectByGrade";
+import { useUser } from "../context/UserContext";
 
 export const generateTopic = (
   subject: string,
@@ -31,24 +32,25 @@ export const generateTopic = (
 };
 
 const HomePageContent: React.FC = () => {
+  const { user } = useUser();
   const lessonsContext = useContext(LessonsContext);
   const [selectedSubject, setSelectedSubject] = useState<string>("");
   const [selectedRank, setSelectedRank] = useState<number>(1);
   const [showAddModal, setShowAddModal] = useState(false);
   const [predefinedSubjects, setPredefinedSubjects] = useState<string[]>([]);
+
   useEffect(() => {
-    const rawGrade = localStorage.getItem("grade") || "";
-    if (rawGrade && subjectsByGrade[rawGrade]) {
-      setPredefinedSubjects(subjectsByGrade[rawGrade]);
+    if (user?.grade && subjectsByGrade[user.grade]) {
+      setPredefinedSubjects(subjectsByGrade[user.grade]);
     }
-  }, []);
+  }, [user]);
 
   if (!lessonsContext) return null;
 
   const { topics, setTopics } = lessonsContext;
 
   const handleAddTopic = () => {
-    const grade = localStorage.getItem("grade") || "א'";
+    const grade = user?.grade || "א'";
     if (selectedSubject) {
       const newTopic = generateTopic(selectedSubject, grade, selectedRank);
       setTopics([...topics, newTopic]);
