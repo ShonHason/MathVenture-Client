@@ -1,58 +1,86 @@
-/* Settings Page Styling */
-.settings-container {
-  width: 100%;
-  max-width: 960px;
-  margin: 0 auto;
-  background: #f4f4f4; /* Light background for the whole container */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+/* SettingsPage.css */
+
+
+:root {
+  --purple:      #6A4CFF;
+  --light-gray:  #E0E0E0;
+  --white:       #FFFFFF;
+  --font-kids:   "Comic Sans MS", cursive, sans-serif;
 }
+
+.settings-container {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 0 16px;
+  font-family: var(--font-kids);
+}
+
 
 .settings-nav {
   display: flex;
-  background-color: #333; /* Dark background for contrast */
-  list-style: none;
+  justify-content: center;
+  margin-bottom: 24px;
 }
-
 .settings-nav ul {
-  display: flex;
-  width: 100%;
-  justify-content: space-evenly; /* Even spacing of nav items */
+  list-style: none;
   margin: 0;
   padding: 0;
+  display: inline-flex;
+  background: var(--light-gray);
+  border-radius: 9999px;
+  overflow: hidden;
 }
-
 .settings-nav li {
-  flex-grow: 1; /* Flex grow to fill available space */
-  text-align: center;
-  padding: 12px;
-  color: white; /* White text color for readability */
   cursor: pointer;
-  transition: background-color 0.3s ease; /* Smooth transition for hover effect */
-}
-
-.settings-nav li:hover {
-  background-color: #555; /* Slightly lighter on hover for interaction feedback */
-}
-
-.settings-nav li.active {
-  background-color: #f39c12; /* Highlight color for the active tab */
-  color: white; /* Ensure text is white for visibility */
-}
-
-.settings-content {
+  padding: 8px 24px;
+  font-size: 16px;
+  color: var(--purple);
+  transition: background 0.2s, color 0.2s;
+  user-select: none;
   display: flex;
   align-items: center;
-  padding: 20px;
-  background-color: #fff; /* White background for the content for clean look */
-  border-top: 3px solid #f39c12; /* Continuation of active tab color */
+  justify-content: center;
+}
+.settings-nav li:first-child {
+  border-top-left-radius: 9999px;
+  border-bottom-left-radius: 9999px;
+}
+.settings-nav li:last-child {
+  border-top-right-radius: 9999px;
+  border-bottom-right-radius: 9999px;
+}
+.settings-nav li:hover:not(.active) {
+  background: rgba(106, 76, 255, 0.1);
+}
+.settings-nav li.active {
+  background: var(--purple);
+  color: var(--white);
 }
 
-/* Ensuring unique class names for active tabs, if needed */
-.settings-nav ul li.active {
-  background-color: #007bff; /* Blue background for active tab */
-  color: white; /* White text color */
+
+.settings-content {
+  background: var(--white);
+  padding: 24px;
+  border-radius: 0 0 12px 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
-.tab-content-container {
-  background-color: #fff; /* White background for the content for clean look */
-  border-top: 3px solid #f39c12; /* Continuation of active tab color */
+
+.settings-content > * {
+  margin-bottom: 16px;
+}
+.settings-content h2,
+.settings-content p {
+  margin: 0;
+  color: #333333;
+  line-height: 1.5;
+}
+
+@media (max-width: 600px) {
+  .settings-nav li {
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+  .settings-content {
+    padding: 16px;
+  }
 }

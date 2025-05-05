@@ -1,24 +1,53 @@
-.profile-container {
+/* ProfilePage.css */
+
+.profile-page {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 0 16px;
+}
+
+.profile-page .profile-tabs {
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  background: #f0f4ff;
+  border-radius: 50px;
+  overflow: hidden;
+  margin-bottom: 24px;
 }
 
-.profile-picture {
-  border-radius: 100px;
-  width: 5rem;
+.profile-page .profile-tabs .tab {
+  flex: 1;
+  text-align: center;
+  padding: 12px 0;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 500;
+  color: #6a4cff;
+  transition: background 0.2s, color 0.2s;
 }
 
-.profile-username {
-  font-size: 1rem;
-  font-weight: bold;
+/* hover ×¢×œ ×—×œ×§ ×œ×-× ×‘×—×¨ */
+.profile-page .profile-tabs .tab:not(.active):hover {
+  background: rgba(106, 76, 255, 0.15);
 }
 
-.profile-userclass {
-  font-size: 0.8rem;
-  color: #7f8c8d;
+/* ×”×ž×¦×‘ ×”× ×‘×—×¨ */
+.profile-page .profile-tabs .tab.active {
+  background: linear-gradient(135deg, #6a4cff, #8f6fff);
+  color: #ffffff;
+  font-weight: 600;
 }
 
-.name-class-container {
-  position: relative;
+.profile-page .profile-content {
+  background: #ffffff;
+  padding: 24px;
+}
+
+@media (max-width: 600px) {
+  .profile-page .profile-tabs {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .profile-page .profile-tabs .tab {
+    padding: 10px 0;
+  }
 }

@@ -1,143 +1,165 @@
-import React, { useEffect, useState } from "react";
+// src/components/PersonalInfo.tsx
+import React, { useState, useEffect, useRef } from "react";
 import "./PersonalInfo.css";
 import defaultProfileImg from "../images/profile.png";
-import EditIcon from "@mui/icons-material/Edit";
+import {
+  CameraOutlined,
+  LockOutlined,
+  EditOutlined,
+} from "@ant-design/icons";
 import { updateUserProfile } from "../services/user_api";
 import { useUser } from "../context/UserContext";
 
-const PersonalInfo = () => {
+// כל הכיתות א–יב
+const gradeOptions = ["א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט", "י", "יא", "יב"];
+// קידומות ישראליות נפוצות
+const prefixOptions = ["050", "051", "052", "053", "054", "055", "058"];
+
+const PersonalInfo: React.FC = () => {
   const { user, setUser } = useUser();
   const [name, setName] = useState(user?.username || "");
-  const [email, setEmail] = useState(user?.email || "");
-  const [phone, setPhone] = useState(user?.parent_phone || "");
+  const [email] = useState(user?.email || "");
+  const [phonePrefix, setPhonePrefix] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [className, setClassName] = useState(user?.grade || "");
-  const [profileImage, setProfileImage] = useState(
+  const [profileImage, setProfileImage] = useState<string>(
     user?.imageUrl || defaultProfileImg
   );
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (typeof reader.result === "string") {
-          setProfileImage(reader.result);
-        }
-      };
-      reader.readAsDataURL(file);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (user?.parent_phone) {
+      const full = user.parent_phone;
+      const found = prefixOptions.find((p) => full.startsWith(p));
+      if (found) {
+        setPhonePrefix(found);
+        setPhoneNumber(full.slice(found.length));
+      } else {
+        setPhoneNumber(full);
+      }
     }
-  };
+  }, [user]);
 
   const triggerImageUpload = () => {
-    document.getElementById("imageUpload")?.click();
+    fileInputRef.current?.click();
   };
 
-  const onSaveButton = async (): Promise<void> => {
-    try {
-      if (!user?._id) {
-        console.error("User ID not available in context");
-        return;
-      }
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === "string") setProfileImage(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
 
-      const updatedData = {
+  const onSave = async () => {
+    if (!user?._id) return;
+    const fullPhone = phonePrefix + phoneNumber;
+    try {
+      const updated = await updateUserProfile({
         userId: user._id,
         username: name,
         email,
-        parent_phone: phone,
+        parent_phone: fullPhone,
         grade: className,
         imageUrl: profileImage,
-      };
-
-      const updatedUser = await updateUserProfile(updatedData);
-
-      setUser((prevUser) => ({
-        ...prevUser!,
-        ...updatedUser,
-      }));
-
-      alert("הפרטים נשמרו בהצלחה!");
-    } catch (error) {
-      console.error("Error updating user profile:", error);
-      alert("קרתה שגיאה בעת שמירת השינויים.");
+      });
+      setUser((prev) => ({ ...prev!, ...updated }));
+      alert("השינויים נשמרו בהצלחה!");
+    } catch (err) {
+      console.error(err);
+      alert("שגיאה בשמירת הפרטים");
     }
   };
 
   return (
     <div className="personal-info-container">
-      <div className="personal-info-profile-image">
-        <img
-          src={profileImage}
-          alt="Profile"
-          className="profile-image-clickable"
-          onClick={triggerImageUpload}
-          style={{ cursor: "pointer" }} // הוספת סמן עכבר כדי לציין שאפשר ללחוץ
-        />
-        <div
-          className="edit-icon-container"
-          onClick={triggerImageUpload}
-          style={{ cursor: "pointer" }}
-        >
-          <EditIcon fontSize="small" />
+      <div className="profile-image-wrapper" onClick={triggerImageUpload}>
+        <img src={profileImage} alt="Profile" className="profile-image" />
+        <div className="edit-icon-overlay">
+          <EditOutlined />
         </div>
-        <input
-          type="file"
-          id="imageUpload"
-          accept="image/*"
-          onChange={handleImageUpload}
-          style={{ display: "none" }}
-        />
       </div>
+      <input
+        type="file"
+        accept="image/*"
+        ref={fileInputRef}
+        style={{ display: "none" }}
+        onChange={handleFileChange}
+      />
 
-      {/* שאר הקוד של הטופס */}
-      <div className="personal-info-input-group">
-        <span className="inputs">
-          <p>:שם מלא</p>
+      <div className="personal-info-form">
+        <div className="field">
+          <label>שם מלא</label>
           <input
-            className="input-obj"
             type="text"
-            id="name"
             placeholder="הכנס שם מלא"
             value={name}
             onChange={(e) => setName(e.target.value)}
           />
-        </span>
-        <span className="inputs">
-          <p>:אימייל</p>
-          <input
-            className="input-obj"
-            type="email"
-            id="email"
-            placeholder="example@gmail.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </span>
-        <span className="inputs">
-          <p>:מספר טלפון</p>
-          <input
-            className="input-obj"
-            type="tel"
-            id="phone"
-            placeholder="0504939124"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-          />
-        </span>
-        <span className="inputs">
-          <p>:כיתה</p>
-          <input
-            className="input-obj"
-            type="text"
-            id="class"
-            placeholder=" הכנס כיתה"
+        </div>
+
+        <div className="field email-field">
+          <label>אימייל</label>
+          <div className="email-input-wrapper">
+            <input
+              type="email"
+              value={email}
+              readOnly
+              className="readonly-input"
+            />
+            <LockOutlined className="lock-icon" />
+          </div>
+        </div>
+
+        <div className="field phone-field">
+          <label>מספר טלפון</label>
+          <div className="phone-inputs">
+            <input
+              type="tel"
+              className="number-input"
+              placeholder="1234567"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+            />
+            <span className="separator">–</span>
+            <select
+              className="prefix-select"
+              value={phonePrefix}
+              onChange={(e) => setPhonePrefix(e.target.value)}
+            >
+              <option value="">קידומת</option>
+              {prefixOptions.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="field">
+          <label>כיתה</label>
+          <select
             value={className}
             onChange={(e) => setClassName(e.target.value)}
-          />
-        </span>
+          >
+            <option value="">בחר כיתה</option>
+            {gradeOptions.map((g) => (
+              <option key={g} value={g}>
+                כיתה {g}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <button className="save-btn" onClick={onSave}>
+          שמור שינויים
+        </button>
       </div>
-      <button className="personal-info-save-button" onClick={onSaveButton}>
-        Save Change
-      </button>
     </div>
   );
 };

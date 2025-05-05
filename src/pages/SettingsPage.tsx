@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./SettingsPage.css"; // Make sure to link your CSS file
+import DisplaySettings from "../components/DisplaySettings";
 import SecuritySettings from "../components/SecuritySettings";
 
 const SettingsPage = () => {
@@ -41,7 +42,7 @@ const SettingsPage = () => {
       </nav>
       <div className="settings-content">
         {activeTab === "voice" && <div>הגדרות קול כאן</div>}
-        {activeTab === "display" && <div>הגדרת תצוגה כאן</div>}
+        {activeTab === "display" && <div><DisplaySettings /> </div>}
         {activeTab === "security" && <SecuritySettings />}
       </div>
     </div>

@@ -1,79 +1,152 @@
-.sidebar ul {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-}
+/* src/components/SideBar.css */
 
-.sidebar {
-  position: fixed;
-  left: 0px;
-  top: 0px;
-  background-color: rgb(24, 7, 56);
-  color: #ecf0f1;
-  min-height: 100vh;
-  height: fit-content;
-  width: 220px;
-  border: solid 4px #34495e;
-  align-items: center;
-  padding: 20px;
+/* צבע הרקע של הסיידבר – תשנה כאן כרצונך */
+.sidebar-modern {
+  position: fixed;      /* תמיד תקבע את המיקום */
+  top: 0;               /* למעלה */
+  left: 0;              /* בצד שמאל */
+  width: 260px;
+  height: 100vh;        /* יכסה את כל גובה החלון */
+  background: #f0f4ff;  /* <-- כאן תוכל לשים כל צבע אחר */
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
   box-sizing: border-box;
-  transition: width 0.3s ease;
+  font-family: "Arial", sans-serif;
+  overflow-y: auto;     /* גלילה פנימית במקרה שהתוכן גבוה */
+  z-index: 1000;        /* תמיד מעל התוכן */
 }
 
-.menu-item {
+/* קומפוננטת Profile */
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.profile-picture {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 12px;
+}
+
+.name-class-container {
+  text-align: center;
+}
+
+.profile-username {
+  font-size: 20px;
+  font-weight: 700;
+  color: #222;
+  margin-bottom: 6px;
+}
+
+.profile-userclass {
+  font-size: 12px;
+  font-weight: 500;
+  color: #555;
+}
+
+/* סעיפי תפריט */
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.section-title {
+  font-size: 12px;
+  font-weight: bold;
+  color: #666;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
+
+/* רשימת פריטים */
+.sidebar-section ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* דוחף את הסעיף התחתון לתחתית */
+.sidebar-section.bottom-fixed {
+  margin-top: auto;
+  margin-bottom: 0;
+}
+
+/* פריט בתפריט */
+.item {
   display: flex;
   align-items: center;
-  padding: 10px 10px;
-  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
   cursor: pointer;
-  border-radius: 2.5px;
-  box-sizing: border-box;
+  transition: background 0.2s, color 0.2s;
+  margin-bottom: 8px;
+  color: #333;
 }
 
-.menu-item .anticon {
-  padding-left: 16px;
-  min-width: 30px;
-  text-decoration: none;
+.item .icon {
+  font-size: 18px;
+  margin-right: 12px;
+  color: #666;
 }
 
-.menu-item:hover {
-  background-color: hsla(286, 12%, 52%, 0.6);
-
-  border-radius: 5px;
-  transition: background-color 0.6s;
+.item .label {
+  font-size: 14px;
 }
 
+/* הובר על פריטים */
+.item:hover {
+  background: #e6eaff;
+  color: #6a4cff;
+}
+.item:hover .icon {
+  color: #6a4cff;
+}
+
+/* פריט פעיל */
+.item.active {
+  background: linear-gradient(90deg, #6a4cff, #8f6fff);
+  color: #fff;
+}
+.item.active .icon {
+  color: #fff;
+}
+
+/* כפתור התנתקות אדום */
+.item.logout {
+  background: #ff5c5c;
+  color: #fff;
+}
+.item.logout:hover {
+  background: #e04343;
+}
+
+/* רספונסיביות */
 @media (max-width: 768px) {
-  .sidebar {
-    width: 200px;
+  .sidebar-modern {
+    width: 220px;
   }
-
-  .menu-item {
-    font-size: 14px;
+  .profile-username {
+    font-size: 18px;
+  }
+  .profile-userclass {
+    font-size: 11px;
   }
 }
 
 @media (max-width: 480px) {
-  .sidebar {
+  .sidebar-modern {
+    position: relative;  /* במקרה שרוצים שהסיידבר ייעלם בגודל קטן */
     width: 100%;
     height: auto;
-    flex-direction: row;
-    justify-content: center;
-    padding: 10px;
   }
-
-  .menu-item {
-    flex: 1;
-    padding: 10px;
-    font-size: 12px;
-    border-bottom: none;
+  .sidebar-section.bottom-fixed {
+    margin-top: 16px;
   }
-}
-
-.menu-top-bottom-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 100px;
-  width: 100%;
 }
