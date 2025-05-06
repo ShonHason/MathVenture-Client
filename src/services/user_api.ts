@@ -44,7 +44,9 @@ export const loginUser = async (userData: {
   const response = await axios.post(`${baseUrl}/user/login`, userData);
   const data = response.data;
 
-  sessionStorage.setItem("accessToken", data.accessToken);
+  localStorage.setItem("accessToken", data.accessToken);
+  localStorage.setItem("refreshToken", data.refreshToken);
+  localStorage.setItem("userId", data._id);
 
   return {
     _id: data._id,
