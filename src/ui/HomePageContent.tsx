@@ -6,27 +6,26 @@ import { useUser } from "../context/UserContext";
 
 export const generateTopic = (
   subject: string,
-  grade: string,
-  rank: number
+  grade: string
 ): Topic => {
   const dummyQuestions: Question[] = [];
   for (let i = 1; i <= 3; i++) {
     dummyQuestions.push({
-      question: `(${grade}, רמה ${rank}) מהי התוצאה של ${i * rank} + ${rank}?`,
+      question: `(${grade}) מהי התוצאה של ${i} + ${i}?`,
       options: [
-        `${i * rank + rank}`,
-        `${i * rank + rank + 1}`,
-        `${i * rank + rank - 1}`,
-        `${i * rank}`,
+        `${i + i}`,
+        `${i + i + 1}`,
+        `${i + i - 1}`,
+        `${i}`,
       ],
-      correctAnswer: `${i * rank + rank}`,
+      correctAnswer: `${i + i}`,
     });
   }
 
   return {
     subject,
     grade,
-    rank,
+    rank: 1,         // דרג ברירת מחדל
     questions: dummyQuestions,
   };
 };
@@ -35,8 +34,7 @@ const HomePageContent: React.FC = () => {
   const { user } = useUser();
   const lessonsContext = useContext(LessonsContext);
   const [selectedSubject, setSelectedSubject] = useState<string>("");
-  const [selectedRank, setSelectedRank] = useState<number>(1);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [predefinedSubjects, setPredefinedSubjects] = useState<string[]>([]);
 
   useEffect(() => {
@@ -46,79 +44,66 @@ const HomePageContent: React.FC = () => {
   }, [user]);
 
   if (!lessonsContext) return null;
-
   const { topics, setTopics } = lessonsContext;
 
   const handleAddTopic = () => {
     const grade = user?.grade || "א'";
-    if (selectedSubject) {
-      const newTopic = generateTopic(selectedSubject, grade, selectedRank);
-      setTopics([...topics, newTopic]);
-      setSelectedSubject("");
-      setSelectedRank(1);
-      setShowAddModal(false);
-    }
+    if (!selectedSubject) return;
+    const newTopic = generateTopic(selectedSubject, grade);
+    setTopics([...topics, newTopic]);
+    setSelectedSubject("");
+    setShowAddModal(false);
   };
 
   return (
     <div className="homepage-content">
-      <p className="section-title">:השיעורים שלי</p>
+      <h2 className="hp-title">השיעורים שלי</h2>
+
       <div className={`my-lessons ${topics.length === 0 ? "empty" : ""}`}>
         {topics.length === 0 ? (
-          <p>כרגע אין שיעורים</p>
+          <p className="empty-text">כרגע אין שיעורים</p>
         ) : (
-          topics.map((topic, index) => (
-            <div key={index} className="lesson-item">
-              {topic.subject} - כיתה {topic.grade} - רמה {topic.rank}
-            </div>
-          ))
+          <div className="lessons-grid">
+            {topics.map((topic, idx) => (
+              <div key={idx} className="lesson-card">
+                <div className="lesson-subject">{topic.subject}</div>
+                <div className="lesson-meta">כיתה {topic.grade}</div>
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
       <button
-        onClick={() => setShowAddModal(true)}
         className="add-topic-button"
+        onClick={() => setShowAddModal(true)}
       >
-        להוספת נושא
+        + הוסף שיעור חדש
       </button>
 
       {showAddModal && (
         <div className="modal-overlay">
           <div className="add-topic-modal">
-            <p className="modal-title">הוספת שיעור</p>
-
+            <h3 className="modal-title">הוספת שיעור</h3>
             <select
+              className="topic-select"
               value={selectedSubject}
               onChange={(e) => setSelectedSubject(e.target.value)}
-              className="topic-select"
             >
               <option value="">בחר נושא</option>
-              {predefinedSubjects.map((subj, index) => (
-                <option key={index} value={subj}>
-                  {subj}
+              {predefinedSubjects.map((s, i) => (
+                <option key={i} value={s}>
+                  {s}
                 </option>
               ))}
             </select>
-
-            <select
-              value={selectedRank}
-              onChange={(e) => setSelectedRank(Number(e.target.value))}
-              className="topic-select"
-            >
-              {[1, 2, 3, 4, 5].map((rank) => (
-                <option key={rank} value={rank}>
-                  רמת קושי {rank}
-                </option>
-              ))}
-            </select>
-
             <div className="modal-buttons">
-              <button onClick={handleAddTopic} className="add-topic-button">
+              <button className="btn-save" onClick={handleAddTopic}>
                 שמירה
               </button>
               <button
+                className="btn-cancel"
                 onClick={() => setShowAddModal(false)}
-                className="cancel-button"
               >
                 ביטול
               </button>

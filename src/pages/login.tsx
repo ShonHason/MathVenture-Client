@@ -63,7 +63,12 @@ export const LoginRegistration: React.FC = () => {
         username: registrationData.username,
       };
 
-      await user_api.register(mappedData);
+      const newuser =  await user_api.register(mappedData);
+      setUser((prevUser) => ({
+        ...prevUser!,
+        ...newuser,
+      }));
+
       message.success("Registration successful");
       navigate("/quiz");
     } catch (error) {

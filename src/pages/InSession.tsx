@@ -1,3 +1,4 @@
+// src/features/InSession.tsx
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -7,37 +8,52 @@ import DrawableMathNotebook from "../components/DrawableMathNotebook";
 import LessonButtons from "../components/LessonButtons";
 import RealTimeRecorder from "../components/RealTimeRecorder";
 import AudioUnlocker from "../components/AudioUnlocker";
+import { startLesson } from "../services/lessons_api"; // endLesson
+import { useUser } from "../context/UserContext";
 import "./InSession.css";
-import { startLesson } from "../services/lessons_api";
 
 const DIRECT_MODEL_URL =
   "https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb";
-const socketServerUrl = process.env.SERVER_API_URL || "http://localhost:4000";
+const socketServerUrl =
+  process.env.SERVER_API_URL || "http://localhost:4000";
+
+type LocationState = {
+  state: {
+    topic: { question: string; subject: string };
+    lessonId?: string;
+  };
+};
 
 const InSession: React.FC = () => {
-  const location = useLocation() as {
-    state: { topic: { question: string; subject: any } };
-  };
-  const { topic } = location.state || {};
+  const { user } = useUser();
+  const navigate = useNavigate();
+  const { topic, lessonId: incomingId } = (useLocation() as LocationState)
+    .state;
+  const [lessonId, setLessonId] = useState<string>(incomingId || "");
+  const [hasStarted, setHasStarted] = useState<boolean>(!!incomingId);
 
   const [userTranscript, setUserTranscript] = useState<string>("");
   const [aiTranscript, setAiTranscript] = useState<string>("");
-  const [pauseUntil, setPauseUntil] = useState<number | null>(null);
   const [processing, setProcessing] = useState<boolean>(false);
   const [isSpeaking, setIsSpeaking] = useState<boolean>(false);
-  const isPaused = pauseUntil !== null && pauseUntil > Date.now();
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [status, setStatus] = useState<string>(
     'לחץ "התחל שיחה" כדי לפתוח את השיחה'
   );
   const [listening, setListening] = useState<boolean>(false);
-  const [hasStarted, setHasStarted] = useState<boolean>(false);
-  const [lessonId, setLessonId] = useState<string>("");
-  const [showPauseModal, setShowPauseModal] = useState<boolean>(false);
 
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const navigate = useNavigate();
 
+  // If there was a lessonId passed in, auto-start listening
+  useEffect(() => {
+    if (incomingId) {
+      setHasStarted(true);
+      setListening(true);
+      setStatus("מקשיב...");
+    }
+  }, [incomingId]);
+
+  // Debounce user transcript before sending
   useEffect(() => {
     if (!hasStarted || processing || !userTranscript.trim()) return;
     if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
@@ -50,50 +66,42 @@ const InSession: React.FC = () => {
     };
   }, [userTranscript, processing, hasStarted]);
 
+  // Send transcript to chat API + TTS
   const processTranscript = async (input: string) => {
     try {
       setProcessing(true);
       setStatus("מעבד את הבקשה שלך...");
       setUserTranscript("");
-      const chatResponse = await axios.post(
+      const chatResp = await axios.post(
         `${socketServerUrl}/api/chat`,
-        { question: input, context: topic || {}, lessonId },
+        { question: input, context: topic, lessonId },
         {
-          headers: {
-            Authorization: "jwt " + localStorage.getItem("accessToken"),
-          },
+          headers: { Authorization: `jwt ${user?.accessToken}` },
         }
       );
-      const aiText: string = chatResponse.data.answer;
+      const aiText: string = chatResp.data.answer;
       setAiTranscript(aiText);
 
       setStatus("ממיר טקסט לדיבור...");
-      const ttsResponse = await axios.post(
+      const ttsResp = await axios.post(
         `${socketServerUrl}/api/tts`,
         { text: aiText, lang: "he-IL" },
         { responseType: "arraybuffer" }
       );
-      const audioBlob = new Blob([ttsResponse.data], { type: "audio/mp3" });
+      const audioBlob = new Blob([ttsResp.data], { type: "audio/mp3" });
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
       audioRef.current = audio;
 
       setStatus("מדבר...");
       setIsSpeaking(true);
-      audio
-        .play()
-        .then(() => {
-          audio.onended = () => {
-            setIsSpeaking(false);
-            setStatus("מקשיב...");
-            setListening(true);
-            setProcessing(false);
-          };
-        })
-        .catch((err) => {
-          console.error("Audio play failed:", err);
-          setProcessing(false);
-        });
+      await audio.play();
+      audio.onended = () => {
+        setIsSpeaking(false);
+        setStatus("מקשיב...");
+        setListening(true);
+        setProcessing(false);
+      };
     } catch (err) {
       console.error("Error processing transcript:", err);
       setStatus("שגיאה בעיבוד הטקסט");
@@ -101,12 +109,16 @@ const InSession: React.FC = () => {
     }
   };
 
+  // Start or resume lesson on server
   const handleStartConversation = async () => {
+    if (!user) return;
     try {
       setStatus("מנסה להתחיל...");
-      const lesson = await startLesson({
-        subject: JSON.stringify(topic.subject),
-      });
+      const lesson = await startLesson(
+        user,
+        topic.subject,
+        lessonId || undefined
+      );
       setLessonId(lesson._id);
       setHasStarted(true);
       setListening(true);
@@ -121,6 +133,21 @@ const InSession: React.FC = () => {
     }
   };
 
+  // End lesson on server and navigate home
+  const handleEndLesson = async () => {
+    if (user && lessonId) {
+      try {
+       // await endLesson(user, lessonId);
+      } catch (err) {
+        console.error("Error ending lesson:", err);
+      }
+    }
+    setStatus("השיעור הסתיים");
+    audioRef.current?.pause();
+    navigate("/home");
+  };
+
+  // Reset conversation state
   const resetConversation = () => {
     setUserTranscript("");
     setAiTranscript("");
@@ -130,74 +157,7 @@ const InSession: React.FC = () => {
     setStatus("מוכן");
   };
 
-  const handleLessonAction = (action: string) => {
-    if (action === "pause") {
-      setShowPauseModal(true);
-      return;
-    }
-
-    if (action.startsWith("pause-")) {
-      const minutes = parseInt(action.split("-")[1], 10);
-      const until = Date.now() + minutes * 60 * 1000;
-      setPauseUntil(until);
-      setStatus(`הפסקה ל-${minutes} דקות`);
-
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-        audioRef.current = null;
-      }
-
-      setListening(false);
-      setIsSpeaking(false);
-      setProcessing(false);
-      return;
-    }
-
-    if (action === "explanation") {
-      processTranscript("תסביר שוב בבקשה");
-    } else if (action === "slow") {
-      processTranscript("תסביר לאט יותר בבקשה");
-    } else if (action === "end-lesson") {
-      setStatus("השיעור הסתיים");
-      setListening(false);
-      setHasStarted(false);
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-        audioRef.current = null;
-      }
-
-      setIsSpeaking(false);
-      setProcessing(false);
-
-      navigate("/home");
-    }
-  };
-
-  useEffect(() => {
-    if (!pauseUntil) return;
-
-    const interval = setInterval(() => {
-      const remainingMs = pauseUntil - Date.now();
-
-      if (remainingMs <= 0) {
-        clearInterval(interval);
-        setPauseUntil(null);
-        setListening(true);
-        setStatus("מקשיב...");
-      } else {
-        const minutes = Math.floor(remainingMs / 60000);
-        const seconds = Math.floor((remainingMs % 60000) / 1000)
-          .toString()
-          .padStart(2, "0");
-        setStatus(`הפסקה מסתיימת בעוד ${minutes}:${seconds} דקות`);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [pauseUntil]);
-
+  // Initial screen before start
   if (!hasStarted) {
     return (
       <div className="in-session-page">
@@ -207,7 +167,10 @@ const InSession: React.FC = () => {
             <div className="start-title">
               ?האם את/ה מוכן/מוכנה להתחיל את השיעור
             </div>
-            <button onClick={handleStartConversation} className="start-button">
+            <button
+              onClick={handleStartConversation}
+              className="start-button"
+            >
               התחל שיחה
             </button>
           </div>
@@ -216,6 +179,7 @@ const InSession: React.FC = () => {
     );
   }
 
+  // Lesson in progress screen
   return (
     <div className="in-session-page">
       <AudioUnlocker />
@@ -227,16 +191,14 @@ const InSession: React.FC = () => {
             speech={aiTranscript || userTranscript}
             fallbackImageSrc="https://via.placeholder.com/300/f0f0f0/333?text=Avatar"
           />
-          <Transcript
-            text={aiTranscript || userTranscript}
-            isLoading={processing}
-          />
+          <Transcript text={aiTranscript || userTranscript} isLoading={processing} />
           {listening && <RealTimeRecorder onTranscript={setUserTranscript} />}
         </div>
         <div className="lesson-buttons-area">
           <LessonButtons
-            onActionPerformed={handleLessonAction}
-            disabled={isPaused}
+            onActionPerformed={(action) => {
+              if (action === "end-lesson") handleEndLesson();
+            }}
           />
         </div>
         <div className="status-display">
@@ -252,27 +214,6 @@ const InSession: React.FC = () => {
           onRecognize={processTranscript}
         />
       </div>
-
-      {showPauseModal && (
-        <div className="pause-modal-backdrop">
-          <div className="pause-modal">
-            <h3>בחר משך הפסקה</h3>
-            {[1, 3, 5, 10].map((min) => (
-              <button
-                key={min}
-                onClick={() => {
-                  setShowPauseModal(false);
-                  handleLessonAction(`pause-${min}`);
-                }}
-              >
-                {min} דקות
-              </button>
-            ))}
-            <br />
-            <button onClick={() => setShowPauseModal(false)}>בטל</button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
