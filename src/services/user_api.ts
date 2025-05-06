@@ -109,10 +109,17 @@ export const register = async (userData: {
 }) => {
   const response = await axios.post(`${baseUrl}/user/register`, userData);
   console.log("Registration response:", response.data);
-  localStorage.setItem("accessToken", response.data.accessToken);
-  localStorage.setItem("email", response.data.email);
-  localStorage.setItem("refreshToken", response.data.refreshToken);
-  localStorage.setItem("userId", response.data._id);
+  return { 
+    _id: response.data._id,
+    username: response.data.username,
+    email: response.data.email,
+    parent_email: response.data.parent_email,
+    parent_name: response.data.parent_name,
+    parent_phone: response.data.parent_phone,
+    grade: response.data.grade,
+    rank: response.data.rank,
+    dateOfBirth: response.data.DateOfBirth,
+    imageUrl: response.data.imageUrl,}
 };
 
 // Check token expiration and refresh if needed

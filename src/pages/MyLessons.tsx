@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "../context/UserContext";
 import "./MyLessons.css";
 
 interface Lesson {
@@ -19,55 +20,73 @@ const statusLabels: Record<Lesson["progress"], string> = {
 };
 
 export const MyLessons: React.FC = () => {
+  const { user } = useUser();
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>("");
   const navigate = useNavigate();
 
-  // 1. קריאה לשרת כדי להביא את השיעורים
   useEffect(() => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
-      setError("משתמש לא מחובר");
-      setLoading(false);
-      return;
+    let retryTimer: ReturnType<typeof setTimeout>;
+
+    if (!user?._id) {
+      // אם אין userId – נחכה 2 שניות לפני שנסמן שגיאה
+      retryTimer = setTimeout(() => {
+        if (!user?._id) {
+          setError("משתמש לא מחובר");
+          setLoading(false);
+        }
+      }, 2000);
+
+      // ניקוי הטיימר בסיום
+      return () => clearTimeout(retryTimer);
     }
+
+    // אם יש userId, נטען את השיעורים
     const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
     axios
-      .get<Lesson[]>(`${baseUrl}/lessons/getLessons/${userId}`)
-      .then((resp) => setLessons(resp.data))
+      .get<Lesson[]>(`${baseUrl}/lessons/getLessons/${user._id}`)
+      .then((resp) => {
+        setLessons(resp.data);
+        setLoading(false);
+      })
       .catch((err) => {
+        setLoading(false);
         if (err.response?.status === 404) {
           setError("אין שיעורים פעילים");
         } else {
           setError("שגיאה בטעינת השיעורים");
         }
-      })
-      .finally(() => setLoading(false));
-  }, []);
+      });
 
-  // 2. עיצוב תאריך
+    // לא צריך ניקוי אחר כאן
+  }, [user]);
+
   const formatDate = (iso: string) =>
     new Date(iso).toLocaleDateString("he-IL", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
     });
-
-  // 3. הפונקציה לטיפול בלחיצה על כפתור סטטוס
-  const handleStatusClick = (_id: string, isDone: boolean , subject : string) => {
-    if (!isDone) {
-      console.log(_id);
-      navigate(
-        `/lessons/`, 
-        { state: { topic: {question : 1+1 , subject : subject}} }
-      );
-    }
-  };
+    const handleStatusClick = (lesson: Lesson) => {
+      if (lesson.progress !== "COMPLETED") {
+        navigate(
+          `/home/start-lessons/${encodeURIComponent(lesson.subject)}`,
+          {
+            state: {
+              topic: { question: 1 + 1, subject: lesson.subject },
+              lessonId : lesson._id, 
+            },
+          }
+        );
+      }
+    };
+    
 
   if (loading) return <div className="ml-loading">טוען…</div>;
   if (error) return <div className="ml-error">{error}</div>;
-  if (lessons.length === 0) return <div className="ml-none">אין שיעורים פעילים כרגע</div>;
+  if (lessons.length === 0)
+    return <div className="ml-none">אין שיעורים פעילים כרגע</div>;
 
   return (
     <div className="ml-container">
@@ -82,25 +101,22 @@ export const MyLessons: React.FC = () => {
           </tr>
         </thead>
         <tbody>
-          {lessons.map((l) => {
-            const isDone = l.progress === "COMPLETED";
-            return (
-              <tr key={l._id}>
-                <td className="ml-id-cell">{l._id}</td>
-                <td>{l.subject}</td>
-                <td>{formatDate(l.startTime)}</td>
-                <td>
-                  <button
-                    className="status-btn"
-                    disabled={isDone}
-                    onClick={() => handleStatusClick(l._id, isDone, l.subject)}
-                  >
-                    {statusLabels[l.progress]}
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
+          {lessons.map((l) => (
+            <tr key={l._id}>
+              <td className="ml-id-cell">{l._id}</td>
+              <td>{l.subject}</td>
+              <td>{formatDate(l.startTime)}</td>
+              <td>
+                <button
+                  className="status-btn"
+                  disabled={l.progress === "COMPLETED"}
+                  onClick={() => handleStatusClick(l)}
+                >
+                  {statusLabels[l.progress]}
+                </button>
+              </td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>

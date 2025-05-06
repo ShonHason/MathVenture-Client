@@ -8,7 +8,7 @@ import React, {
 import axios from "axios";
 
 // הגדרת טיפוסי המשתמש
-interface User {
+export interface User {
   _id: string;
   username: string;
   email: string;

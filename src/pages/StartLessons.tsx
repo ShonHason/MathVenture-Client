@@ -8,31 +8,38 @@ const StartLessons: React.FC = () => {
   const navigate = useNavigate();
 
   if (!lessonsContext) return null;
-
   const { topics } = lessonsContext;
 
   const handleStartLesson = (topic: Topic) => {
-    console.log("Starting lesson:", topic);
-    // Navigate to the InSession page and pass the topic in the state.
-    navigate("/lessons", { state: { topic } });
+    navigate(
+      `/home/start-lessons/${encodeURIComponent(topic.subject)}`, 
+      {
+        state: {
+          topic,
+          LesId: null, 
+        },
+      }
+    );
   };
 
   return (
     <div className="start-lessons-container">
-      <p className="section-title">:התחל שיעור</p>
-
+      <p className="section-title">התחל שיעור</p>
       <div className={`lesson-topics ${topics.length === 0 ? "empty" : ""}`}>
         {topics.length === 0 ? (
           <p>אין נושאים זמינים</p>
         ) : (
-          topics.map((topic, index) => (
-            <div key={index} className="topic-item">
-              {topic.subject} - כיתה {topic.grade} - רמה {topic.rank}
+          topics.map((topic, idx) => (
+            <div key={idx} className="topic-item">
+              <div className="topic-info">
+                <span className="topic-subject">{topic.subject}</span>
+                <span className="topic-grade">כיתה {topic.grade}</span>
+              </div>
               <button
-                className="add-topic-button"
+                className="start-btn"
                 onClick={() => handleStartLesson(topic)}
               >
-                התחל
+                התחל שיעור
               </button>
             </div>
           ))

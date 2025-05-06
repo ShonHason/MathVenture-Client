@@ -1,5 +1,6 @@
 import axios from "axios";
 const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
+import { User } from "../context/UserContext";
 
 export const getAllLessonsByUserId = async (
   userId: string
@@ -59,53 +60,54 @@ export const updateCurrentSubjectList = async (
   return updatedTopics;
 };
 
+export interface StartLessonPayload {
+  userId: string;
+  grade?: string;
+  rank?: string;
+  username?: string;
+  subject: string;
+}
 
+export interface StartLessonResponse {
+  _id: string;
+}
 
-export const startLesson = async (userSubject: { subject: string }) => {
-  const userData = {
-    userId: localStorage.getItem("userId"),
-    grade:   localStorage.getItem("grade"),
-    rank:    localStorage.getItem("rank"),
-    username: localStorage.getItem("username"),
-    subject: userSubject.subject,
+export const startLesson = async (
+  user: User,
+  subject: string,
+  lessonId?: string
+): Promise<StartLessonResponse> => {
+  const endpoint = lessonId
+    ? `${baseUrl}/lessons/start/${lessonId}`
+    : `${baseUrl}/lessons/start`;
+
+  console.log("endpoint: ", endpoint);
+  const payload = {
+    userId:   user._id,
+    grade:    user.grade,
+    rank:     user.rank,
+    username: user.username,
+    subject,
   };
 
-  const accessToken = localStorage.getItem("accessToken");
   const response = await axios.post(
-    `${baseUrl}/lessons/start`,
-    userData,
+    endpoint,
+    payload,
     {
       headers: {
-        Authorization: "jwt " + accessToken,
+        Authorization: `jwt ${user.accessToken}`,
       },
     }
   );
-
+  console.log("lessonid: ", lessonId);
   return response.data;
 };
-
 
 
 //const getDynamicQuestion 
 //should send grade + rank + subject
 
 
-
-
-const continueLesson = async (userSubject: {
-  lessonId: string;
-}) => {
-  const userData = {
-    userId: localStorage.getItem("userId"),
-    lessonId: userSubject.lessonId,
-  };
-  const response = await axios.post(`${process.env.API_URL}/lessons/continue`, userData, {
-    headers: {
-      Authorization: "jwt " + localStorage.getItem("accessToken"),
-    },
-  });
-  return response.data;
-}
 const deleteLesson = async (lessonId:string ) => {
 const response = await axios.delete(`${baseUrl}/deleteLesson/${lessonId}`, {
   headers: {
