@@ -70,6 +70,7 @@ export interface StartLessonPayload {
 
 export interface StartLessonResponse {
   _id: string;
+  mathQuestionsCount: number;
 }
 
 export const startLesson = async (
@@ -100,7 +101,7 @@ export const startLesson = async (
     }
   );
   console.log("lessonid: ", lessonId);
-  return response.data;
+  return response.data as StartLessonResponse;
 };
 
 

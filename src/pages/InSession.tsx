@@ -8,7 +8,7 @@ import DrawableMathNotebook from "../components/DrawableMathNotebook";
 import LessonButtons from "../components/LessonButtons";
 import RealTimeRecorder from "../components/RealTimeRecorder";
 import AudioUnlocker from "../components/AudioUnlocker";
-import { startLesson } from "../services/lessons_api"; // endLesson
+import { startLesson } from "../services/lessons_api";
 import { useUser } from "../context/UserContext";
 import "./InSession.css";
 
@@ -27,8 +27,8 @@ type LocationState = {
 const InSession: React.FC = () => {
   const { user } = useUser();
   const navigate = useNavigate();
-  const { topic, lessonId: incomingId } = (useLocation() as LocationState)
-    .state;
+  const { topic, lessonId: incomingId } = (useLocation() as LocationState).state;
+
   const [lessonId, setLessonId] = useState<string>(incomingId || "");
   const [hasStarted, setHasStarted] = useState<boolean>(!!incomingId);
 
@@ -40,11 +40,11 @@ const InSession: React.FC = () => {
     'לחץ "התחל שיחה" כדי לפתוח את השיחה'
   );
   const [listening, setListening] = useState<boolean>(false);
+  const [mathCount, setMathCount] = useState<number>(0);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // If there was a lessonId passed in, auto-start listening
   useEffect(() => {
     if (incomingId) {
       setHasStarted(true);
@@ -53,7 +53,6 @@ const InSession: React.FC = () => {
     }
   }, [incomingId]);
 
-  // Debounce user transcript before sending
   useEffect(() => {
     if (!hasStarted || processing || !userTranscript.trim()) return;
     if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
@@ -66,21 +65,41 @@ const InSession: React.FC = () => {
     };
   }, [userTranscript, processing, hasStarted]);
 
-  // Send transcript to chat API + TTS
   const processTranscript = async (input: string) => {
     try {
       setProcessing(true);
       setStatus("מעבד את הבקשה שלך...");
       setUserTranscript("");
+
+      // Corrected endpoint: removed "/api" prefix
       const chatResp = await axios.post(
-        `${socketServerUrl}/api/chat`,
-        { question: input, context: topic, lessonId },
-        {
-          headers: { Authorization: `jwt ${user?.accessToken}` },
-        }
+        `${socketServerUrl}/lessons/${lessonId}/chat`,
+        { question: input },
+        { headers: { Authorization: `jwt ${user?.accessToken}` } }
       );
-      const aiText: string = chatResp.data.answer;
-      setAiTranscript(aiText);
+
+      const {
+        answer: aiText,
+        mathQuestionsCount,
+        done,
+        message,
+      } = chatResp.data as {
+        answer?: string;
+        mathQuestionsCount?: number;
+        done?: boolean;
+        message?: string;
+      };
+
+      if (done) {
+        setStatus(message!);
+        setTimeout(() => handleEndLesson(), 1200);
+        return;
+      }
+
+      setAiTranscript(aiText!);
+      if (typeof mathQuestionsCount === "number") {
+        setMathCount(mathQuestionsCount);
+      }
 
       setStatus("ממיר טקסט לדיבור...");
       const ttsResp = await axios.post(
@@ -109,7 +128,6 @@ const InSession: React.FC = () => {
     }
   };
 
-  // Start or resume lesson on server
   const handleStartConversation = async () => {
     if (!user) return;
     try {
@@ -120,6 +138,7 @@ const InSession: React.FC = () => {
         lessonId || undefined
       );
       setLessonId(lesson._id);
+      setMathCount(lesson.mathQuestionsCount || 0);
       setHasStarted(true);
       setListening(true);
       setStatus("מקשיב...");
@@ -133,7 +152,6 @@ const InSession: React.FC = () => {
     }
   };
 
-  // End lesson on server and navigate home
   const handleEndLesson = async () => {
     if (user && lessonId) {
       try {
@@ -147,7 +165,6 @@ const InSession: React.FC = () => {
     navigate("/home");
   };
 
-  // Reset conversation state
   const resetConversation = () => {
     setUserTranscript("");
     setAiTranscript("");
@@ -157,7 +174,6 @@ const InSession: React.FC = () => {
     setStatus("מוכן");
   };
 
-  // Initial screen before start
   if (!hasStarted) {
     return (
       <div className="in-session-page">
@@ -179,7 +195,6 @@ const InSession: React.FC = () => {
     );
   }
 
-  // Lesson in progress screen
   return (
     <div className="in-session-page">
       <AudioUnlocker />
@@ -191,6 +206,11 @@ const InSession: React.FC = () => {
             speech={aiTranscript || userTranscript}
             fallbackImageSrc="https://via.placeholder.com/300/f0f0f0/333?text=Avatar"
           />
+          {topic.subject.toLowerCase() === "math" && (
+            <div className="math-progress">
+              שאלות מתמטיקה: {mathCount} / 15
+            </div>
+          )}
           <Transcript text={aiTranscript || userTranscript} isLoading={processing} />
           {listening && <RealTimeRecorder onTranscript={setUserTranscript} />}
         </div>
