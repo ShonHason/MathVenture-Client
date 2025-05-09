@@ -38,6 +38,7 @@ interface FormValues {
   username?: string;
   parent_name?: string;
   grade?: string;
+  
   imageUrl?: string;
   parent_phone?: string;
   parent_email?: string;
@@ -458,7 +459,7 @@ const QuizPage: React.FC = () => {
         parent_name: normalizedValues.parent_name,
         parent_email: normalizedValues.parent_email,
         parent_phone: normalizedValues.parent_phone,
-        grade: values.grade,
+        grade: values.grade, 
         DateOfBirth: values.dateOfBirth,
         rank: mappedRank,
         imageUrl: imageUrl || "",
@@ -605,6 +606,7 @@ const QuizPage: React.FC = () => {
       ),
       required: true,
     },
+     
     {
       label: "תאריך לידה",
       name: "dateOfBirth",
