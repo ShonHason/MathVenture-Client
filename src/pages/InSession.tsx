@@ -31,7 +31,8 @@ const InSession: React.FC = () => {
 
   const [lessonId, setLessonId] = useState<string>(incomingId || "");
   const [hasStarted, setHasStarted] = useState<boolean>(!!incomingId);
-
+  const [isFinished, setIsFinished] = useState<boolean>(false);
+  const[finalMessege, setFinalMessage] = useState<string>("");
   const [userTranscript, setUserTranscript] = useState<string>("");
   const [aiTranscript, setAiTranscript] = useState<string>("");
   const [processing, setProcessing] = useState<boolean>(false);
@@ -91,9 +92,35 @@ const InSession: React.FC = () => {
       };
 
       if (done) {
+        setIsFinished(true);
+        setFinalMessage(message||"השיעור הסתיים");
         setStatus(message!);
         setTimeout(() => handleEndLesson(), 1200);
         return;
+      }
+
+      if (isFinished) {
+        return (
+          <div className="end-screen container mx-auto p-6 text-center">
+            <h1 className="text-4xl font-bold mb-4">🎉 כל הכבוד! 🎉</h1>
+            <p className="text-lg mb-6">{finalMessege}</p>
+            <p className="mb-6">ענית על כל 15 השאלות בהצלחה.</p>
+            <div className="space-x-4">
+              <button
+                className="px-4 py-2 rounded shadow hover:shadow-lg transition"
+                onClick={() => navigate("/home")}
+              >
+                חזור לדף הבית
+              </button>
+              <button
+                className="px-4 py-2 rounded shadow hover:shadow-lg transition"
+                onClick={resetConversation}
+              >
+                נסה שוב
+              </button>
+            </div>
+          </div>
+        );
       }
 
       setAiTranscript(aiText!);

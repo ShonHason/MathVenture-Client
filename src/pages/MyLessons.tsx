@@ -81,6 +81,37 @@ export const MyLessons: React.FC = () => {
         );
       }
     };
+    const handleReport = (lesson: Lesson) => {
+      const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
+      try {
+        axios.post(`${baseUrl}/lessons/report/${lesson._id}`);
+        const email = localStorage.getItem("parent_email");
+        if (!email) {
+          alert("לא נמצאה כתובת מייל של ההורים");
+          return;
+        };
+
+        alert("הדוח נשלח בהצלחה לכתובת מייל ההורים", );
+      } catch (error) {
+        console.error("Error sending report:", error);
+        alert("שגיאה בשליחת הדוח");
+      }
+     
+    };
+    const handleDelete =async (lessonId:string) => {
+      const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
+      if(!window.confirm("האם אתה בטוח שברצונך למחוק את השיעור?")) return;
+      try {
+        await axios.delete(`${baseUrl}/lessons/${lessonId}`);
+        setLessons((prevLessons) =>
+          prevLessons.filter((lesson) => lesson._id !== lessonId)
+        );
+        alert("השיעור נמחק בהצלחה");
+      } catch (error) {
+        console.error("Error deleting lesson:", error);
+        alert("שגיאה במחיקת השיעור");
+      }
+    }
     
 
   if (loading) return <div className="ml-loading">טוען…</div>;
@@ -97,7 +128,7 @@ export const MyLessons: React.FC = () => {
             <th>ID</th>
             <th>נושא</th>
             <th>תאריך התחלה</th>
-            <th>סטטוס</th>
+            <th>פעולות</th>
           </tr>
         </thead>
         <tbody>
@@ -106,13 +137,28 @@ export const MyLessons: React.FC = () => {
               <td className="ml-id-cell">{l._id}</td>
               <td>{l.subject}</td>
               <td>{formatDate(l.startTime)}</td>
-              <td>
+              {/* Single TD for all buttons */}
+              <td className="ml-actions">
                 <button
                   className="status-btn"
                   disabled={l.progress === "COMPLETED"}
                   onClick={() => handleStatusClick(l)}
                 >
                   {statusLabels[l.progress]}
+                </button>
+  
+                <button
+                  className="report-btn"
+                  onClick={() => handleReport(l)}
+                >
+                  הפק דו"ח
+                </button>
+  
+                <button
+                  className="delete-btn"
+                  onClick={() => handleDelete(l._id)}
+                >
+                  מחק
                 </button>
               </td>
             </tr>
@@ -121,6 +167,7 @@ export const MyLessons: React.FC = () => {
       </table>
     </div>
   );
+  
 };
 
 export default MyLessons;
