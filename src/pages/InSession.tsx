@@ -11,11 +11,11 @@ import AudioUnlocker from "../components/AudioUnlocker";
 import { startLesson } from "../services/lessons_api";
 import { useUser } from "../context/UserContext";
 import "./InSession.css";
+import TopMenuBar from "../features/TopMenuBar";
 
 const DIRECT_MODEL_URL =
   "https://threejs.org/examples/models/gltf/RobotExpressive/RobotExpressive.glb";
-const socketServerUrl =
-  process.env.SERVER_API_URL || "http://localhost:4000";
+const socketServerUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 
 type LocationState = {
   state: {
@@ -27,7 +27,8 @@ type LocationState = {
 const InSession: React.FC = () => {
   const { user } = useUser();
   const navigate = useNavigate();
-  const { topic, lessonId: incomingId } = (useLocation() as LocationState).state;
+  const { topic, lessonId: incomingId } = (useLocation() as LocationState)
+    .state;
 
   const [lessonId, setLessonId] = useState<string>(incomingId || "");
   const [hasStarted, setHasStarted] = useState<boolean>(!!incomingId);
@@ -155,7 +156,7 @@ const InSession: React.FC = () => {
   const handleEndLesson = async () => {
     if (user && lessonId) {
       try {
-       // await endLesson(user, lessonId);
+        // await endLesson(user, lessonId);
       } catch (err) {
         console.error("Error ending lesson:", err);
       }
@@ -183,10 +184,7 @@ const InSession: React.FC = () => {
             <div className="start-title">
               ?האם את/ה מוכן/מוכנה להתחיל את השיעור
             </div>
-            <button
-              onClick={handleStartConversation}
-              className="start-button"
-            >
+            <button onClick={handleStartConversation} className="start-button">
               התחל שיחה
             </button>
           </div>
@@ -196,45 +194,52 @@ const InSession: React.FC = () => {
   }
 
   return (
-    <div className="in-session-page">
-      <AudioUnlocker />
-      <div className="session-container">
-        <div className="chat-area">
-          <Avatar3D
-            modelSrc={DIRECT_MODEL_URL}
-            isSpeaking={isSpeaking}
-            speech={aiTranscript || userTranscript}
-            fallbackImageSrc="https://via.placeholder.com/300/f0f0f0/333?text=Avatar"
+    <>
+      <TopMenuBar />
+
+      <div className="in-session-page">
+        <AudioUnlocker />
+        <div className="session-container">
+          <div className="chat-area">
+            <Avatar3D
+              modelSrc={DIRECT_MODEL_URL}
+              isSpeaking={isSpeaking}
+              speech={aiTranscript || userTranscript}
+              fallbackImageSrc="https://via.placeholder.com/300/f0f0f0/333?text=Avatar"
+            />
+            {topic.subject.toLowerCase() === "math" && (
+              <div className="math-progress">
+                שאלות מתמטיקה: {mathCount} / 15
+              </div>
+            )}
+            <Transcript
+              text={aiTranscript || userTranscript}
+              isLoading={processing}
+            />
+            {listening && <RealTimeRecorder onTranscript={setUserTranscript} />}
+          </div>
+          <div className="lesson-buttons-area">
+            <LessonButtons
+              onActionPerformed={(action) => {
+                if (action === "end-lesson") handleEndLesson();
+              }}
+            />
+          </div>
+          <div className="status-display">
+            <p>סטטוס: {status}</p>
+          </div>
+          <div className="helper-buttons">
+            <button onClick={resetConversation} className="reset-button">
+              אתחל שיחה
+            </button>
+          </div>
+          <DrawableMathNotebook
+            question={topic.question}
+            onRecognize={processTranscript}
           />
-          {topic.subject.toLowerCase() === "math" && (
-            <div className="math-progress">
-              שאלות מתמטיקה: {mathCount} / 15
-            </div>
-          )}
-          <Transcript text={aiTranscript || userTranscript} isLoading={processing} />
-          {listening && <RealTimeRecorder onTranscript={setUserTranscript} />}
         </div>
-        <div className="lesson-buttons-area">
-          <LessonButtons
-            onActionPerformed={(action) => {
-              if (action === "end-lesson") handleEndLesson();
-            }}
-          />
-        </div>
-        <div className="status-display">
-          <p>סטטוס: {status}</p>
-        </div>
-        <div className="helper-buttons">
-          <button onClick={resetConversation} className="reset-button">
-            אתחל שיחה
-          </button>
-        </div>
-        <DrawableMathNotebook
-          question={topic.question}
-          onRecognize={processTranscript}
-        />
       </div>
-    </div>
+    </>
   );
 };
 

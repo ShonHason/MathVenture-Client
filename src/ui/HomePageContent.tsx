@@ -4,20 +4,12 @@ import LessonsContext, { Topic, Question } from "../context/LessonsContext";
 import { subjectsByGrade } from "../components/SubjectByGrade";
 import { useUser } from "../context/UserContext";
 
-export const generateTopic = (
-  subject: string,
-  grade: string
-): Topic => {
+export const generateTopic = (subject: string, grade: string): Topic => {
   const dummyQuestions: Question[] = [];
   for (let i = 1; i <= 3; i++) {
     dummyQuestions.push({
       question: `(${grade}) מהי התוצאה של ${i} + ${i}?`,
-      options: [
-        `${i + i}`,
-        `${i + i + 1}`,
-        `${i + i - 1}`,
-        `${i}`,
-      ],
+      options: [`${i + i}`, `${i + i + 1}`, `${i + i - 1}`, `${i}`],
       correctAnswer: `${i + i}`,
     });
   }
@@ -25,7 +17,7 @@ export const generateTopic = (
   return {
     subject,
     grade,
-    rank: 1,         // דרג ברירת מחדל
+    rank: 1, // דרג ברירת מחדל
     questions: dummyQuestions,
   };
 };

@@ -68,20 +68,16 @@ export const MyLessons: React.FC = () => {
       month: "2-digit",
       year: "numeric",
     });
-    const handleStatusClick = (lesson: Lesson) => {
-      if (lesson.progress !== "COMPLETED") {
-        navigate(
-          `/home/start-lessons/${encodeURIComponent(lesson.subject)}`,
-          {
-            state: {
-              topic: { question: 1 + 1, subject: lesson.subject },
-              lessonId : lesson._id, 
-            },
-          }
-        );
-      }
-    };
-    
+  const handleStatusClick = (lesson: Lesson) => {
+    if (lesson.progress !== "COMPLETED") {
+      navigate(`/start-lessons/${encodeURIComponent(lesson.subject)}`, {
+        state: {
+          topic: { question: 1 + 1, subject: lesson.subject },
+          lessonId: lesson._id,
+        },
+      });
+    }
+  };
 
   if (loading) return <div className="ml-loading">טוען…</div>;
   if (error) return <div className="ml-error">{error}</div>;

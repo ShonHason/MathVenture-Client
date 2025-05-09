@@ -15,31 +15,35 @@
   /* default: left 50% green, right 50% gray */
   background: linear-gradient(
     to right,
-    #4caf50 50%,  /* green */
-    #eee     50%   /* gray */
+    #3f3d3d 50%,
+    /* green */ #ffffff 50% /* gray */
   );
   display: flex;
   transition: background 0.3s;
 }
 .toggle-switch input:checked + .track {
   /* flipped: left 50% gray, right 50% green */
-  background: linear-gradient(
-    to right,
-    #eee     50%,
-    #4caf50 50%
-  );
+  background: linear-gradient(to right, #ffffff 50%, #3f3d3d 50%);
 }
 .toggle-switch .half {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1;      /* text above bg */
+  z-index: 1; /* text above bg */
   font-size: 0.9rem;
   transition: color 0.3s;
 }
 /* text white on green, dark on gray */
-.toggle-switch input:not(:checked) ~ .track .left  { color: #fff; }
-.toggle-switch input:not(:checked) ~ .track .right { color: #555; }
-.toggle-switch input:checked        ~ .track .left  { color: #555; }
-.toggle-switch input:checked        ~ .track .right { color: #fff; }
+.toggle-switch input:not(:checked) ~ .track .left {
+  color: #fff;
+}
+.toggle-switch input:not(:checked) ~ .track .right {
+  color: #555;
+}
+.toggle-switch input:checked ~ .track .left {
+  color: #555;
+}
+.toggle-switch input:checked ~ .track .right {
+  color: #fff;
+}
