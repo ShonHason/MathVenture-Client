@@ -191,12 +191,13 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
         <div className="mute-button" onClick={toggleMute}>
           {isMuted ? "🔇" : "🔊"}
         </div>
-        <div className="pause-button" onClick={togglePause}>
-          {isPaused ? "▶️" : "⏸️"}
-        </div>{" "}
+
         <button className="replay-button" onClick={replayAudio}>
           <span className="material-icons">replay</span>
         </button>
+        <div className="pause-button" onClick={togglePause}>
+          {isPaused ? "▶️" : "⏸️"}
+        </div>
         <div className="speed-wrapper">
           <button
             className="speed-toggle-button"

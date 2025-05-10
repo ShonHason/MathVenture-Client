@@ -1,27 +1,27 @@
 /* src/components/MathKeypad.css */
 .math-keypad {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-    padding: 8px;
-  }
-  .math-keypad .key {
-    aspect-ratio: 1;
-    font-size: 1.2rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background: #f9f9f9;
-    cursor: pointer;
-    transition: background 0.2s, box-shadow 0.2s;
-  }
-  .math-keypad .key:hover {
-    background: #e0f7fa;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-  .math-keypad .key.op {
-    background: #ffecb3;
-  }
-  .math-keypad .key.op:hover {
-    background: #ffe082;
-  }
-  
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  padding: 8px;
+}
+.math-keypad .key {
+  aspect-ratio: 1;
+  font-size: 1.2rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #f9f9f9;
+  outline: 2px solid #000; /* Added outline to the math keypad */
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.math-keypad .key:hover {
+  background: #e0f7fa;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.math-keypad .key.op {
+  background: #ffecb3;
+}
+.math-keypad .key.op:hover {
+  background: #ffe082;
+}
