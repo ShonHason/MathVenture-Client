@@ -4,6 +4,7 @@ const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 export const updateUserProfile = async (userData: {
   userId: string;
   username?: string;
+  gender?: string;
   email?: string;
   parent_phone?: string;
   grade?: string;
@@ -25,6 +26,7 @@ type User = {
   username: string;
   email: string;
   parent_email?: string;
+  gender?: string;
   parent_name?: string;
   parent_phone?: string;
   grade?: string;
@@ -52,6 +54,7 @@ export const loginUser = async (userData: {
     _id: data._id,
     username: data.username,
     email: data.email,
+    gender: data.gender,
     parent_email: data.parent_email,
     parent_name: data.parent_name,
     parent_phone: data.parent_phone,
@@ -70,6 +73,7 @@ export const endOfRegistration = async (userData: {
   userId?: string;
   imageUrl?: string;
   grade?: string;
+  gender?: string;
   rank?: string;
   DateOfBirth?: string;
   parent_email?: string;
@@ -93,6 +97,7 @@ export const endOfRegistration = async (userData: {
     _id: response.data._id,
     username: response.data.username,
     email: response.data.email,
+    gender: response.data.gender,
     parent_email: response.data.parent_email,
     parent_name: response.data.parent_name,
     parent_phone: response.data.parent_phone,
@@ -119,6 +124,7 @@ export const register = async (userData: {
     parent_name: response.data.parent_name,
     parent_phone: response.data.parent_phone,
     grade: response.data.grade,
+    gender: response.data.gender,
     rank: response.data.rank,
     dateOfBirth: response.data.DateOfBirth,
     imageUrl: response.data.imageUrl,}

@@ -1,5 +1,6 @@
 import React from "react";
-import { Form, Input, Button, Tabs, Typography, Space, message } from "antd";
+import { Form, Input, Button, Tabs, Typography, Space, Radio, message } from "antd";
+
 import {
   GoogleOutlined,
   AppleOutlined,
@@ -20,6 +21,7 @@ interface RegisterFormValues {
   username: string;
   email: string;
   password: string;
+  gender: "female" | "male";
   confirmPassword: string;
 }
 
@@ -36,6 +38,7 @@ export const LoginRegistration: React.FC = () => {
       const data = await user_api.loginUser({
         email: values.email,
         password: values.password,
+        
       });
       sessionStorage.setItem("accessToken", data.accessToken);
       sessionStorage.setItem("refreshToken", data.refreshToken);
@@ -61,6 +64,7 @@ export const LoginRegistration: React.FC = () => {
         email: registrationData.email,
         password: registrationData.password,
         username: registrationData.username,
+        gender : registrationData.gender,
       };
 
       const newuser =  await user_api.register(mappedData);
@@ -207,6 +211,17 @@ export const LoginRegistration: React.FC = () => {
                   >
                     <Input.Password placeholder="אשר את הסיסמא שלך" />
                   </Form.Item>
+                   <Form.Item
+    label="מין"
+    name="gender"
+    initialValue="female"
+    rules={[{ required: true, message: "אנא בחר/י מין" }]}
+  >
+    <Radio.Group>
+      <Radio value="female">נקבה</Radio>
+      <Radio value="male">זכר</Radio>
+    </Radio.Group>
+  </Form.Item>
                   <Form.Item>
                     <Button type="primary" htmlType="submit" block>
                       הירשם

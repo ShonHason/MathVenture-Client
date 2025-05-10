@@ -16,6 +16,7 @@ export interface User {
   parent_name?: string;
   parent_phone?: string;
   grade?: string;
+  gender?: string;
   rank?: string;
   dateOfBirth?: string;
   imageUrl?: string;
