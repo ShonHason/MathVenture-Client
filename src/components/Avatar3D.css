@@ -55,6 +55,69 @@
   animation: pulse 1.5s infinite;
 }
 
+.audio-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: row;
+  z-index: 10;
+  gap: 5px;
+}
+
+.mute-button,
+.pause-button,
+.replay-button,
+.speed-wrapper {
+  width: 36px;
+  height: 36px;
+  font-size: 20px;
+  background: rgba(255, 255, 255, 0.85);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.mute-button:hover,
+.pause-button:hover,
+.replay-button:hover,
+.speed-toggle-button:hover {
+  background: rgba(230, 230, 230, 0.95);
+}
+
+.speed-toggle-button {
+  background: rgba(255, 255, 255, 0.85);
+  border: none;
+  font-size: 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  padding: 6px;
+  margin-left: 6px;
+  transition: background 0.2s ease;
+}
+
+.rate-control-popup {
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  padding: 6px;
+  border-radius: 8px;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+  z-index: 99;
+  width: 120px;
+  text-align: center;
+}
+
+.rate-control-popup input[type="range"] {
+  width: 100%;
+}
+
 @keyframes pulse {
   0% {
     transform: scale(0.95);

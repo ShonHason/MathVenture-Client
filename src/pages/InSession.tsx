@@ -46,7 +46,45 @@ const InSession: React.FC = () => {
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [isMuted, setIsMuted] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [speechRate, setSpeechRate] = useState(1);
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = speechRate;
+    }
+  }, [speechRate]);
+  const replayAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play();
+      setIsPaused(false);
+      setIsSpeaking(true);
+    }
+  };
 
+  const togglePause = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (audio.ended) return;
+
+    if (audio.paused) {
+      audio.play();
+      setIsPaused(false);
+    } else {
+      audio.pause();
+      setIsPaused(true);
+    }
+  };
+
+  const toggleMute = () => {
+    const newMuted = !isMuted;
+    setIsMuted(newMuted);
+    if (audioRef.current) {
+      audioRef.current.muted = newMuted;
+    }
+  };
   useEffect(() => {
     if (incomingId) {
       setHasStarted(true);
@@ -138,6 +176,8 @@ const InSession: React.FC = () => {
       const audioBlob = new Blob([ttsResp.data], { type: "audio/mp3" });
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
+      audio.muted = isMuted;
+      audio.playbackRate = speechRate;
       audioRef.current = audio;
 
       setStatus("מדבר...");
@@ -222,7 +262,7 @@ const InSession: React.FC = () => {
 
   return (
     <>
-      <TopMenuBar />
+      <TopMenuBar onEndLesson={handleEndLesson} />
 
       <div className="in-session-page">
         <AudioUnlocker />
@@ -233,7 +273,18 @@ const InSession: React.FC = () => {
               isSpeaking={isSpeaking}
               speech={aiTranscript || userTranscript}
               fallbackImageSrc="https://via.placeholder.com/300/f0f0f0/333?text=Avatar"
+              audioRef={audioRef}
+              toggleMute={toggleMute}
+              isMuted={isMuted}
+              isPaused={isPaused}
+              togglePause={togglePause}
+              replayAudio={replayAudio}
+              speechRate={speechRate}
+              setSpeechRate={setSpeechRate}
             />
+            <div className="status-display">
+              <p>סטטוס: {status}</p>
+            </div>
             {topic.subject.toLowerCase() === "math" && (
               <div className="math-progress">
                 שאלות מתמטיקה: {mathCount} / 15
@@ -252,9 +303,7 @@ const InSession: React.FC = () => {
               }}
             />
           </div>
-          <div className="status-display">
-            <p>סטטוס: {status}</p>
-          </div>
+
           <div className="helper-buttons">
             <button onClick={resetConversation} className="reset-button">
               אתחל שיחה

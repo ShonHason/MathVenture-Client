@@ -58,13 +58,6 @@ const LessonButtons: React.FC<LessonButtonsProps> = ({
       >
         לאט יותר
       </button>
-      <button
-        className="button"
-        onClick={() => handleButtonClick("end-lesson")}
-        disabled={disabled}
-      >
-        סיים שיעור
-      </button>
     </div>
   );
 };
