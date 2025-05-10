@@ -47,6 +47,12 @@ const InSession: React.FC = () => {
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [speechRate, setSpeechRate] = useState(1);
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = speechRate;
+    }
+  }, [speechRate]);
   const replayAudio = () => {
     if (audioRef.current) {
       audioRef.current.currentTime = 0;
@@ -60,7 +66,6 @@ const InSession: React.FC = () => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    // אם האודיו הסתיים כבר – אי אפשר להמשיך לנגן אותו
     if (audio.ended) return;
 
     if (audio.paused) {
@@ -145,6 +150,7 @@ const InSession: React.FC = () => {
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
       audio.muted = isMuted;
+      audio.playbackRate = speechRate;
       audioRef.current = audio;
 
       setStatus("מדבר...");
@@ -246,6 +252,8 @@ const InSession: React.FC = () => {
               isPaused={isPaused}
               togglePause={togglePause}
               replayAudio={replayAudio}
+              speechRate={speechRate}
+              setSpeechRate={setSpeechRate}
             />
             <div className="status-display">
               <p>סטטוס: {status}</p>

@@ -15,6 +15,9 @@ interface Avatar3DProps {
   isPaused: boolean;
   togglePause: () => void;
   replayAudio: () => void;
+  speechRate: number;
+
+  setSpeechRate: React.Dispatch<React.SetStateAction<number>>;
 }
 
 const Avatar3D: React.FC<Avatar3DProps> = ({
@@ -29,6 +32,8 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   isPaused,
   togglePause,
   replayAudio,
+  speechRate,
+  setSpeechRate,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loadError, setLoadError] = useState(false);
@@ -37,7 +42,7 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
-
+  const [showSpeedControl, setShowSpeedControl] = useState(false);
   // Effect for initial setup
   useEffect(() => {
     if (!containerRef.current) return;
@@ -192,6 +197,31 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
         <button className="replay-button" onClick={replayAudio}>
           <span className="material-icons">replay</span>
         </button>
+        <div className="speed-wrapper">
+          <button
+            className="speed-toggle-button"
+            onClick={() => setShowSpeedControl((prev) => !prev)}
+          >
+            ⏩
+          </button>
+
+          {showSpeedControl && (
+            <div className="rate-control-popup">
+              <label htmlFor="rateSlider">
+                מהירות דיבור: {speechRate.toFixed(1)}x
+              </label>
+              <input
+                id="rateSlider"
+                type="range"
+                min="0.5"
+                max="2"
+                step="0.1"
+                value={speechRate}
+                onChange={(e) => setSpeechRate(Number(e.target.value))}
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="avatar3d-scene" ref={containerRef}></div>
