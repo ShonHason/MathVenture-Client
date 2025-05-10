@@ -1,5 +1,5 @@
-import React from 'react';
-import './ActionButtons.css';
+import React from "react";
+import "./ActionButtons.css";
 
 interface ActionButtonsProps {
   scanning: boolean;
@@ -7,13 +7,17 @@ interface ActionButtonsProps {
   onClear: () => void;
 }
 
-const ActionButtons: React.FC<ActionButtonsProps> = ({ scanning, onScan, onClear }) => (
+const ActionButtons: React.FC<ActionButtonsProps> = ({
+  scanning,
+  onScan,
+  onClear,
+}) => (
   <div className="action-buttons">
     <button className="btn clear-btn" onClick={onClear}>
       נקה
     </button>
     <button className="btn scan-btn" onClick={onScan} disabled={scanning}>
-      {scanning ? 'מזהה…' : 'סריקה'}
+      {scanning ? "מזהה…" : "סריקה"}
     </button>
   </div>
 );

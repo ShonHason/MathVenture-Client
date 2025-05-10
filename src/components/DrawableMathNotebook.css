@@ -1,8 +1,10 @@
-/* src/components/DrawableMathNotebook.css */
 .drawable-notebook-container {
   display: flex;
   flex-direction: column;
   align-items: center;
+  outline: 1.5px solid #494849;
+  outline-offset: 13px;
+  border-radius: 8px;
 }
 
 .canvas-container {
@@ -51,27 +53,28 @@
   z-index: 3;
 }
 
-.scan-button,
-.clear-canvas-button {
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  color: white;
-  cursor: pointer;
-}
-
+/* כפתור סריקה - עיצוב מודרני */
 .scan-button {
-  background-color: #007bff;
-}
-.scan-button:hover:not([disabled]) {
-  background-color: #0056b3;
+  background: linear-gradient(90deg, #4caf50, #66bb6a);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.2);
 }
 
-.clear-canvas-button {
-  background-color: #dc3545;
+.scan-button:hover:not([disabled]) {
+  background: linear-gradient(90deg, #388e3c, #4caf50);
+  transform: scale(1.05);
 }
-.clear-canvas-button:hover {
-  background-color: #c82333;
+
+.scan-button:active {
+  transform: scale(0.97);
+  background: #2e7d32;
 }
 
 .scan-button[disabled] {
@@ -79,15 +82,40 @@
   cursor: not-allowed;
 }
 
+/* כפתור נקה - עיצוב אדום */
+.clear-canvas-button {
+  background: linear-gradient(90deg, #e53935, #ef5350);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 8px rgba(239, 83, 80, 0.2);
+}
+
+.clear-canvas-button:hover {
+  background: linear-gradient(90deg, #c62828, #e53935);
+  transform: scale(1.05);
+}
+
+.clear-canvas-button:active {
+  transform: scale(0.97);
+  background: #b71c1c;
+}
+
 .recognized-text-display {
   margin-top: 16px;
   font-size: 1.1rem;
-  background: rgba(255,255,255,0.9);
+  background: rgba(255, 255, 255, 0.9);
   padding: 8px 12px;
   border-radius: 4px;
   max-width: 600px;
   word-break: break-word;
 }
+
 .expression-row {
   min-height: 40px;
   font-size: 1.2rem;
@@ -96,4 +124,43 @@
   border-radius: 4px;
   padding: 4px 8px;
   margin-bottom: 8px;
+}
+
+/* כפתור הצג/הסתר רשת */
+button.net {
+  display: inline-block;
+  align-self: flex-start;
+  left: 0px;
+  background: linear-gradient(90deg, #3f51b5, #5c6bc0);
+  color: white;
+  width: 100px;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  box-shadow: 0 4px 8px rgba(63, 81, 181, 0.2);
+}
+
+button.net:hover {
+  background: linear-gradient(90deg, #303f9f, #3f51b5);
+  transform: scale(1.05);
+}
+
+button.net:active {
+  transform: scale(0.97);
+  background: #283593;
+}
+
+/* שורת הכפתורים והשליטה */
+.controls-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 20px;
+  margin-bottom: 16px;
+  align-items: center;
+  justify-content: center;
 }

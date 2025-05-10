@@ -114,6 +114,7 @@ export const MyLessons: React.FC = () => {
     }
     
 
+
   if (loading) return <div className="ml-loading">טוען…</div>;
   if (error) return <div className="ml-error">{error}</div>;
   if (lessons.length === 0)

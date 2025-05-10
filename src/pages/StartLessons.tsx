@@ -11,15 +11,12 @@ const StartLessons: React.FC = () => {
   const { topics } = lessonsContext;
 
   const handleStartLesson = (topic: Topic) => {
-    navigate(
-      `/home/start-lessons/${encodeURIComponent(topic.subject)}`, 
-      {
-        state: {
-          topic,
-          LesId: null, 
-        },
-      }
-    );
+    navigate(`/home/start-lessons/${encodeURIComponent(topic.subject)}`, {
+      state: {
+        topic,
+        LesId: null,
+      },
+    });
   };
 
   return (
