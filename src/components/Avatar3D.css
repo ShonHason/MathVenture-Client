@@ -84,12 +84,9 @@
 }
 .mute-button:hover,
 .pause-button:hover,
-.replay-button:hover {
+.replay-button:hover,
+.speed-toggle-button:hover {
   background: rgba(230, 230, 230, 0.95);
-}
-
-.speed-wrapper {
-  position: relative;
 }
 
 .speed-toggle-button {
