@@ -46,16 +46,16 @@ const App: React.FC = () => {
                 <Route index element={<Navigate to="myLessons" replace />} />
 
                 <Route path="myLessons" element={<MyLessons />} />
-                <Route path="help"      element={<HelpPage />} />
-                <Route path="profile"   element={<ProfilePage />} />
-                <Route path="settings"  element={<SettingsPage />} />
-                <Route path="start-lessons"           element={<StartLessons />} />
-                <Route path="start-lessons/:topicName" element={<InSession />} />
+                <Route path="help" element={<HelpPage />} />
+                <Route path="profile" element={<ProfilePage />} />
+                <Route path="settings" element={<SettingsPage />} />
+                <Route path="start-lessons" element={<StartLessons />} />
               </Route>
+              <Route path="start-lessons/:topicName" element={<InSession />} />
 
               {/* other top-level pages */}
-              <Route path="/quiz"  element={<QuizPage />} />
-              <Route path="/chat"  element={<ChatPage />} />
+              <Route path="/quiz" element={<QuizPage />} />
+              <Route path="/chat" element={<ChatPage />} />
 
               {/* 404 */}
               <Route path="*" element={<PageNotFound />} />
