@@ -12,6 +12,9 @@ interface Avatar3DProps {
   audioRef?: React.RefObject<HTMLAudioElement | null>;
   isMuted: boolean;
   toggleMute: () => void;
+  isPaused: boolean;
+  togglePause: () => void;
+  replayAudio: () => void;
 }
 
 const Avatar3D: React.FC<Avatar3DProps> = ({
@@ -23,6 +26,9 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   audioRef,
   isMuted,
   toggleMute,
+  isPaused,
+  togglePause,
+  replayAudio,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loadError, setLoadError] = useState(false);
@@ -176,8 +182,16 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
 
   return (
     <div className="avatar3d-container">
-      <div className="mute-button" onClick={toggleMute}>
-        {isMuted ? "🔇" : "🔊"}
+      <div className="audio-controls">
+        <div className="mute-button" onClick={toggleMute}>
+          {isMuted ? "🔇" : "🔊"}
+        </div>
+        <div className="pause-button" onClick={togglePause}>
+          {isPaused ? "▶️" : "⏸️"}
+        </div>{" "}
+        <button className="replay-button" onClick={replayAudio}>
+          <span className="material-icons">replay</span>
+        </button>
       </div>
 
       <div className="avatar3d-scene" ref={containerRef}></div>

@@ -46,6 +46,31 @@ const InSession: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [isMuted, setIsMuted] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const replayAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play();
+      setIsPaused(false);
+      setIsSpeaking(true);
+    }
+  };
+
+  const togglePause = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    // אם האודיו הסתיים כבר – אי אפשר להמשיך לנגן אותו
+    if (audio.ended) return;
+
+    if (audio.paused) {
+      audio.play();
+      setIsPaused(false);
+    } else {
+      audio.pause();
+      setIsPaused(true);
+    }
+  };
 
   const toggleMute = () => {
     const newMuted = !isMuted;
@@ -218,6 +243,9 @@ const InSession: React.FC = () => {
               audioRef={audioRef}
               toggleMute={toggleMute}
               isMuted={isMuted}
+              isPaused={isPaused}
+              togglePause={togglePause}
+              replayAudio={replayAudio}
             />
             <div className="status-display">
               <p>סטטוס: {status}</p>

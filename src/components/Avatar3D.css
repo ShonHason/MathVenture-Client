@@ -55,7 +55,7 @@
   animation: pulse 1.5s infinite;
 }
 
-.mute-button {
+/* .mute-button {
   position: absolute;
   top: 10px;
   right: 10px;
@@ -71,6 +71,42 @@
 
 .mute-button:hover {
   background: rgba(230, 230, 230, 0.9);
+}
+.pause-button {
+  cursor: pointer;
+  transition: background 0.2s ease;
+} */
+
+.audio-controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: row;
+  z-index: 10;
+  gap: 5px;
+}
+
+.mute-button,
+.pause-button,
+.replay-button {
+  width: 36px;
+  height: 36px;
+  font-size: 20px;
+  background: rgba(255, 255, 255, 0.85);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.mute-button:hover,
+.pause-button:hover,
+.replay-button:hover {
+  background: rgba(230, 230, 230, 0.95);
 }
 
 @keyframes pulse {
