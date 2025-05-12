@@ -2,11 +2,13 @@
   width: 300px;
   height: 300px;
   position: relative;
+
   margin: 0 auto;
 }
 
 .avatar3d-scene {
   width: 100%;
+  /* position: relative; */
   height: 100%;
   border-radius: 20px;
   overflow: hidden;
@@ -68,7 +70,9 @@
 .mute-button,
 .pause-button,
 .replay-button,
-.speed-wrapper {
+.speed-wrapper,
+.mic-mute-btn,
+.reset-button {
   width: 36px;
   height: 36px;
   font-size: 20px;
@@ -85,7 +89,9 @@
 .mute-button:hover,
 .pause-button:hover,
 .replay-button:hover,
-.speed-toggle-button:hover {
+.speed-toggle-button:hover,
+.mic-mute-btn:hover,
+.reset-button:hover {
   background: rgba(230, 230, 230, 0.95);
 }
 
@@ -118,6 +124,61 @@
   width: 100%;
 }
 
+.mic-btn {
+  background-color: #444;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 12px;
+  margin-left: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s ease;
+}
+
+.mic-btn:hover {
+  background-color: #666;
+}
+.audio-controls {
+  pointer-events: auto;
+  background: white;
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+.audio-controls-pinned {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: fit-content;
+  user-select: none;
+}
+
+.audio-controls-floating {
+  position: fixed;
+  z-index: 9999;
+  user-select: none;
+  width: fit-content;
+}
+
+.pin-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #ffffffee;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  z-index: 1000;
+  font-size: 14px;
+  transition: background 0.2s ease;
+}
+
+.pin-button:hover {
+  background: #f0f0f0;
+}
 @keyframes pulse {
   0% {
     transform: scale(0.95);
