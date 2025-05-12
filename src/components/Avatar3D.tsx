@@ -41,6 +41,8 @@ interface Avatar3DProps {
   micMuted: boolean;
   toggleMicMute: () => void;
   setSpeechRate: React.Dispatch<React.SetStateAction<number>>;
+  listening: boolean;
+  setListening: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const Avatar3D: React.FC<Avatar3DProps> = ({
@@ -59,6 +61,8 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   setSpeechRate,
   micMuted,
   toggleMicMute,
+  listening,
+  setListening,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loadError, setLoadError] = useState(false);
@@ -268,18 +272,25 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
               }}
             >
               <button
-                title={micMuted ? "השתק מיקרופון" : "הפעל מיקרופון"}
+                title={micMuted ? "הפעל מיקרופון" : "השתק מיקרופון"}
                 onClick={toggleMicMute}
                 className="mic-mute-btn"
+                style={{
+                  color: micMuted ? "black" : "#f44336", // red or green
+                }}
               >
                 <FontAwesomeIcon
                   icon={micMuted ? faMicrophoneSlash : faMicrophone}
                 />
               </button>
+
               <div
                 title={isMuted ? "הפעל קול" : "בטל קול"}
                 className="mute-button"
                 onClick={toggleMute}
+                style={{
+                  color: !isMuted ? "black" : "#f44336", // red or green
+                }}
               >
                 <FontAwesomeIcon
                   icon={isMuted ? faVolumeXmark : faVolumeHigh}
@@ -293,18 +304,24 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
               >
                 <FontAwesomeIcon icon={faRedo} />
               </button>
-              <div
+              <button
                 title={isPaused ? "הפעלה" : "עצירה"}
                 className="pause-button"
                 onClick={togglePause}
+                style={{
+                  color: isPaused ? "#f44336" : "black", // black or green
+                }}
               >
                 <FontAwesomeIcon icon={isPaused ? faPlay : faPause} />
-              </div>
+              </button>
               <div className="speed-wrapper">
                 <button
                   title={"מהירות קול"}
                   className="speed-toggle-button"
                   onClick={() => setShowSpeedControl((prev) => !prev)}
+                  style={{
+                    color: !showSpeedControl ? "black" : "#f44336", // red or green
+                  }}
                 >
                   <FontAwesomeIcon icon={faForward} />
                 </button>

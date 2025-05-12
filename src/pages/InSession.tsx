@@ -49,10 +49,21 @@ const InSession: React.FC = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [speechRate, setSpeechRate] = useState(1);
-  const [micMuted, setMicMuted] = useState(false);
+  const [micMuted, setMicMuted] = useState(true);
+  const isSpeakingRef = useRef(false);
+
   const toggleMicMute = () => {
     setMicMuted((prev) => !prev);
   };
+
+  useEffect(() => {
+    // Start listening only when unmuted AND not currently speaking
+    if (!micMuted && !isSpeakingRef.current) {
+      setListening(true);
+    } else {
+      setListening(false);
+    }
+  }, [micMuted]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -93,7 +104,7 @@ const InSession: React.FC = () => {
   useEffect(() => {
     if (incomingId) {
       setHasStarted(true);
-      setListening(true);
+      setListening(false);
       setStatus("מקשיב...");
     }
   }, [incomingId]);
@@ -111,10 +122,19 @@ const InSession: React.FC = () => {
   }, [userTranscript, processing, hasStarted]);
 
   const processTranscript = async (input: string) => {
+    if (isSpeakingRef.current) {
+      console.log("Skipping input because chat is still speaking.");
+      return;
+    }
     try {
       setProcessing(true);
       setStatus("מעבד את הבקשה שלך...");
       setUserTranscript("");
+
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
 
       // Corrected endpoint: removed "/api" prefix
       const chatResp = await axios.post(
@@ -187,8 +207,10 @@ const InSession: React.FC = () => {
 
       setStatus("מדבר...");
       setIsSpeaking(true);
+      isSpeakingRef.current = true;
       await audio.play();
       audio.onended = () => {
+        isSpeakingRef.current = false;
         setIsSpeaking(false);
         setStatus("מקשיב...");
         setListening(true);
@@ -288,6 +310,8 @@ const InSession: React.FC = () => {
               setSpeechRate={setSpeechRate}
               micMuted={micMuted}
               toggleMicMute={toggleMicMute}
+              listening={listening}
+              setListening={setListening}
             />
             <div className="status-display">
               <p>סטטוס: {status}</p>
@@ -301,6 +325,7 @@ const InSession: React.FC = () => {
               text={aiTranscript || userTranscript}
               isLoading={processing}
             />
+
             {listening && (
               <RealTimeRecorder
                 onTranscript={setUserTranscript}
