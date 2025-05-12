@@ -1,8 +1,30 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import "./Avatar3D.css";
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import DraggableControls from "../features/DraggableControls";
+import {
+  faMicrophone,
+  faMicrophoneSlash,
+  faVolumeHigh,
+  faVolumeXmark,
+  faPlay,
+  faPause,
+  faRedo,
+  faForward,
+  faAnchor,
+  faHandPointer,
+  faThumbtack,
+} from "@fortawesome/free-solid-svg-icons";
+import {
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
+import ReactDOM from "react-dom";
 interface Avatar3DProps {
   modelSrc?: string;
   alt?: string;
@@ -16,7 +38,8 @@ interface Avatar3DProps {
   togglePause: () => void;
   replayAudio: () => void;
   speechRate: number;
-
+  micMuted: boolean;
+  toggleMicMute: () => void;
   setSpeechRate: React.Dispatch<React.SetStateAction<number>>;
 }
 
@@ -34,6 +57,8 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   replayAudio,
   speechRate,
   setSpeechRate,
+  micMuted,
+  toggleMicMute,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loadError, setLoadError] = useState(false);
@@ -43,7 +68,59 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
   const [showSpeedControl, setShowSpeedControl] = useState(false);
-  // Effect for initial setup
+  const [controlPosition, setControlPosition] = useState({ x: 0, y: 0 }); // Start at 0,0
+  const [isDragging, setIsDragging] = useState(false); // Track drag state
+  const sensors = useSensors(useSensor(PointerSensor));
+  const [isPinned, setIsPinned] = useState(true);
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setIsDragging(true);
+    setIsPinned(false); // Set to false when dragging starts
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { delta } = event;
+    setIsDragging(false);
+    setControlPosition((prev) => ({
+      x: prev.x + delta.x,
+      y: prev.y + delta.y,
+    }));
+  };
+
+  const getControlsPosition = useCallback(() => {
+    if (!containerRef.current) {
+      return { x: 0, y: 0 };
+    }
+    const avatarRect = containerRef.current.getBoundingClientRect();
+    const controlsWidth = 200; // Adjust based on DraggableControls width
+    const initialX = avatarRect.left + avatarRect.width / 2 - controlsWidth / 2;
+    const initialY = avatarRect.top + 20; // Position at the top, plus a little margin.
+    return { x: initialX, y: initialY };
+  }, []);
+
+  const resetToDefaultPosition = () => {
+    const defaultPosition = getControlsPosition();
+    setControlPosition(defaultPosition);
+    setIsPinned(true);
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    const initialPosition = getControlsPosition();
+    setControlPosition(initialPosition);
+
+    const handleResize = () => {
+      const newPosition = getControlsPosition();
+      setControlPosition(newPosition);
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [getControlsPosition]);
+
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -175,56 +252,101 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
     }
   }, [isSpeaking]);
 
-  if (loadError) {
-    return (
-      <div className="avatar3d-container">
-        <div className="avatar3d-fallback">
-          <img src={fallbackImageSrc} alt={alt} />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="avatar3d-container">
-      <div className="audio-controls">
-        <div className="mute-button" onClick={toggleMute}>
-          {isMuted ? "🔇" : "🔊"}
-        </div>
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        {ReactDOM.createPortal(
+          <DraggableControls position={controlPosition} isPinned={isPinned}>
+            <div
+              className="audio-controls"
+              style={{
+                boxShadow: isPinned ? "none" : "0 0 10px rgba(0, 0, 0, 0.2)",
+              }}
+            >
+              <button
+                title={micMuted ? "השתק מיקרופון" : "הפעל מיקרופון"}
+                onClick={toggleMicMute}
+                className="mic-mute-btn"
+              >
+                <FontAwesomeIcon
+                  icon={micMuted ? faMicrophoneSlash : faMicrophone}
+                />
+              </button>
+              <div
+                title={isMuted ? "הפעל קול" : "בטל קול"}
+                className="mute-button"
+                onClick={toggleMute}
+              >
+                <FontAwesomeIcon
+                  icon={isMuted ? faVolumeXmark : faVolumeHigh}
+                />
+              </div>
 
-        <button className="replay-button" onClick={replayAudio}>
-          <span className="material-icons">replay</span>
-        </button>
-        <div className="pause-button" onClick={togglePause}>
-          {isPaused ? "▶️" : "⏸️"}
-        </div>
-        <div className="speed-wrapper">
-          <button
-            className="speed-toggle-button"
-            onClick={() => setShowSpeedControl((prev) => !prev)}
-          >
-            ⏩
-          </button>
+              <button
+                title={"ניגון חוזר"}
+                className="replay-button"
+                onClick={replayAudio}
+              >
+                <FontAwesomeIcon icon={faRedo} />
+              </button>
+              <div
+                title={isPaused ? "הפעלה" : "עצירה"}
+                className="pause-button"
+                onClick={togglePause}
+              >
+                <FontAwesomeIcon icon={isPaused ? faPlay : faPause} />
+              </div>
+              <div className="speed-wrapper">
+                <button
+                  title={"מהירות קול"}
+                  className="speed-toggle-button"
+                  onClick={() => setShowSpeedControl((prev) => !prev)}
+                >
+                  <FontAwesomeIcon icon={faForward} />
+                </button>
 
-          {showSpeedControl && (
-            <div className="rate-control-popup">
-              <label htmlFor="rateSlider">
-                מהירות דיבור: {speechRate.toFixed(1)}x
-              </label>
-              <input
-                id="rateSlider"
-                type="range"
-                min="0.5"
-                max="2"
-                step="0.1"
-                value={speechRate}
-                onChange={(e) => setSpeechRate(Number(e.target.value))}
-              />
+                {showSpeedControl && (
+                  <div className="rate-control-popup">
+                    <label htmlFor="rateSlider">
+                      מהירות דיבור: {speechRate.toFixed(1)}x
+                    </label>
+                    <input
+                      id="rateSlider"
+                      type="range"
+                      min="0.5"
+                      max="2"
+                      step="0.1"
+                      value={speechRate}
+                      onChange={(e) => setSpeechRate(Number(e.target.value))}
+                    />
+                  </div>
+                )}
+              </div>
+              <button
+                onClick={resetToDefaultPosition}
+                className="reset-button"
+                title="pin the audio controls back"
+                style={{
+                  // background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 0,
+                  fontSize: "16px",
+                  color: isPinned ? "green" : "red",
+                }}
+              >
+                <FontAwesomeIcon icon={faThumbtack} />
+              </button>
             </div>
-          )}
-        </div>
-      </div>
-
+          </DraggableControls>,
+          containerRef.current || document.body
+          // Specify the container where the portal should render
+        )}
+      </DndContext>
       <div className="avatar3d-scene" ref={containerRef}></div>
     </div>
   );

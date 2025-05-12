@@ -68,52 +68,46 @@ export const MyLessons: React.FC = () => {
       month: "2-digit",
       year: "numeric",
     });
-    const handleStatusClick = (lesson: Lesson) => {
-      if (lesson.progress !== "COMPLETED") {
-        navigate(
-          `/home/start-lessons/${encodeURIComponent(lesson.subject)}`,
-          {
-            state: {
-              topic: { question: 1 + 1, subject: lesson.subject },
-              lessonId : lesson._id, 
-            },
-          }
-        );
-      }
-    };
-    const handleReport = (lesson: Lesson) => {
-      const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
-      try {
-        axios.post(`${baseUrl}/lessons/report/${lesson._id}`);
-        const email = localStorage.getItem("parent_email");
-        if (!email) {
-          alert("לא נמצאה כתובת מייל של ההורים");
-          return;
-        };
-
-        alert("הדוח נשלח בהצלחה לכתובת מייל ההורים", );
-      } catch (error) {
-        console.error("Error sending report:", error);
-        alert("שגיאה בשליחת הדוח");
-      }
-     
-    };
-    const handleDelete =async (lessonId:string) => {
-      const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
-      if(!window.confirm("האם אתה בטוח שברצונך למחוק את השיעור?")) return;
-      try {
-        await axios.delete(`${baseUrl}/lessons/${lessonId}`);
-        setLessons((prevLessons) =>
-          prevLessons.filter((lesson) => lesson._id !== lessonId)
-        );
-        alert("השיעור נמחק בהצלחה");
-      } catch (error) {
-        console.error("Error deleting lesson:", error);
-        alert("שגיאה במחיקת השיעור");
-      }
+  const handleStatusClick = (lesson: Lesson) => {
+    if (lesson.progress !== "COMPLETED") {
+      navigate(`/start-lessons/${encodeURIComponent(lesson.subject)}`, {
+        state: {
+          topic: { question: 1 + 1, subject: lesson.subject },
+          lessonId: lesson._id,
+        },
+      });
     }
-    
+  };
+  const handleReport = (lesson: Lesson) => {
+    const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
+    try {
+      axios.post(`${baseUrl}/lessons/report/${lesson._id}`);
+      const email = localStorage.getItem("parent_email");
+      if (!email) {
+        alert("לא נמצאה כתובת מייל של ההורים");
+        return;
+      }
 
+      alert("הדוח נשלח בהצלחה לכתובת מייל ההורים");
+    } catch (error) {
+      console.error("Error sending report:", error);
+      alert("שגיאה בשליחת הדוח");
+    }
+  };
+  const handleDelete = async (lessonId: string) => {
+    const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
+    if (!window.confirm("האם אתה בטוח שברצונך למחוק את השיעור?")) return;
+    try {
+      await axios.delete(`${baseUrl}/lessons/${lessonId}`);
+      setLessons((prevLessons) =>
+        prevLessons.filter((lesson) => lesson._id !== lessonId)
+      );
+      alert("השיעור נמחק בהצלחה");
+    } catch (error) {
+      console.error("Error deleting lesson:", error);
+      alert("שגיאה במחיקת השיעור");
+    }
+  };
 
   if (loading) return <div className="ml-loading">טוען…</div>;
   if (error) return <div className="ml-error">{error}</div>;
@@ -147,14 +141,11 @@ export const MyLessons: React.FC = () => {
                 >
                   {statusLabels[l.progress]}
                 </button>
-  
-                <button
-                  className="report-btn"
-                  onClick={() => handleReport(l)}
-                >
+
+                <button className="report-btn" onClick={() => handleReport(l)}>
                   הפק דו"ח
                 </button>
-  
+
                 <button
                   className="delete-btn"
                   onClick={() => handleDelete(l._id)}
@@ -168,7 +159,6 @@ export const MyLessons: React.FC = () => {
       </table>
     </div>
   );
-  
 };
 
 export default MyLessons;

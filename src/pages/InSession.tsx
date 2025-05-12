@@ -33,7 +33,7 @@ const InSession: React.FC = () => {
   const [lessonId, setLessonId] = useState<string>(incomingId || "");
   const [hasStarted, setHasStarted] = useState<boolean>(!!incomingId);
   const [isFinished, setIsFinished] = useState<boolean>(false);
-  const[finalMessege, setFinalMessage] = useState<string>("");
+  const [finalMessege, setFinalMessage] = useState<string>("");
   const [userTranscript, setUserTranscript] = useState<string>("");
   const [aiTranscript, setAiTranscript] = useState<string>("");
   const [processing, setProcessing] = useState<boolean>(false);
@@ -49,6 +49,11 @@ const InSession: React.FC = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [speechRate, setSpeechRate] = useState(1);
+  const [micMuted, setMicMuted] = useState(false);
+  const toggleMicMute = () => {
+    setMicMuted((prev) => !prev);
+  };
+
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.playbackRate = speechRate;
@@ -132,7 +137,7 @@ const InSession: React.FC = () => {
 
       if (done) {
         setIsFinished(true);
-        setFinalMessage(message||"השיעור הסתיים");
+        setFinalMessage(message || "השיעור הסתיים");
         setStatus(message!);
         setTimeout(() => handleEndLesson(), 1200);
         return;
@@ -281,6 +286,8 @@ const InSession: React.FC = () => {
               replayAudio={replayAudio}
               speechRate={speechRate}
               setSpeechRate={setSpeechRate}
+              micMuted={micMuted}
+              toggleMicMute={toggleMicMute}
             />
             <div className="status-display">
               <p>סטטוס: {status}</p>
@@ -294,7 +301,12 @@ const InSession: React.FC = () => {
               text={aiTranscript || userTranscript}
               isLoading={processing}
             />
-            {listening && <RealTimeRecorder onTranscript={setUserTranscript} />}
+            {listening && (
+              <RealTimeRecorder
+                onTranscript={setUserTranscript}
+                micMuted={micMuted}
+              />
+            )}
           </div>
           <div className="lesson-buttons-area">
             <LessonButtons

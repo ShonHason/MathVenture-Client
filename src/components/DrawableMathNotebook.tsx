@@ -157,9 +157,12 @@ const DrawableMathNotebook: React.FC<DrawableMathNotebookProps> = ({
 
   return (
     <div className="drawable-notebook-container">
-      <button className="net" onClick={() => setGridVisible((v) => !v)}>
-        {gridVisible ? "הסתר רשת" : "הצג רשת"}
-      </button>
+      {!isKeyboard && (
+        <button className="net" onClick={() => setGridVisible((v) => !v)}>
+          {gridVisible ? "הסתר רשת" : "הצג רשת"}
+        </button>
+      )}
+
       <ToggleSwitch checked={isKeyboard} onChange={setIsKeyboard} />
 
       {isKeyboard ? (
