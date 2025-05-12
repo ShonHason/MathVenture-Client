@@ -261,7 +261,12 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
       >
         {ReactDOM.createPortal(
           <DraggableControls position={controlPosition} isPinned={isPinned}>
-            <div className="audio-controls">
+            <div
+              className="audio-controls"
+              style={{
+                boxShadow: isPinned ? "none" : "0 0 10px rgba(0, 0, 0, 0.2)",
+              }}
+            >
               <button
                 title={micMuted ? "השתק מיקרופון" : "הפעל מיקרופון"}
                 onClick={toggleMicMute}

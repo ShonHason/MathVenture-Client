@@ -146,39 +146,7 @@
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
-.audio-controls-pinned {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: fit-content;
-  user-select: none;
-}
 
-.audio-controls-floating {
-  position: fixed;
-  z-index: 9999;
-  user-select: none;
-  width: fit-content;
-}
-
-.pin-button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: #ffffffee;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  padding: 4px 8px;
-  cursor: pointer;
-  z-index: 1000;
-  font-size: 14px;
-  transition: background 0.2s ease;
-}
-
-.pin-button:hover {
-  background: #f0f0f0;
-}
 @keyframes pulse {
   0% {
     transform: scale(0.95);
