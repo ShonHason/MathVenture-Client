@@ -49,7 +49,6 @@ export const loginUser = async (userData: {
   localStorage.setItem("accessToken", data.accessToken);
   localStorage.setItem("refreshToken", data.refreshToken);
   localStorage.setItem("userId", data._id);
-
   return {
     _id: data._id,
     username: data.username,
@@ -116,7 +115,7 @@ export const register = async (userData: {
 }) => {
   const response = await axios.post(`${baseUrl}/user/register`, userData);
   console.log("Registration response:", response.data);
-  return { 
+  return {
     _id: response.data._id,
     username: response.data.username,
     email: response.data.email,
@@ -127,7 +126,8 @@ export const register = async (userData: {
     gender: response.data.gender,
     rank: response.data.rank,
     dateOfBirth: response.data.DateOfBirth,
-    imageUrl: response.data.imageUrl,}
+    imageUrl: response.data.imageUrl,
+  };
 };
 
 // Check token expiration and refresh if needed

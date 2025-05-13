@@ -347,6 +347,7 @@ const InSession: React.FC = () => {
             </button>
           </div>
           <DrawableMathNotebook
+            isSpeaking={isSpeaking}
             question={topic.question}
             onRecognize={processTranscript}
           />
