@@ -25,7 +25,7 @@ type LocationState = {
 };
 
 const InSession: React.FC = () => {
-  const { user } = useUser();
+  const { user , setUser } = useUser();
   const navigate = useNavigate();
   const { topic, lessonId: incomingId } = (useLocation() as LocationState)
     .state;
@@ -210,6 +210,15 @@ const InSession: React.FC = () => {
         topic.subject,
         lessonId || undefined
       );
+           // ➡️ אחרי התחלת השיעור – עדכון ה־subjectsList ב־UserContext
+     setUser(prev => {
+         if (!prev) return prev;
+         return {
+           ...prev,
+           subjectsList: prev.subjectsList?.filter(s => s !== topic.subject),
+         };
+       });
+       console.log("Updated user in context:", user);
       setLessonId(lesson._id);
       setMathCount(lesson.mathQuestionsCount || 0);
       setHasStarted(true);
