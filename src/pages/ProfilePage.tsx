@@ -5,7 +5,9 @@ import PersonalArea from "../components/PersonalArea";
 import DeleteAccount from "../components/DeleteAccount";
 
 const ProfilePage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<"details" | "personal-area" | "delete-account">("details");
+  const [activeTab, setActiveTab] = useState<
+    "details" | "personal-area" | "delete-account"
+  >("details");
 
   return (
     <div className="profile-page">

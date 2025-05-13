@@ -2,16 +2,25 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./PersonalInfo.css";
 import defaultProfileImg from "../images/profile.png";
-import {
-  CameraOutlined,
-  LockOutlined,
-  EditOutlined,
-} from "@ant-design/icons";
+import { CameraOutlined, LockOutlined, EditOutlined } from "@ant-design/icons";
 import { updateUserProfile } from "../services/user_api";
 import { useUser } from "../context/UserContext";
 
 // כל הכיתות א–יב
-const gradeOptions = ["א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט", "י", "יא", "יב"];
+const gradeOptions = [
+  "א",
+  "ב",
+  "ג",
+  "ד",
+  "ה",
+  "ו",
+  "ז",
+  "ח",
+  "ט",
+  "י",
+  "יא",
+  "יב",
+];
 // קידומות ישראליות נפוצות
 const prefixOptions = ["050", "051", "052", "053", "054", "055", "058"];
 
@@ -25,11 +34,37 @@ const PersonalInfo: React.FC = () => {
   const [profileImage, setProfileImage] = useState<string>(
     user?.imageUrl || defaultProfileImg
   );
-
+  // אחרי השורות הקיימות
+  const [parentName, setParentName] = useState(user?.parent_name || "");
+  const [parentEmail, setParentEmail] = useState(user?.parent_email || "");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // useEffect(() => {
+  //   if (user?.parent_phone) {
+  //     const full = user.parent_phone;
+  //     const found = prefixOptions.find((p) => full.startsWith(p));
+  //     if (found) {
+  //       setPhonePrefix(found);
+  //       setPhoneNumber(full.slice(found.length));
+  //     } else {
+  //       setPhoneNumber(full);
+  //     }
+  //   }
+
+  //   if (user?.parent_name) setParentName(user.parent_name);
+  //   if (user?.parent_email) setParentEmail(user.parent_email);
+  // }, [user]);
   useEffect(() => {
-    if (user?.parent_phone) {
+    if (!user) return;
+
+    setName(user.username || "");
+    // setEmail(user.email || "");
+    setClassName(user.grade || "");
+    setProfileImage(user.imageUrl || defaultProfileImg);
+    setParentName(user.parent_name || "");
+    setParentEmail(user.parent_email || "");
+
+    if (user.parent_phone) {
       const full = user.parent_phone;
       const found = prefixOptions.find((p) => full.startsWith(p));
       if (found) {
@@ -55,6 +90,25 @@ const PersonalInfo: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
+  // const onSave = async () => {
+  //   if (!user?._id) return;
+  //   const fullPhone = phonePrefix + phoneNumber;
+  //   try {
+  //     const updated = await updateUserProfile({
+  //       userId: user._id,
+  //       username: name,
+  //       email,
+  //       parent_phone: fullPhone,
+  //       grade: className,
+  //       imageUrl: profileImage,
+  //     });
+  //     setUser((prev) => ({ ...prev!, ...updated }));
+  //     alert("השינויים נשמרו בהצלחה!");
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert("שגיאה בשמירת הפרטים");
+  //   }
+  // };
   const onSave = async () => {
     if (!user?._id) return;
     const fullPhone = phonePrefix + phoneNumber;
@@ -66,6 +120,8 @@ const PersonalInfo: React.FC = () => {
         parent_phone: fullPhone,
         grade: className,
         imageUrl: profileImage,
+        parent_name: parentName, // חדש
+        parent_email: parentEmail, // חדש
       });
       setUser((prev) => ({ ...prev!, ...updated }));
       alert("השינויים נשמרו בהצלחה!");
@@ -113,6 +169,25 @@ const PersonalInfo: React.FC = () => {
             />
             <LockOutlined className="lock-icon" />
           </div>
+        </div>
+        <div className="field">
+          <label>שם הורה</label>
+          <input
+            type="text"
+            placeholder="הכנס שם הורה"
+            value={parentName}
+            onChange={(e) => setParentName(e.target.value)}
+          />
+        </div>
+
+        <div className="field">
+          <label>מייל הורה</label>
+          <input
+            type="email"
+            placeholder="example@parent.com"
+            value={parentEmail}
+            onChange={(e) => setParentEmail(e.target.value)}
+          />
         </div>
 
         <div className="field phone-field">

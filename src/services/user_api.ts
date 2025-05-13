@@ -9,6 +9,8 @@ export const updateUserProfile = async (userData: {
   parent_phone?: string;
   grade?: string;
   imageUrl?: string;
+  parent_name?: string;
+  parent_email?: string;
 }) => {
   const accessToken = localStorage.getItem("accessToken");
 
@@ -46,7 +48,7 @@ export const loginUser = async (userData: {
 }): Promise<User> => {
   const response = await axios.post(`${baseUrl}/user/login`, userData);
   const data = response.data;
-
+  console.log("Login response:", data);
   localStorage.setItem("accessToken", data.accessToken);
   localStorage.setItem("refreshToken", data.refreshToken);
   localStorage.setItem("userId", data._id);
