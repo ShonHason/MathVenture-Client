@@ -147,6 +147,23 @@
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
+.grab-icon {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  position: absolute;
+  top: 0;
+  left: -5px;
+  padding: 0px;
+  cursor: grab;
+  z-index: 1000;
+}
+.audio-controls:hover .grab-icon {
+  opacity: 1;
+}
+.audio-controls:hover .grab-icon {
+  opacity: 1;
+  cursor: grab;
+}
 @keyframes pulse {
   0% {
     transform: scale(0.95);

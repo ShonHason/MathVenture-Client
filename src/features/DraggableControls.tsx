@@ -1,14 +1,8 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useDraggable } from "@dnd-kit/core";
-import {
-  faGripHorizontal,
-  faGripVertical,
-  faGripLines,
-  faHandRock,
-  faHandPaper,
-} from "@fortawesome/free-solid-svg-icons";
+import { faHandPaper } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import "./DraggableControls.css"; // Import your CSS file
+import "./DraggableControls.css";
 interface Props {
   children: React.ReactNode;
   position: { x: number; y: number };
@@ -57,7 +51,6 @@ const DraggableControls: React.FC<Props> = ({
     userSelect: "none",
     width: "fit-content",
   };
-
   return (
     <div
       ref={(node) => {
@@ -67,21 +60,12 @@ const DraggableControls: React.FC<Props> = ({
       style={wasDragged ? fixedStyle : relativeStyle}
       {...attributes}
     >
-      <div
-        {...listeners}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: -5,
-          padding: "0px",
-          cursor: "grab",
-          zIndex: 1000,
-          overflow: "visible",
-        }}
-      >
-        <FontAwesomeIcon className="aa" icon={faHandPaper} />
+      <div className="audio-controls-wrapper">
+        {children}
+        <div className="grab-icon" {...listeners}>
+          <FontAwesomeIcon icon={faHandPaper} />
+        </div>
       </div>
-      {children}
     </div>
   );
 };
