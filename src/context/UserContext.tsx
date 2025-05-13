@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import axios from "axios";
 
-// הגדרת טיפוסי המשתמש
 export interface User {
   _id: string;
   username: string;
@@ -26,7 +25,6 @@ export interface User {
   refreshToken: string;
 }
 
-// טיפוס של הקונטקסט
 interface UserContextType {
   user: User | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
