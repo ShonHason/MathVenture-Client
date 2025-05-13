@@ -9,11 +9,13 @@ import "./DrawableMathNotebook.css";
 interface DrawableMathNotebookProps {
   question: string;
   onRecognize: (text: string) => void;
+  isSpeaking: boolean;
 }
 
 const DrawableMathNotebook: React.FC<DrawableMathNotebookProps> = ({
   question,
   onRecognize,
+  isSpeaking,
 }) => {
   const [isKeyboard, setIsKeyboard] = useState(false);
   const [penWidth, setPenWidth] = useState(6);
@@ -111,6 +113,10 @@ const DrawableMathNotebook: React.FC<DrawableMathNotebookProps> = ({
 
   // SCAN both modes + reset expression row
   const handleScan = async () => {
+    if (isSpeaking) {
+      console.warn("Scan blocked: avatar is speaking");
+      return;
+    }
     setScanning(true);
     try {
       if (isKeyboard) {
