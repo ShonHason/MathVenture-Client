@@ -5,16 +5,12 @@ import "./Avatar3D.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import DraggableControls from "../features/DraggableControls";
 import {
-  faMicrophone,
-  faMicrophoneSlash,
   faVolumeHigh,
   faVolumeXmark,
   faPlay,
   faPause,
   faRedo,
   faForward,
-  faAnchor,
-  faHandPointer,
   faThumbtack,
 } from "@fortawesome/free-solid-svg-icons";
 import {
@@ -25,6 +21,8 @@ import {
 } from "@dnd-kit/core";
 import { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import ReactDOM from "react-dom";
+import RecordVoiceOverIcon from "@mui/icons-material/RecordVoiceOver";
+import VoiceOverOffIcon from "@mui/icons-material/VoiceOverOff";
 interface Avatar3DProps {
   modelSrc?: string;
   alt?: string;
@@ -279,9 +277,11 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
                   color: micMuted ? "black" : "#f44336", // red or green
                 }}
               >
-                <FontAwesomeIcon
-                  icon={micMuted ? faMicrophoneSlash : faMicrophone}
-                />
+                {micMuted ? (
+                  <VoiceOverOffIcon />
+                ) : (
+                  <RecordVoiceOverIcon style={{ color: "red" }} />
+                )}
               </button>
 
               <div
