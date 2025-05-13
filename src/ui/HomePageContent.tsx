@@ -1,65 +1,75 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useUser } from "../context/UserContext"; // Import useUser from UserContext
+import { addSubject, removeSubject } from "../services/user_api"; // Import API calls
+import { subjectsByGrade } from "../components/SubjectByGrade"; // Import subjectsByGrade
 import "./HomePageContent.css";
-import LessonsContext, { Topic, Question } from "../context/LessonsContext";
-import { subjectsByGrade } from "../components/SubjectByGrade";
-import { useUser } from "../context/UserContext";
-
-export const generateTopic = (subject: string, grade: string): Topic => {
-  const dummyQuestions: Question[] = [];
-  for (let i = 1; i <= 3; i++) {
-    dummyQuestions.push({
-      question: `(${grade}) מהי התוצאה של ${i} + ${i}?`,
-      options: [`${i + i}`, `${i + i + 1}`, `${i + i - 1}`, `${i}`],
-      correctAnswer: `${i + i}`,
-    });
-  }
-
-  return {
-    subject,
-    grade,
-    rank: 1, // דרג ברירת מחדל
-    questions: dummyQuestions,
-  };
-};
 
 const HomePageContent: React.FC = () => {
-  const { user } = useUser();
-  const lessonsContext = useContext(LessonsContext);
+  const { user, setUser } = useUser(); // Access user data and setter from context
   const [selectedSubject, setSelectedSubject] = useState<string>("");
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
-  const [predefinedSubjects, setPredefinedSubjects] = useState<string[]>([]);
+  const [gradeSubjects, setGradeSubjects] = useState<string[]>([]);
 
+  // Populate available subjects when user's grade changes
   useEffect(() => {
     if (user?.grade && subjectsByGrade[user.grade]) {
-      setPredefinedSubjects(subjectsByGrade[user.grade]);
+      setGradeSubjects(subjectsByGrade[user.grade]);
     }
-  }, [user]);
+  }, [user?.grade]);
 
-  if (!lessonsContext) return null;
-  const { topics, setTopics } = lessonsContext;
-
-  const handleAddTopic = () => {
-    const grade = user?.grade || "א'";
-    if (!selectedSubject) return;
-    const newTopic = generateTopic(selectedSubject, grade);
-    setTopics([...topics, newTopic]);
-    setSelectedSubject("");
-    setShowAddModal(false);
+  const handleAddTopic = async () => {
+    if (!selectedSubject || !user?._id) return;
+    try {
+      await addSubject(user._id, selectedSubject);
+      // Update user context directly
+      const updatedSubjects = [...(user.subjectsList || []), selectedSubject];
+      setUser({
+        ...user,
+        subjectsList: updatedSubjects,
+      });
+      setSelectedSubject("");
+      setShowAddModal(false);
+    } catch (error) {
+      console.error('Error adding topic:', error);
+    }
   };
+
+  const handleDeleteTopic = async (subject: string) => {
+    if (!user?._id) return;
+    try {
+      await removeSubject(user._id, subject);
+      // Remove from context list
+      const updatedSubjects = (user.subjectsList || []).filter(s => s !== subject);
+      setUser({
+        ...user,
+        subjectsList: updatedSubjects,
+      });
+    } catch (error) {
+      console.error('Error deleting topic:', error);
+    }
+  };
+
+  const subjectsList = user?.subjectsList || [];
 
   return (
     <div className="homepage-content">
       <h2 className="hp-title">השיעורים שלי</h2>
 
-      <div className={`my-lessons ${topics.length === 0 ? "empty" : ""}`}>
-        {topics.length === 0 ? (
+      <div className={`my-lessons ${subjectsList.length === 0 ? "empty" : ""}`}>
+        {subjectsList.length === 0 ? (
           <p className="empty-text">כרגע אין שיעורים</p>
         ) : (
           <div className="lessons-grid">
-            {topics.map((topic, idx) => (
+            {subjectsList.map((subject, idx) => (
               <div key={idx} className="lesson-card">
-                <div className="lesson-subject">{topic.subject}</div>
-                <div className="lesson-meta">כיתה {topic.grade}</div>
+                <div className="lesson-subject">{subject}</div>
+                <div className="lesson-meta">כיתה {user?.grade}</div>
+                <button
+                  className="delete-topic-button"
+                  onClick={() => handleDeleteTopic(subject)}
+                >
+                  מחק
+                </button>
               </div>
             ))}
           </div>
@@ -83,11 +93,15 @@ const HomePageContent: React.FC = () => {
               onChange={(e) => setSelectedSubject(e.target.value)}
             >
               <option value="">בחר נושא</option>
-              {predefinedSubjects.map((s, i) => (
-                <option key={i} value={s}>
-                  {s}
-                </option>
-              ))}
+              {gradeSubjects.length > 0 ? (
+                gradeSubjects.map((s, i) => (
+                  <option key={i} value={s}>
+                    {s}
+                  </option>
+                ))
+              ) : (
+                <option disabled>אין נושאים זמינים לכיתה זו</option>
+              )}
             </select>
             <div className="modal-buttons">
               <button className="btn-save" onClick={handleAddTopic}>

@@ -43,7 +43,11 @@ export const LoginRegistration: React.FC = () => {
       sessionStorage.setItem("accessToken", data.accessToken);
       sessionStorage.setItem("refreshToken", data.refreshToken);
 
-      setUser(data);
+      setUser({
+        ...data,
+        subjectsList: data.subjectsList || [], // Ensure subjectsList is always defined
+      });
+      console.log("User SubjectList:", data);
       message.success("Login successful!");
       sessionStorage.setItem("user", JSON.stringify(data));
 

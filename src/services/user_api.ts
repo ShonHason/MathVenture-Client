@@ -39,6 +39,7 @@ type User = {
   refreshToken: string;
   opportunities?: string;
   twoFactorAuth?: boolean;
+  subjectsList?: string[]; // Added subjectsList property
 };
 
 export const loginUser = async (userData: {
@@ -67,6 +68,7 @@ export const loginUser = async (userData: {
     refreshToken: data.refreshToken,
     opportunities: data.opportunities ?? "לא ידוע", // אם קיים
     twoFactorAuth: data.twoFactorAuth ?? false, // אם קיים
+    subjectsList: data.subjectsList ?? [], // אם קיים
   };
 };
 
@@ -106,6 +108,7 @@ export const endOfRegistration = async (userData: {
     rank: response.data.rank,
     dateOfBirth: response.data.DateOfBirth,
     imageUrl: response.data.imageUrl,
+    subjectList : response.data.subjectsList,
   };
 };
 
@@ -208,8 +211,36 @@ export const logout = async () => {
     throw error;
   }
 };
+export const addSubject = async (userId: string, subject: string) => {
+  const accessToken = localStorage.getItem("accessToken");
+  const response = await axios.put(
+    `${baseUrl}/user/addSubject`,
+    { userId, subject },
+    {
+      headers: {
+        Authorization: "jwt " + accessToken,
+      },
+    }
+  );
+  return response.data;
+};
+
+export const removeSubject = async (userId: string, subject: string) => {
+  const accessToken = localStorage.getItem("accessToken");
+  const response = await axios.put(
+    `${baseUrl}/user/removeSubject`,
+    { userId, subject },
+    {
+      headers: {
+        Authorization: "jwt " + accessToken,
+      },
+    }
+  );
+  return response.data;
+};
 
 export default {
+  
   loginUser,
   endOfRegistration,
   register,

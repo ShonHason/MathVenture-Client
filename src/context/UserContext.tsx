@@ -1,3 +1,4 @@
+// src/context/UserContext.tsx
 import React, {
   createContext,
   useContext,
@@ -11,9 +12,8 @@ export interface User {
   _id: string;
   username: string;
   email: string;
-  parent_email?: string;
-  parent_name?: string;
-  parent_phone?: string;
+
+  // your existing optional fields...
   grade?: string;
   gender?: string;
   rank?: string;
@@ -21,61 +21,74 @@ export interface User {
   imageUrl?: string;
   opportunities?: string;
   twoFactorAuth?: boolean;
-  accessToken: string;
+  parent_email?: string;
+  parent_name?: string;
+  parent_phone?: string;
+    
+  // **these three are missing**:
+  subjectsList: string[];    // define as non-null array
+  accessToken: string;       // or mark optional if it really can be undefined
   refreshToken: string;
 }
-
 interface UserContextType {
   user: User | null;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
-// יצירת הקונטקסט
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-// קומפוננטת הספק
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
 
+  // 1️⃣ על mount – טען מה־sessionStorage או מהשרת
   useEffect(() => {
-    const storedUser = sessionStorage.getItem("user");
+    const stored = sessionStorage.getItem("user");
     const accessToken = sessionStorage.getItem("accessToken");
     const refreshToken = sessionStorage.getItem("refreshToken");
 
-    if (storedUser && accessToken && refreshToken) {
+    if (stored && accessToken && refreshToken) {
       try {
-        const parsed = JSON.parse(storedUser);
-        setUser({
-          ...parsed,
-          accessToken,
-          refreshToken,
-        });
-      } catch (err) {
-        console.error("Failed to parse user from sessionStorage", err);
-        sessionStorage.removeItem("user");
+        const parsed = JSON.parse(stored) as User;
+        setUser({ ...parsed, accessToken, refreshToken });
+      } catch {
+        sessionStorage.clear();
         setUser(null);
       }
     } else if (accessToken) {
-      // fallback - בקשה לשרת במידה ואין sessionStorage תקין
+      // fallback: קבלת פרופיל מהשרת
       axios
-        .post("http://localhost:4000/user/getUserProfile", {
-          accessToken,
+        .get("http://localhost:4000/user/getUserProfile", {
+          headers: { Authorization: `JWT ${accessToken}` },
         })
         .then((res) => {
-          const fetchedUser: User = {
+          const fetched: User = {
             ...res.data,
             accessToken,
             refreshToken: refreshToken || "",
+            subjectsList: res.data.subjectsList || [],
           };
-          setUser(fetchedUser);
+          setUser(fetched);
           sessionStorage.setItem("user", JSON.stringify(res.data));
         })
-        .catch((err) => {
-          console.error("Failed to fetch user profile", err);
-          setUser(null);
-        });
+        .catch(() => setUser(null));
     }
   }, []);
+
+  // 2️⃣ בסיום כל שינוי ב־user – עדכן גם את ה־sessionStorage
+  useEffect(() => {
+    if (user) {
+      // שמור את כל השדות חוץ מהטוקנים (טוקנים נשמרים בנפרד)
+      const { accessToken, refreshToken, ...rest } = user;
+      sessionStorage.setItem("user", JSON.stringify(rest));
+      sessionStorage.setItem("accessToken", accessToken);
+      sessionStorage.setItem("refreshToken", refreshToken);
+    } else {
+      // אם user == null, ננקה את כל ה־storage
+      sessionStorage.removeItem("user");
+      sessionStorage.removeItem("accessToken");
+      sessionStorage.removeItem("refreshToken");
+    }
+  }, [user]);
 
   return (
     <UserContext.Provider value={{ user, setUser }}>
@@ -84,11 +97,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// hook לשימוש נוח בקונטקסט
 export const useUser = (): UserContextType => {
-  const context = useContext(UserContext);
-  if (!context) {
-    throw new Error("useUser must be used within a UserProvider");
-  }
-  return context;
+  const ctx = useContext(UserContext);
+  if (!ctx) throw new Error("useUser must be used within UserProvider");
+  return ctx;
 };
