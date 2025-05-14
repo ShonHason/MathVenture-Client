@@ -1,6 +1,7 @@
 import axios from "axios";
 const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 import { User } from "../context/UserContext";
+import { sampleQuestionsByGrade } from "../components/SampleQuestionsByGrade";
 
 export const getAllLessonsByUserId = async (
   userId: string
@@ -76,11 +77,14 @@ export interface StartLessonResponse {
 export const startLesson = async (
   user: User,
   subject: string,
-  lessonId?: string
+  lessonId?: string,
 ): Promise<StartLessonResponse> => {
   const endpoint = lessonId
     ? `${baseUrl}/lessons/start/${lessonId}`
     : `${baseUrl}/lessons/start`;
+
+  const grade = user.grade ?? "defaultGrade"; // Replace "defaultGrade" with an appropriate fallback value
+  const sampleQuestions = sampleQuestionsByGrade[grade]?.[subject] || [];
 
   console.log("endpoint: ", endpoint);
   const payload = {
@@ -89,8 +93,9 @@ export const startLesson = async (
     rank:     user.rank,
     username: user.username,
     subject,
+    sampleQuestions,
   };
-
+  console.log("sampleQustions: ", sampleQuestions);
   const response = await axios.post(
     endpoint,
     payload,

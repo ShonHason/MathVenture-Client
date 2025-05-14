@@ -5,11 +5,13 @@ import "./DisplaySettings.css";
 const DisplaySettings: React.FC = () => {
   const {
     fontSize,
-    theme,
+    lineHeight,
+    formulaFontSize,
     highContrast,
     primaryColor,
     setFontSize,
-    setTheme,
+    setLineHeight,
+    setFormulaFontSize,
     setHighContrast,
     setPrimaryColor,
   } = useDisplaySettings();
@@ -18,6 +20,7 @@ const DisplaySettings: React.FC = () => {
     <div className="display-settings-container">
       <h2>הגדרות תצוגה ונגישות</h2>
 
+      {/* גודל גופן כללי */}
       <div className="setting">
         <label htmlFor="fontSize">גודל גופן: {fontSize}px</label>
         <input
@@ -31,16 +34,35 @@ const DisplaySettings: React.FC = () => {
         />
       </div>
 
+      {/* מרווח שורות */}
       <div className="setting">
-        <label>מצב לילה:</label>
-        <button
-          className={`toggle-btn ${theme === "dark" ? "active" : ""}`}
-          onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-        >
-          {theme === "light" ? "כבוי" : "פעיל"}
-        </button>
+        <label htmlFor="lineHeight">מרווח שורות: {lineHeight.toFixed(1)}</label>
+        <input
+          id="lineHeight"
+          type="range"
+          min="1"
+          max="2"
+          step="0.1"
+          value={lineHeight}
+          onChange={(e) => setLineHeight(+e.target.value)}
+        />
       </div>
 
+      {/* גודל גופן נוסחאות */}
+      <div className="setting">
+        <label htmlFor="formulaFontSize">גודל נוסחאות: {formulaFontSize}px</label>
+        <input
+          id="formulaFontSize"
+          type="range"
+          min="12"
+          max="36"
+          step="2"
+          value={formulaFontSize}
+          onChange={(e) => setFormulaFontSize(+e.target.value)}
+        />
+      </div>
+
+      {/* ניגודיות גבוהה */}
       <div className="setting">
         <label>ניגודיות גבוהה:</label>
         <button
@@ -51,6 +73,7 @@ const DisplaySettings: React.FC = () => {
         </button>
       </div>
 
+      {/* צבע ראשי */}
       <div className="setting">
         <label htmlFor="primaryColor">צבע ראשי:</label>
         <input
