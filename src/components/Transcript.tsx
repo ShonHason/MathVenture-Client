@@ -1,5 +1,5 @@
-import React from 'react';
-import './Transcript.css';
+import React from "react";
+import "./Transcript.css";
 
 interface TranscriptProps {
   text: string;
@@ -8,9 +8,7 @@ interface TranscriptProps {
 
 const Transcript: React.FC<TranscriptProps> = ({ text, isLoading = false }) => {
   return (
-    <div className={`transcript ${isLoading ? 'loading' : ''}`}>
-      {text}
-    </div>
+    <div className={`transcript ${isLoading ? "loading" : ""}`}>{text}</div>
   );
 };
 

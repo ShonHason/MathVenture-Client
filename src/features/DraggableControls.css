@@ -2,17 +2,6 @@
   position: relative;
 }
 
-.grab-icon {
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  position: absolute;
-  top: -8px;
-  left: -8px;
-  padding: 5px;
-  cursor: grab;
-  z-index: 1000;
-}
-
 .audio-controls-wrapper:hover .grab-icon {
   opacity: 1;
 }

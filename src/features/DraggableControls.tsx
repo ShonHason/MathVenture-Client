@@ -39,6 +39,7 @@ const DraggableControls: React.FC<Props> = ({
     top: position.y + (transform?.y || 0),
     left: position.x + (transform?.x || 0),
     zIndex: 9999,
+    backgroundColor: "transparent",
     userSelect: "none",
     width: "fit-content",
   };
@@ -46,7 +47,8 @@ const DraggableControls: React.FC<Props> = ({
   const relativeStyle: React.CSSProperties = {
     position: "absolute",
     top: 0,
-    left: "96.65%",
+    // left: "96.65%",
+    left: "105%",
     transform: "translateX(-50%)",
     userSelect: "none",
     width: "fit-content",

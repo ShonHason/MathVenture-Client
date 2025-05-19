@@ -24,6 +24,9 @@ import PageNotFound from "./pages/PageNotFound";
 import LessonsContext, { Topic } from "./context/LessonsContext";
 import { DisplaySettingsProvider } from "./context/DisplaySettingsContext";
 import { UserProvider } from "./context/UserContext";
+import { AvatarProvider } from "./context/AvatarContext";
+import { ActionButtonsProvider } from "./context/ActionButtonsContext";
+import { DrawingSettingsProvider } from "./context/DrawingSettingsContext";
 
 const App: React.FC = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -32,46 +35,61 @@ const App: React.FC = () => {
     <LessonsContext.Provider value={{ topics, setTopics }}>
       <DisplaySettingsProvider>
         <UserProvider>
-          <Router>
-            <Routes>
-              {/* redirect root to login */}
-              <Route path="/" element={<Navigate to="/login" replace />} />
+          <ActionButtonsProvider>
+            <AvatarProvider>
+              <DrawingSettingsProvider>
+                <Router>
+                  <Routes>
+                    {/* redirect root to login */}
+                    <Route
+                      path="/"
+                      element={<Navigate to="/login" replace />}
+                    />
 
-              {/* authentication */}
-              <Route path="/login" element={<LoginRegistration />} />
+                    {/* authentication */}
+                    <Route path="/login" element={<LoginRegistration />} />
 
-              {/* protected home area with nested routes */}
-              <Route path="/home" element={<HomePage />}>
-                {/* default inside /home */}
-                <Route index element={<Navigate to="myLessons" replace />} />
+                    {/* protected home area with nested routes */}
+                    <Route path="/home" element={<HomePage />}>
+                      {/* default inside /home */}
+                      <Route
+                        index
+                        element={<Navigate to="myLessons" replace />}
+                      />
 
-                <Route path="myLessons" element={<MyLessons />} />
-                <Route path="help" element={<HelpPage />} />
-                <Route path="profile" element={<ProfilePage />} />
-                <Route path="settings" element={<SettingsPage />} />
-                <Route path="start-lessons" element={<StartLessons />} />
-              </Route>
-              <Route path="start-lessons/:topicName" element={<InSession />} />
+                      <Route path="myLessons" element={<MyLessons />} />
+                      <Route path="help" element={<HelpPage />} />
+                      <Route path="profile" element={<ProfilePage />} />
+                      <Route path="settings" element={<SettingsPage />} />
+                      <Route path="start-lessons" element={<StartLessons />} />
+                    </Route>
+                    <Route
+                      path="start-lessons/:topicName"
+                      element={<InSession />}
+                    />
 
-              {/* other top-level pages */}
-              <Route path="/quiz" element={<QuizPage />} />
-              <Route path="/chat" element={<ChatPage />} />
+                    {/* other top-level pages */}
+                    <Route path="/quiz" element={<QuizPage />} />
+                    <Route path="/chat" element={<ChatPage />} />
 
-              {/* 404 */}
-              <Route path="*" element={<PageNotFound />} />
-            </Routes>
+                    {/* 404 */}
+                    <Route path="*" element={<PageNotFound />} />
+                  </Routes>
 
-            {/* global toast container */}
-            <ToastContainer
-              position="bottom-center"
-              autoClose={3000}
-              hideProgressBar
-              newestOnTop={false}
-              closeOnClick
-              pauseOnHover
-              draggable
-            />
-          </Router>
+                  {/* global toast container */}
+                  <ToastContainer
+                    position="bottom-center"
+                    autoClose={3000}
+                    hideProgressBar
+                    newestOnTop={false}
+                    closeOnClick
+                    pauseOnHover
+                    draggable
+                  />
+                </Router>
+              </DrawingSettingsProvider>
+            </AvatarProvider>
+          </ActionButtonsProvider>
         </UserProvider>
       </DisplaySettingsProvider>
     </LessonsContext.Provider>
