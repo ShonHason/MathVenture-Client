@@ -4,7 +4,8 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "../context/UserContext";
 import "./MyLessons.css";
-
+// import LoaderVideo from "../../public/Loader.mp4";
+const LoaderVideo = process.env.PUBLIC_URL + "/Loader.mp4";
 interface Lesson {
   _id: string;
   subject: string;
@@ -109,7 +110,16 @@ export const MyLessons: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="ml-loading">טוען…</div>;
+  // Loader video import
+
+  const Loader: React.FC = () => (
+    <div className="ml-loading">
+      <video src={LoaderVideo} autoPlay loop muted width={120} height={120} />
+    </div>
+  );
+
+  if (loading) return <Loader />;
+  // if (loading) return <div className="ml-loading">טוען…</div>;
   if (error) return <div className="ml-error">{error}</div>;
   if (lessons.length === 0)
     return <div className="ml-none">אין שיעורים פעילים כרגע</div>;

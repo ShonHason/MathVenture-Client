@@ -1,10 +1,11 @@
 .toggle-switch {
-  position: relative;
+  /* position: relative; */
   width: 140px;
-  height: 44px;
+  height: 40px;
   cursor: pointer;
   user-select: none;
-  margin-bottom: 17px;
+  /* top: -23px; */
+  /* margin-bottom: 17px; */
 }
 .toggle-switch input {
   display: none;

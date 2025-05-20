@@ -1,8 +1,7 @@
 .action-buttons {
   display: flex;
   gap: 8px;
-  justify-content: center;
-  margin-top: 8px;
+  /* justify-content: center; */
 }
 .btn {
   flex: 1;
@@ -16,7 +15,7 @@
 .clear-btn {
   background: #292626;
   color: #ffffff;
-  width: 100px;
+  width: 80px;
 }
 .clear-btn:hover {
   /* background: #bdbdbd; */

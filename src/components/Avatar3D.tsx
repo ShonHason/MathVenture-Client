@@ -41,6 +41,7 @@ interface Avatar3DProps {
   setSpeechRate: React.Dispatch<React.SetStateAction<number>>;
   listening: boolean;
   setListening: React.Dispatch<React.SetStateAction<boolean>>;
+  status: string;
 }
 
 const Avatar3D: React.FC<Avatar3DProps> = ({
@@ -61,6 +62,7 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
   toggleMicMute,
   listening,
   setListening,
+  status,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [loadError, setLoadError] = useState(false);
@@ -140,7 +142,13 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
 
       // Create renderer
       const renderer = new THREE.WebGLRenderer({ antialias: true });
-      renderer.setSize(300, 300);
+      // renderer.setSize(300, 300);
+      const container = containerRef.current;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      renderer.setSize(width, height);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
       // Clear the container before adding renderer
       containerRef.current.innerHTML = "";
       containerRef.current.appendChild(renderer.domElement);
@@ -365,6 +373,9 @@ const Avatar3D: React.FC<Avatar3DProps> = ({
         )}
       </DndContext>
       <div className="avatar3d-scene" ref={containerRef}></div>
+      <div className="status-display">
+        <p>סטטוס: {status}</p>
+      </div>
     </div>
   );
 };

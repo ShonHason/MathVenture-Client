@@ -2,36 +2,77 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
   outline: 3px solid #494849;
   outline-offset: 13px;
-  border-radius: 8px;
+  border-radius: 0.2px;
+  /* background-color: rgb(0, 0, 0); */
+  background-color: rgb(130, 131, 130);
+  /* max-width: 70vw; */
+  /* max-height: 500px; */
+  /* min-width: 400px; */
+  top: 28px;
+  padding: 6px;
+  /* max-width: 100%; */
+  /* width: 90%; important, not to delete */
+  /* right: -40px; */
+  /* max-width: 1000px; */
+  /* width: minmax(300px, 1000px); */
+  /* min-width: 300px; */
+  /* max-width: 1000px; */
+  /* width: 100%; */
+}
+.drawable-notebook-container {
+  width: 100%;
+  max-width: 1fr;
+  margin-left: 40px;
+  margin-right: 20px;
 }
 
 .canvas-container {
+  /*painting area*/
   position: relative;
-  width: 600px;
+  display: flex;
+  flex-direction: column;
+  justify-items: flex-end;
+  width: 97%;
+  aspect-ratio: 3 / 2;
   outline: 1.5px solid #494849;
-  height: 400px;
+  background-color: white;
+}
+.canvas-container {
+  max-height: 70vh;
+  min-height: 60vh;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 3 / 2;
+  height: auto;
 }
 
 .grid-canvas {
   position: absolute;
+  aspect-ratio: 3/2;
   top: 0;
   left: 0;
+  /* max-height: 330px; */
   width: 100%;
-  height: 100%;
+  max-height: 70vh;
+  min-height: 60vh;
+  /* height: 100%; */
   z-index: 1;
   pointer-events: none;
 }
 
 .drawable-canvas {
   position: absolute;
+  display: flex;
+  flex-direction: column;
+  aspect-ratio: 3/2;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   z-index: 2;
-  background: transparent;
 }
 
 .question-overlay {
