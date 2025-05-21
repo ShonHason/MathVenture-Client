@@ -1,4 +1,3 @@
-// src/App.tsx
 import React, { useState } from "react";
 import {
   BrowserRouter as Router,
@@ -8,9 +7,7 @@ import {
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
 import LoginRegistration from "./pages/login";
-import HomePage from "./pages/HomePage";
 import QuizPage from "./pages/quiz";
 import HelpPage from "./pages/HelpPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -20,6 +17,7 @@ import StartLessons from "./pages/StartLessons";
 import MyLessons from "./pages/MyLessons";
 import InSession from "./pages/InSession";
 import PageNotFound from "./pages/PageNotFound";
+import LearningBoard from "./pages/LearningBoard";
 
 import LessonsContext, { Topic } from "./context/LessonsContext";
 import { DisplaySettingsProvider } from "./context/DisplaySettingsContext";
@@ -27,6 +25,8 @@ import { UserProvider } from "./context/UserContext";
 import { AvatarProvider } from "./context/AvatarContext";
 import { ActionButtonsProvider } from "./context/ActionButtonsContext";
 import { DrawingSettingsProvider } from "./context/DrawingSettingsContext";
+import HomeLayout from "./pages/HomeLayout";
+import LearningSession from "./pages/LearningSession";
 
 const App: React.FC = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
@@ -41,32 +41,24 @@ const App: React.FC = () => {
                 <Router>
                   <Routes>
                     {/* redirect root to login */}
-                    <Route
-                      path="/"
-                      element={<Navigate to="/login" replace />}
-                    />
+                    <Route path="/" element={<Navigate to="/login" replace />} />
 
                     {/* authentication */}
                     <Route path="/login" element={<LoginRegistration />} />
 
-                    {/* protected home area with nested routes */}
-                    <Route path="/home" element={<HomePage />}>
-                      {/* default inside /home */}
-                      <Route
-                        index
-                        element={<Navigate to="myLessons" replace />}
-                      />
-
-                      <Route path="myLessons" element={<MyLessons />} />
+                    {/* home layout with sidebar */}
+                    <Route path="/home" element={<HomeLayout />}>
+                    <Route index element={<Navigate to="LearningBoard" replace />} />
+                    <Route path="LearningBoard" element={<LearningBoard />} />                     
+                     <Route path="myLessons" element={<MyLessons />} />
                       <Route path="help" element={<HelpPage />} />
                       <Route path="profile" element={<ProfilePage />} />
                       <Route path="settings" element={<SettingsPage />} />
-                      <Route path="start-lessons" element={<StartLessons />} />
+                      <Route path="learning-board" element={<LearningBoard />} />
                     </Route>
-                    <Route
-                      path="start-lessons/:topicName"
-                      element={<InSession />}
-                    />
+
+                    {/* single lesson session (not wrapped in layout) */}
+                    <Route path="/start-lessons/:topicName" element={<LearningSession />} />
 
                     {/* other top-level pages */}
                     <Route path="/quiz" element={<QuizPage />} />
@@ -76,7 +68,6 @@ const App: React.FC = () => {
                     <Route path="*" element={<PageNotFound />} />
                   </Routes>
 
-                  {/* global toast container */}
                   <ToastContainer
                     position="bottom-center"
                     autoClose={3000}

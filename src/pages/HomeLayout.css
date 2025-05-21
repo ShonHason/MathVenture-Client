@@ -1,0 +1,12 @@
+.home-layout {
+    display: flex;
+    direction: rtl;
+  }
+  
+  .main-content {
+    flex-grow: 1;
+    padding: 24px;
+    margin-right: 260px; 
+    box-sizing: border-box;
+  }
+  

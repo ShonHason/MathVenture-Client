@@ -1,0 +1,252 @@
+.info-panel-container {
+  width: 100%;
+  margin-bottom: 1rem;
+  transform: translateY(-115px);
+  transition: transform 0.3s ease;
+}
+
+.info-panel {
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border: none;
+  background-color: white;
+  transform-style: preserve-3d;
+  transform: perspective(1000px) rotateX(0deg);
+  transition: transform 0.3s ease;
+}
+
+.info-panel:hover {
+  transform: perspective(1000px) rotateX(2deg);
+}
+
+.info-panel-header {
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.info-panel-header::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 70%);
+  animation: shimmer 3s infinite linear;
+}
+
+@keyframes shimmer {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.info-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  z-index: 1;
+}
+
+.info-panel-icon {
+  font-size: 1.75rem;
+}
+
+.info-panel-badge {
+  background-color: white;
+  color: #2d3748;
+  padding: 0.3rem 0.6rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.7rem;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+
+.info-panel-content {
+  padding: 1rem;
+}
+
+.info-panel-name {
+  font-weight: 700;
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+  color: #2d3748;
+}
+
+.info-panel-description {
+  color: #4a5568;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.info-panel-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.info-panel-detail {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: #f7fafc;
+  padding: 0.5rem;
+  border-radius: 12px;
+}
+
+.info-panel-detail-icon {
+  font-size: 1.25rem;
+}
+
+.info-panel-detail-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-panel-detail-label {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: #4a5568;
+}
+
+.info-panel-detail-value {
+  font-size: 0.9rem;
+  color: #2d3748;
+}
+
+.info-panel-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.5rem 0 0;
+  direction: rtl;
+}
+
+.info-panel-list li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+  color: #2d3748;
+  text-align: right;
+
+}
+
+.info-panel-list li::before {
+  content: "•";
+  position: absolute;
+  top: -6px;
+  right: -12px;
+  color: var(--fun-primary, #ff6b6b);
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+.stars-container {
+  display: flex;
+  gap: 2px;
+}
+
+.star {
+  color: #cbd5e0;
+  font-size: 1rem;
+}
+
+.star.filled {
+  color: #ffd166;
+}
+
+.info-panel-progress {
+  margin-top: 1rem;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
+  color: #4a5568;
+}
+
+.progress-bar {
+  height: 10px;
+  background-color: #edf2f7;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #06d6a0 0%, #118ab2 100%);
+  border-radius: 10px;
+  transition: width 0.5s ease;
+}
+
+.info-panel-green {
+  background-color: #06d6a0;
+  color: white;
+}
+
+.info-panel-blue {
+  background-color: #118ab2;
+  color: white;
+}
+
+.info-panel-purple {
+  background-color: #9b5de5;
+  color: white;
+}
+
+.info-panel-yellow {
+  background-color: #ffd166;
+  color: #2d3748;
+}
+
+.info-panel-pink {
+  background-color: #ff70a6;
+  color: white;
+}
+
+.info-panel-orange {
+  background-color: #ff9e00;
+  color: white;
+}
+
+.info-panel-cyan {
+  background-color: #00bbf9;
+  color: white;
+}
+
+.info-panel-red {
+  background-color: #ef476f;
+  color: white;
+}
+
+.info-panel-emerald {
+  background-color: #06d6a0;
+  color: white;
+}
+
+.info-panel-violet {
+  background-color: #7209b7;
+  color: white;
+}
+
+@media (min-width: 1024px) {
+  .info-panel-container {
+    width: 280px;
+    margin-bottom: 0;
+  }
+}

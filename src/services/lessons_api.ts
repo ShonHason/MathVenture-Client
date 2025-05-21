@@ -1,7 +1,7 @@
 import axios from "axios";
-const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 import { User } from "../context/UserContext";
 import { sampleQuestionsByGrade } from "../components/SampleQuestionsByGrade";
+const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 
 export const getAllLessonsByUserId = async (
   userId: string
@@ -123,4 +123,11 @@ const response = await axios.delete(`${baseUrl}/deleteLesson/${lessonId}`, {
 return response.data;
 
 }
-
+export async function checkOpenLesson(userId: string, subject: string) {
+  console.log("Send Req to :" , `${baseUrl}/lessons/check-open-lesson`);
+  const response = await axios.post(`${baseUrl}/lessons/check-open-lesson`, {
+    userId,
+    subject,
+  });
+  return response.data;
+}

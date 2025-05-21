@@ -1,23 +1,22 @@
 /* src/components/SideBar.css */
 
-/* צבע הרקע של הסיידבר – תשנה כאן כרצונך */
 .sidebar-modern {
-  position: fixed;      /* תמיד תקבע את המיקום */
-  top: 0;               /* למעלה */
-  left: 0;              /* בצד שמאל */
+  position: fixed;
+  top: 0;
+  right: 0; /* במקום left */
   width: 260px;
-  height: 100vh;        /* יכסה את כל גובה החלון */
-  background: #f0f4ff;  /* <-- כאן תוכל לשים כל צבע אחר */
+  height: 100vh;
+  background: #f0f4ff;
   display: flex;
   flex-direction: column;
   padding: 16px;
   box-sizing: border-box;
   font-family: "Arial", sans-serif;
-  overflow-y: auto;     /* גלילה פנימית במקרה שהתוכן גבוה */
-  z-index: 1000;        /* תמיד מעל התוכן */
+  overflow-y: auto;
+  z-index: 1000;
 }
 
-/* קומפוננטת Profile */
+/* קומפוננטת פרופיל */
 .profile-container {
   display: flex;
   flex-direction: column;
@@ -62,7 +61,7 @@
   color: #666;
   text-transform: uppercase;
   margin-bottom: 8px;
-  padding-left: 4px;
+  padding-right: 4px;
 }
 
 /* רשימת פריטים */
@@ -72,13 +71,12 @@
   margin: 0;
 }
 
-/* דוחף את הסעיף התחתון לתחתית */
+/* סעיף תחתון */
 .sidebar-section.bottom-fixed {
   margin-top: auto;
   margin-bottom: 0;
 }
 
-/* פריט בתפריט */
 .item {
   display: flex;
   align-items: center;
@@ -92,7 +90,7 @@
 
 .item .icon {
   font-size: 18px;
-  margin-right: 12px;
+  margin-left: 12px; /* מתאים ל-RTL */
   color: #666;
 }
 
@@ -100,7 +98,7 @@
   font-size: 14px;
 }
 
-/* הובר על פריטים */
+/* hover */
 .item:hover {
   background: #e6eaff;
   color: #6a4cff;
@@ -118,7 +116,7 @@
   color: #fff;
 }
 
-/* כפתור התנתקות אדום */
+/* כפתור התנתקות */
 .item.logout {
   background: #ff5c5c;
   color: #fff;
@@ -142,7 +140,7 @@
 
 @media (max-width: 480px) {
   .sidebar-modern {
-    position: relative;  /* במקרה שרוצים שהסיידבר ייעלם בגודל קטן */
+    position: relative;
     width: 100%;
     height: auto;
   }

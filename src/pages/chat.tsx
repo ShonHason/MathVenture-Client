@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Input, Button, Layout, Typography, List, Avatar } from "antd";
 import { SendOutlined } from "@ant-design/icons";
-import "../ui/chat.css";
 // import { sendMessageToServer } from "../services/api";
 
 const { Header, Content, Footer } = Layout;
