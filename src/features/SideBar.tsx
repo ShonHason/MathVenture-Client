@@ -52,13 +52,7 @@ const SideBar: React.FC = () => {
             <span className="icon"><BookOutlined /></span>
             <span className="label">כל השיעורים</span>
           </li>
-          <li
-            className={`item ${isActive("/home/start-lessons") ? "active" : ""}`}
-            onClick={() => onClickItem("/home/start-lessons")}
-          >
-            <span className="icon"><PlayCircleOutlined /></span>
-            <span className="label">התחלת שיעור</span>
-          </li>
+    
         </ul>
       </div>
 
