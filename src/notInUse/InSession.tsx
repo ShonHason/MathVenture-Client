@@ -1,8 +1,9 @@
+/*
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
 import Avatar3D from "../components/Avatar3D";
-import Transcript from "../components/Transcript";
+import Transcript from "./Transcript";
 import DrawableMathNotebook from "../components/DrawableMathNotebook";
 import LessonButtons from "../components/LessonButtons";
 import RealTimeRecorder from "../components/RealTimeRecorder";
@@ -343,7 +344,6 @@ const InSession: React.FC = () => {
 
   return (
     <>
-      {/* <div className="in-session-page"> */}
       <AudioUnlocker />
       <TopMenuBar
         isOpen={isOpen}
@@ -389,20 +389,13 @@ const InSession: React.FC = () => {
         {topic.subject.toLowerCase() === "math" && (
           <div className="math-progress">שאלות מתמטיקה: {mathCount} / 15</div>
         )}
-        {/* </div> */}
         {listening && (
           <RealTimeRecorder
             onTranscript={setUserTranscript}
             micMuted={micMuted}
           />
         )}
-        {/* <div className="lesson-buttons-area">
-            <LessonButtons
-              onActionPerformed={(action) => {
-                if (action === "end-lesson") handleEndLesson();
-              }}
-            />
-          </div> */}
+        {/}
 
         <div className="notebook-main-container">
           <DrawableMathNotebook
@@ -412,9 +405,9 @@ const InSession: React.FC = () => {
           />
         </div>
       </div>
-      {/* </div> */}
     </>
   );
 };
 
 export default InSession;
+*/

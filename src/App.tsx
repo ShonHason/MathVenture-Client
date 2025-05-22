@@ -13,9 +13,9 @@ import HelpPage from "./pages/HelpPage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import { ChatPage } from "./pages/chat";
-import StartLessons from "./pages/StartLessons";
+//import StartLessons from "./pages/StartLessons";
 import MyLessons from "./pages/MyLessons";
-import InSession from "./pages/InSession";
+//import InSession from "./notInUse/InSession";
 import PageNotFound from "./pages/PageNotFound";
 import LearningBoard from "./pages/LearningBoard";
 
@@ -27,7 +27,7 @@ import { ActionButtonsProvider } from "./context/ActionButtonsContext";
 import { DrawingSettingsProvider } from "./context/DrawingSettingsContext";
 import HomeLayout from "./pages/HomeLayout";
 import LearningSession from "./pages/LearningSession";
-
+import LoginPage from "./pages/loginPage";
 const App: React.FC = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
 
@@ -44,7 +44,7 @@ const App: React.FC = () => {
                     <Route path="/" element={<Navigate to="/login" replace />} />
 
                     {/* authentication */}
-                    <Route path="/login" element={<LoginRegistration />} />
+                    <Route path="/login" element={<LoginPage />} />
 
                     {/* home layout with sidebar */}
                     <Route path="/home" element={<HomeLayout />}>

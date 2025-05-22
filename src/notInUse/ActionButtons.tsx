@@ -1,4 +1,4 @@
-import React from "react";
+/*import React from "react";
 import ToggleSwitch from "./ToggleSwitch";
 import "./ActionButtons.css";
 import { faExpand } from "@fortawesome/free-solid-svg-icons";
@@ -50,3 +50,4 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
 };
 
 export default ActionButtons;
+*/
