@@ -1,8 +1,8 @@
-// DrawableMathNotebook.tsx
+
 import React, { useRef, useEffect, useState } from "react";
 import Tesseract from "tesseract.js";
 import MathKeypad from "./MathKeypad";
-import ActionButtons from "./ActionButtons";
+//import ActionButtons from "./ActionButtons";
 import FullScreenCanva from "../features/FullScreenCanva";
 import "./DrawableMathNotebook.css";
 import { useActionButtons } from "../context/ActionButtonsContext";
@@ -269,14 +269,15 @@ const DrawableMathNotebook: React.FC<DrawableMathNotebookProps> = ({
         <div className="keyboard-mode">
           <div className="expression-row">{expression || " "}</div>
           <MathKeypad onPress={handleNumClick} />
-          <ActionButtons
+          
+         {/* <ActionButtons
             isKeyboard={isKeyboard}
             setIsKeyboard={setIsKeyboard}
             scanning={scanning}
             onScan={handleScan}
             onClear={handleClear}
             setFullScreen={handleFullscreen}
-          />
+          />*/}
         </div>
       ) : (
         <>
@@ -304,14 +305,14 @@ const DrawableMathNotebook: React.FC<DrawableMathNotebookProps> = ({
               value={gridCount}
               onChange={(e) => setGridCount(+e.target.value)}
             />
-            <ActionButtons
+            {/*<ActionButtons
               scanning={scanning}
               onScan={handleScan}
               onClear={handleClear}
               isKeyboard={isKeyboard}
               setIsKeyboard={setIsKeyboard}
               setFullScreen={handleFullscreen}
-            />
+            />*/}
           </div>
         </>
       )}
