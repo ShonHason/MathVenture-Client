@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, ChevronLeft, Rocket } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Rocket } from "lucide-react";
 import { Button } from "../components/ui/button";
 import GameBoard from "../components/game-board";
 import StationInfoPanel from "../components/station-info-panel";
@@ -20,8 +20,21 @@ export default function LearningBoard() {
     id: index + 1,
     name: subject,
     description: `בואו ללמוד איתי על ${subject}`,
-    color: ["green", "blue", "purple", "yellow", "pink", "orange", "cyan", "red", "emerald", "violet"][index % 10],
-    icon: ["🚀", "📝", "🔢", "🎨", "🐶", "🌟", "🎵", "📚", "🧩", "🔬"][index % 10],
+    color: [
+      "green",
+      "blue",
+      "purple",
+      "yellow",
+      "pink",
+      "orange",
+      "cyan",
+      "red",
+      "emerald",
+      "violet",
+    ][index % 10],
+    icon: ["🚀", "📝", "🔢", "🎨", "🐶", "🌟", "🎵", "📚", "🧩", "🔬"][
+      index % 10
+    ],
   }));
 
   const [currentStationId, setCurrentStationId] = useState(1);
@@ -37,10 +50,12 @@ export default function LearningBoard() {
     );
   }
 
-  const currentStation = stations.find(s => s.id === currentStationId) || stations[0];
+  const currentStation =
+    stations.find((s) => s.id === currentStationId) || stations[0];
 
-  const handlePrevious = () => setCurrentStationId(id => Math.max(1, id - 1));
-  const handleNext = () => setCurrentStationId(id => Math.min(stations.length, id + 1));
+  const handlePrevious = () => setCurrentStationId((id) => Math.max(1, id - 1));
+  const handleNext = () =>
+    setCurrentStationId((id) => Math.min(stations.length, id + 1));
 
   const handleStartFun = async () => {
     if (!user?._id) return;
@@ -50,14 +65,19 @@ export default function LearningBoard() {
       console.log("Is lesson open:", isOpen);
 
       if (isOpen) {
-        toast.warning("כבר התחלת שיעור בנושא הזה. עבור לדף 'השיעורים שלי' כדי להמשיכו.");
+        toast.warning(
+          "כבר התחלת שיעור בנושא הזה. עבור לדף 'השיעורים שלי' כדי להמשיכו."
+        );
         return;
       }
 
       // No open lesson, start a new one
       const startResp = await startLesson(user, currentStation.name);
       // Extract lessonId from response (field name may vary)
-      const newLessonId = (startResp as any).lessonId ?? (startResp as any).id ?? (startResp as any)._id;
+      const newLessonId =
+        (startResp as any).lessonId ??
+        (startResp as any).id ??
+        (startResp as any)._id;
       if (!newLessonId) {
         console.error("No lessonId returned from startLesson:", startResp);
         toast.error("שגיאה ביצירת שיעור: מזהה לא חזר");
@@ -66,15 +86,12 @@ export default function LearningBoard() {
       console.log("Started lesson with ID:", newLessonId);
 
       // Navigate to the new lesson with its ID
-      navigate(
-        `/start-lessons/${encodeURIComponent(currentStation.name)}`,
-        {
-          state: {
-            topic: { subject: currentStation.name, question: "" },
-            lessonId: newLessonId,
-          },
-        }
-      );
+      navigate(`/start-lessons/${encodeURIComponent(currentStation.name)}`, {
+        state: {
+          topic: { subject: currentStation.name, question: "" },
+          lessonId: newLessonId,
+        },
+      });
     } catch (err) {
       console.error("Error checking or starting lesson:", err);
       toast.error("שגיאה בבדיקת או פתיחת שיעור");
@@ -96,7 +113,10 @@ export default function LearningBoard() {
       </header>
 
       <div className="fun-content">
-        <StationInfoPanel station={currentStation} totalStations={stations.length} />
+        <StationInfoPanel
+          station={currentStation}
+          totalStations={stations.length}
+        />
 
         <div className="game-container">
           <div className="navigation-controls" dir="rtl">
