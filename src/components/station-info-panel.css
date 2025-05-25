@@ -1,8 +1,7 @@
 .info-panel-container {
-  width: 100%;
-  margin-bottom: 1rem;
-  transform: translateY(-115px);
+  transform: translateX(-30px);
   transition: transform 0.3s ease;
+  margin-top: 15px;
 }
 
 .info-panel {
