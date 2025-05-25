@@ -111,7 +111,7 @@ export default function ControlPanel({
                   >
                     {isLessonComplete
                       ? "🎉 השיעור הושלם!"
-                      : `${correctAnswers} שאלה מספר`}
+                      : `${currentQuestion} שאלה מספר`}
                   </span>
                 </div>
               </div>
