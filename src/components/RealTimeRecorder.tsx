@@ -1,16 +1,27 @@
-  // RealTimeRecorder.tsx
-  import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useImperativeHandle } from "react";
 
-  interface RealTimeRecorderProps {
-    onTranscript: (transcript: string) => void;
-    micMuted: boolean;
-  }
+interface RealTimeRecorderProps {
+  onTranscript: (transcript: string) => void;
+  micMuted: boolean;
+}
 
-  const RealTimeRecorder: React.FC<RealTimeRecorderProps> = ({
-    onTranscript,
-    micMuted,
-  }) => {
+interface RealTimeRecorderInstance {
+  stopListening: () => void;
+}
+
+const RealTimeRecorder = React.forwardRef<RealTimeRecorderInstance, RealTimeRecorderProps>(
+  ({ onTranscript, micMuted }, ref) => {
     const recognitionRef = useRef<any>(null);
+
+    // Expose the stopListening method to the parent component
+    useImperativeHandle(ref, () => ({
+      stopListening: () => {
+        if (recognitionRef.current) {
+          console.log("Stopping recognition...");
+          recognitionRef.current.stop(); // Stop the recognition
+        }
+      },
+    }));
 
     useEffect(() => {
       const SpeechRecognition =
@@ -45,11 +56,14 @@
       }
 
       return () => {
-        recognition.stop();
+        if (recognitionRef.current) {
+          recognitionRef.current.stop();
+        }
       };
     }, [micMuted, onTranscript]);
 
-    return null; // This component does not render any visible elements.
-  };
+    return null; // This component does not render any visible elements
+  }
+);
 
-  export default RealTimeRecorder;
+export default RealTimeRecorder;

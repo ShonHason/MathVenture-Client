@@ -2,7 +2,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import DrawingPanel from "../components/drawing-panel";
 import KeyboardPanel from "../components/keyboard-panel";
@@ -27,11 +27,12 @@ type LocationState = {
 };
 
 export default function LearningSession() {
+  const recorderRef = useRef<any>(null); // Reference to the RealTimeRecorder component
   const { user } = useUser();
   const {
     state: { topic, lessonId: initialLessonId },
   } = useLocation() as LocationState;
-
+  const navigate = useNavigate();
   const [lessonId, setLessonId] = useState<string | null>(
     initialLessonId ?? null
   );
@@ -51,6 +52,7 @@ export default function LearningSession() {
   const [speechSpeed, setSpeechSpeed] = useState(1); // New state for speech speed
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0); // Track correct answers only
   const [isLessonComplete, setIsLessonComplete] = useState(false); // Track if lesson is finished
+
   const [resetKey, setResetKey] = useState(0)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const silenceTimerRef = useRef<number | null>(null)
@@ -172,7 +174,26 @@ export default function LearningSession() {
       setBotStatus("עצור");
     }
   };
+  const stopTTS = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+      setIsSpeaking(false);
+      setListening(true);
+      setBotStatus("עצור");
+    }
+  }
+ 
 
+ const handleReturnToMain = () => {
+  // Stop the AI from talking and listening
+  stopTTS(); // Stop Text-to-Speech
+  if (recorderRef.current) {
+    console.log("Calling stopListening...");
+    recorderRef.current.stopListening(); // Call stopListening method from RealTimeRecorder
+  }
+  navigate("/home");
+};
   // Debounce transcript
   const handleTranscript = (t: string) => {
 
@@ -364,7 +385,7 @@ export default function LearningSession() {
             onToggleMute={handleMute}
             onAdjustVolume={handleAdjustVolume}
             onAdjustSpeed={handleAdjustSpeed}
-            onReturnToMain={() => {}}
+            onReturnToMain={handleReturnToMain}
             onRepeatMessage={handleRepeat}
           />
         </div>
@@ -415,7 +436,7 @@ export default function LearningSession() {
         </div>
       </div>
 
-      <RealTimeRecorder micMuted={!listening} onTranscript={handleTranscript} />
+      <RealTimeRecorder ref={recorderRef} micMuted={!listening} onTranscript={handleTranscript}  />
       {isTranscriptOpen && <TranscriptModel messages={messages} onClose={() => setIsTranscriptOpen(false)} />}
 
     </div>
