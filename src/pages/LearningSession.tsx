@@ -51,10 +51,7 @@ export default function LearningSession() {
   const [speechSpeed, setSpeechSpeed] = useState(1); // New state for speech speed
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0); // Track correct answers only
   const [isLessonComplete, setIsLessonComplete] = useState(false); // Track if lesson is finished
-
-חדש לאיפוס פאנלים
   const [resetKey, setResetKey] = useState(0)
-
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const silenceTimerRef = useRef<number | null>(null)
   const lastTranscriptRef = useRef("")
