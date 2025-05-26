@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-
+const screensaverLogo = "/MathVentureBot.svg"; // Path to your logo image
 // Math symbols and elements to display
 const mathElements = [
   "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
@@ -9,7 +9,6 @@ const mathElements = [
   "△", "□", "○", "⬡", "⬢",
 ];
 
-// Element properties
 interface MathElement {
   x: number;
   y: number;
@@ -36,36 +35,30 @@ const MathScreensaver: React.FC = () => {
   const imageElementRef = useRef<ImageElement | null>(null);
   const animationRef = useRef<number>(0);
 
+  // Scale factor for the logo size
+  const logoScale = 0.05; // Adjust this value (e.g., 0.1 to 0.5) to shrink or enlarge logo
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Set canvas to full window size
     const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-
-      // Reposition image if it's outside the canvas after resize
-      if (imageElementRef.current) {
-        if (imageElementRef.current.x + imageElementRef.current.width > canvas.width) {
-          imageElementRef.current.x = canvas.width - imageElementRef.current.width;
-        }
-        if (imageElementRef.current.y + imageElementRef.current.height > canvas.height) {
-          imageElementRef.current.y = canvas.height - imageElementRef.current.height;
-        }
+      const imgEl = imageElementRef.current;
+      if (imgEl) {
+        imgEl.x = Math.min(imgEl.x, canvas.width - imgEl.width);
+        imgEl.y = Math.min(imgEl.y, canvas.height - imgEl.height);
       }
     };
 
-    // Initialize elements
     const initElements = () => {
-      const elements: MathElement[] = [];
       const count = Math.min(50, Math.floor((window.innerWidth * window.innerHeight) / 20000));
-
+      const items: MathElement[] = [];
       for (let i = 0; i < count; i++) {
-        elements.push({
+        items.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
           speedX: (Math.random() - 0.5) * 1.5,
@@ -75,109 +68,85 @@ const MathScreensaver: React.FC = () => {
           opacity: 0.1 + Math.random() * 0.3,
         });
       }
-
-      elementsRef.current = elements;
+      elementsRef.current = items;
     };
 
-    // Initialize moving image
     const initImage = () => {
-      // Create a new image element
       const img = new Image();
-      img.src = "/placeholder.svg?height=80&width=80"; // Placeholder image
-      img.crossOrigin = "anonymous"; // Prevent CORS issues
-
-      // Set up image properties once it's loaded
+      img.src = screensaverLogo;
       img.onload = () => {
         imageRef.current = img;
+        const scaledWidth = img.width * logoScale;
+        const scaledHeight = img.height * logoScale;
 
-        // Initialize image position and speed
         imageElementRef.current = {
-          x: Math.random() * (canvas.width - 80),
-          y: Math.random() * (canvas.height - 80),
+          x: Math.random() * (canvas.width - scaledWidth),
+          y: Math.random() * (canvas.height - scaledHeight),
           speedX: (Math.random() - 0.5) * 2,
           speedY: (Math.random() - 0.5) * 2,
-          width: 80,
-          height: 80,
+          width: scaledWidth,
+          height: scaledHeight,
         };
       };
     };
 
-    // Draw function
     const draw = () => {
-      if (!ctx || !canvas) return;
-
-      // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Draw elements
-      elementsRef.current.forEach((element) => {
-        // Move element
-        element.x += element.speedX;
-        element.y += element.speedY;
-
-        // Bounce off edges
-        if (element.x < 0 || element.x > canvas.width) {
-          element.speedX = -element.speedX;
-        }
-
-        if (element.y < 0 || element.y > canvas.height) {
-          element.speedY = -element.speedY;
-        }
-
-        // Draw element
-        ctx.font = `${element.size}px "Arial", sans-serif`;
-        ctx.fillStyle = `rgba(102, 51, 153, ${element.opacity})`;
-        ctx.fillText(element.text, element.x, element.y);
+      // Draw math elements
+      elementsRef.current.forEach(el => {
+        el.x += el.speedX;
+        el.y += el.speedY;
+        if (el.x < 0 || el.x > canvas.width) el.speedX = -el.speedX;
+        if (el.y < 0 || el.y > canvas.height) el.speedY = -el.speedY;
+        ctx.font = `${el.size}px Arial`;
+        ctx.fillStyle = `rgba(102, 51, 153, ${el.opacity})`;
+        ctx.fillText(el.text, el.x, el.y);
       });
-
-      // Draw and move the image if it's loaded
-      if (imageRef.current && imageElementRef.current) {
-        const imgEl = imageElementRef.current;
-
-        // Move image
+      // Draw moving image
+      const imgEl = imageElementRef.current;
+      if (imageRef.current && imgEl) {
         imgEl.x += imgEl.speedX;
         imgEl.y += imgEl.speedY;
-
-        // Bounce off edges
         if (imgEl.x < 0 || imgEl.x + imgEl.width > canvas.width) {
           imgEl.speedX = -imgEl.speedX;
-          // Make sure image stays within bounds
-          if (imgEl.x < 0) imgEl.x = 0;
-          if (imgEl.x + imgEl.width > canvas.width) imgEl.x = canvas.width - imgEl.width;
+          imgEl.x = Math.max(0, Math.min(imgEl.x, canvas.width - imgEl.width));
         }
-
         if (imgEl.y < 0 || imgEl.y + imgEl.height > canvas.height) {
           imgEl.speedY = -imgEl.speedY;
-          // Make sure image stays within bounds
-          if (imgEl.y < 0) imgEl.y = 0;
-          if (imgEl.y + imgEl.height > canvas.height) imgEl.y = canvas.height - imgEl.height;
+          imgEl.y = Math.max(0, Math.min(imgEl.y, canvas.height - imgEl.height));
         }
-
-        // Draw image with slight transparency
         ctx.globalAlpha = 0.7;
-        ctx.drawImage(imageRef.current, imgEl.x, imgEl.y, imgEl.width, imgEl.height);
-        ctx.globalAlpha = 1.0;
+        ctx.drawImage(
+          imageRef.current,
+          imgEl.x,
+          imgEl.y,
+          imgEl.width,
+          imgEl.height
+        );
+        ctx.globalAlpha = 1;
       }
-
-      // Continue animation
       animationRef.current = requestAnimationFrame(draw);
     };
 
-    // Set up canvas and start animation
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
     initElements();
-    initImage(); // Initialize the moving image
+    initImage();
     animationRef.current = requestAnimationFrame(draw);
 
-    // Cleanup
     return () => {
       window.removeEventListener("resize", resizeCanvas);
       cancelAnimationFrame(animationRef.current);
     };
-  }, []);
+  }, [logoScale]);
 
-  return <canvas ref={canvasRef} className="absolute inset-0 z-0" style={{ pointerEvents: "none" }} />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 z-0"
+      style={{ pointerEvents: "none" }}
+    />
+  );
 };
 
 export default MathScreensaver;

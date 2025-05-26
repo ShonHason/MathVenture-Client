@@ -3,7 +3,7 @@ import React, { useRef, useEffect, useState } from "react";
 import Tesseract from "tesseract.js";
 import MathKeypad from "./MathKeypad";
 //import ActionButtons from "./ActionButtons";
-import FullScreenCanva from "../features/FullScreenCanva";
+import FullScreenCanva from "./FullScreenCanva";
 import "./DrawableMathNotebook.css";
 import { useActionButtons } from "../context/ActionButtonsContext";
 import { useDrawingSettings } from "../context/DrawingSettingsContext";

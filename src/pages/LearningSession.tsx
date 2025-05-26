@@ -13,7 +13,11 @@ import ToggleControlButton from "../components/ ToggleControlButton";
 import RealTimeRecorder from "../components/RealTimeRecorder";
 import { useUser } from "../context/UserContext";
 
-const socketServerUrl = process.env.SERVER_API_URL || "http://localhost:4000";
+
+import { scanMathFromCanvas } from "../services/tesseractOcrService"
+
+const socketServerUrl = process.env.SERVER_API_URL || "http://localhost:4000"
+
 
 type LocationState = {
   state: {
@@ -48,10 +52,14 @@ export default function LearningSession() {
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0); // Track correct answers only
   const [isLessonComplete, setIsLessonComplete] = useState(false); // Track if lesson is finished
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const silenceTimerRef = useRef<number | null>(null);
-  const lastTranscriptRef = useRef("");
-  const lastSentRef = useRef("");
+חדש לאיפוס פאנלים
+  const [resetKey, setResetKey] = useState(0)
+
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const silenceTimerRef = useRef<number | null>(null)
+  const lastTranscriptRef = useRef("")
+  const lastSentRef = useRef("")
+
 
   const currentQuestion = topic.question || "";
 
@@ -63,6 +71,7 @@ export default function LearningSession() {
         const { data } = await axios.get(
           `${socketServerUrl}/lessons/${lessonId}/messages`,
           { headers: { Authorization: `Bearer ${user?.accessToken}` } }
+
         );
         const raw = data.messages as Array<{ role: string; content: string }>;
         const formatted = raw.slice(1).map((m) => ({
@@ -111,6 +120,7 @@ export default function LearningSession() {
       const opening =
         messages.length > 0
           ? `שלום ${user.username}, שמח לראות שחזרת אליי! השיעור על ${topic.subject} ממשיך.`
+
           : `שלום ${user.username}, שמח לראות אותך! היום נלמד על ${topic.subject}.`;
       setMessages([{ sender: "bot", text: opening }]);
       setBotSpeech(opening);
@@ -128,6 +138,7 @@ export default function LearningSession() {
           { userId: user._id, subject: topic.subject },
           { headers: { Authorization: `Bearer ${user?.accessToken}` } }
         )
+
         .then((r) => setLessonId(r.data.lessonId))
         .catch(console.error);
     }
@@ -141,6 +152,7 @@ export default function LearningSession() {
       setBotStatus("...מדבר");
       const res = await axios.post(
         `${socketServerUrl}/api/tts`,
+
         { text, lang: "he-IL", speed: speechSpeed }, // Include speed parameter
         { responseType: "arraybuffer" }
       );
@@ -156,6 +168,7 @@ export default function LearningSession() {
         setListening(true);
         setBotStatus("..מקשיב");
       };
+
     } catch {
       setIsSpeaking(false);
       setListening(false);
@@ -165,6 +178,7 @@ export default function LearningSession() {
 
   // Debounce transcript
   const handleTranscript = (t: string) => {
+
     if (!listening) return;
     lastTranscriptRef.current = t;
     clearTimeout(silenceTimerRef.current!);
@@ -186,6 +200,7 @@ export default function LearningSession() {
         `${socketServerUrl}/lessons/${lessonId}/chat`,
         { question: input },
         { headers: { Authorization: `Bearer ${user?.accessToken}` } }
+
       );
       const ai = resp.data.answer;
       setMessages((m) => [...m, { sender: "bot", text: ai }]);
@@ -225,19 +240,31 @@ export default function LearningSession() {
   };
 
   // Cleanup
-  useEffect(() => () => clearTimeout(silenceTimerRef.current!), []);
+  useEffect(() => () => clearTimeout(silenceTimerRef.current!), [])
 
   // Scan callbacks
-  const handleDrawingScan = (c: HTMLCanvasElement) => {
-    console.log("scan drawing", c.toDataURL());
-  };
-  const handleKeyboardScan = (text: string) => {
-    console.log("scan keyboard", text);
-    sendTranscript(text);
-  };
+  const handleDrawingScan = async (canvas: HTMLCanvasElement) => {
+    try {
+      // scanMathFromCanvas now returns a single string, not string[]
+      const mathText = await scanMathFromCanvas(canvas)
+      if (mathText) {
+        sendTranscript(mathText)    // send the string directly
+      } else {
+        console.warn("Tesseract: לא זוהה טקסט מתמטי")
+      }
+    } catch (err) {
+      console.error("Math OCR failed:", err)
+    } finally {
+      setResetKey(k => k + 1)
+    }
+  }
+  const handleKeyboardScan = (displayedText: string) => {
+    if (!displayedText) return
+    sendTranscript(displayedText)
+    setResetKey(k => k + 1)
+  }
 
-  // Control panel:
-  // 1) Start/Stop: always stops both speech+mic. Clicking again turns mic on only.
+  // Control panel actions...
   const handlePlayPause = () => {
     const audio = audioRef.current;
     if (isSpeaking && audio) {
@@ -246,6 +273,7 @@ export default function LearningSession() {
       setBotStatus("עצור");
       return;
     }
+
 
     if (
       !isSpeaking &&
@@ -319,10 +347,8 @@ export default function LearningSession() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-200 to-purple-100 p-4 flex flex-col items-center justify-center">
       <div className="fixed top-4 right-4 z-50">
-        <ToggleControlButton
-          isOpen={controlsOpen}
-          onClick={() => setControlsOpen((o) => !o)}
-        />
+        <ToggleControlButton isOpen={controlsOpen} onClick={() => setControlsOpen(o => !o)} />
+
       </div>
 
       {controlsOpen && (
@@ -369,41 +395,32 @@ export default function LearningSession() {
         <div className="flex-1 bg-white rounded-3xl p-6 shadow-lg flex flex-col">
           <div className="flex mb-4">
             <button
-              className={`flex-1 py-3 px-6 rounded-l-full font-bold ${
-                activeTab === "draw"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-500"
-              }`}
+              className={`flex-1 py-3 px-6 rounded-l-full font-bold ${activeTab === "draw" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-500"}`}
+
               onClick={() => setActiveTab("draw")}
             >
               ציור
             </button>
             <button
-              className={`flex-1 py-3 px-6 rounded-r-full font-bold ${
-                activeTab === "keyboard"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-500"
-              }`}
+              className={`flex-1 py-3 px-6 rounded-r-full font-bold ${activeTab === "keyboard" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-500"}`}
+
               onClick={() => setActiveTab("keyboard")}
             >
               מחשבון
             </button>
           </div>
           {activeTab === "draw" ? (
-            <DrawingPanel onScan={handleDrawingScan} />
+            <DrawingPanel key={resetKey} onScan={handleDrawingScan} />
           ) : (
-            <KeyboardPanel onScan={handleKeyboardScan} />
+            <KeyboardPanel key={resetKey} onScan={handleKeyboardScan} />
+
           )}
         </div>
       </div>
 
       <RealTimeRecorder micMuted={!listening} onTranscript={handleTranscript} />
-      {isTranscriptOpen && (
-        <TranscriptModel
-          messages={messages}
-          onClose={() => setIsTranscriptOpen(false)}
-        />
-      )}
+      {isTranscriptOpen && <TranscriptModel messages={messages} onClose={() => setIsTranscriptOpen(false)} />}
+
     </div>
   );
 }

@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import "./Avatar3D.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import DraggableControls from "../features/DraggableControls";
+import DraggableControls from "./DraggableControls";
 import {
   faVolumeHigh,
   faVolumeXmark,
