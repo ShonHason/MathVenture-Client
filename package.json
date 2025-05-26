@@ -29,6 +29,7 @@
     "@radix-ui/react-tabs": "^1.1.12",
     "@sendgrid/mail": "^8.1.4",
     "@shadcn/ui": "^0.0.4",
+    "@tailwindcss/postcss": "^4.1.7",
     "@types/react-router-dom": "^5.3.3",
     "@types/three": "^0.162.0",
     "antd": "^5.25.1",
