@@ -28,6 +28,8 @@ import { DrawingSettingsProvider } from "./context/DrawingSettingsContext";
 import HomeLayout from "./pages/HomeLayout";
 import LearningSession from "./pages/LearningSession";
 import LoginPage from "./pages/loginPage";
+import MathMiniGame from "./pages/MathMiniGame";
+import GameSelection from "./pages/GameSelection";
 const App: React.FC = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
 
@@ -55,6 +57,9 @@ const App: React.FC = () => {
                       <Route path="profile" element={<ProfilePage />} />
                       <Route path="settings" element={<SettingsPage />} />
                       <Route path="learning-board" element={<LearningBoard />} />
+                      <Route path="GameSelection" element= {<GameSelection />} />
+                      <Route path="math-minigame" element={<MathMiniGame />} />
+
                     </Route>
 
                     {/* single lesson session (not wrapped in layout) */}
@@ -63,7 +68,6 @@ const App: React.FC = () => {
                     {/* other top-level pages */}
                     <Route path="/quiz" element={<QuizPage />} />
                     <Route path="/chat" element={<ChatPage />} />
-
                     {/* 404 */}
                     <Route path="*" element={<PageNotFound />} />
                   </Routes>
