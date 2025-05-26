@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import LoginRegistration from "./pages/login";
+import LoginRegistration from "./notInUse/login";
 import QuizPage from "./pages/quiz";
 import HelpPage from "./pages/HelpPage";
 import ProfilePage from "./pages/ProfilePage";

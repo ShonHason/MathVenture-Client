@@ -12,8 +12,6 @@ export interface User {
   _id: string;
   username: string;
   email: string;
-
-  // your existing optional fields...
   grade?: string;
   gender?: string;
   rank?: string;

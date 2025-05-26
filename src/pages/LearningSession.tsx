@@ -13,6 +13,9 @@ import ToggleControlButton from "../components/ ToggleControlButton"
 import RealTimeRecorder from "../components/RealTimeRecorder"
 import { useUser } from "../context/UserContext"
 
+// כאן הייבוא של שירות ה-OCR של Paddle
+import { scanMathFromCanvas } from "../services/tesseractOcrService"
+
 const socketServerUrl = process.env.SERVER_API_URL || "http://localhost:4000"
 
 type LocationState = {
@@ -41,8 +44,11 @@ export default function LearningSession() {
   const [activeTab, setActiveTab] = useState<"draw" | "keyboard">("draw")
   const [botVolume, setBotVolume] = useState(100)
 
-  const audioRef = useRef<HTMLAudioElement|null>(null)
-  const silenceTimerRef = useRef<number|null>(null)
+  // state להנפקת key חדש לאיפוס פאנלים
+  const [resetKey, setResetKey] = useState(0)
+
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const silenceTimerRef = useRef<number | null>(null)
   const lastTranscriptRef = useRef("")
   const lastSentRef = useRef("")
 
@@ -57,13 +63,15 @@ export default function LearningSession() {
           `${socketServerUrl}/lessons/${lessonId}/messages`,
           { headers: { Authorization: `Bearer ${user?.accessToken}` } }
         )
-        const raw = data.messages as Array<{ role:string; content:string }>
-        const formatted = raw.slice(1).map(m => ({
-          sender: m.role === "user" ? "user" : "bot",
-          text: m.content
-        })) as { sender: "bot" | "user"; text: string }[]
+        const raw = data.messages as Array<{ role: string; content: string }>
+        const formatted = raw
+          .slice(1)
+          .map(m => ({
+            sender: m.role === "user" ? "user" as "user" : "bot" as "bot",
+            text: m.content
+          }))
         setMessages(formatted)
-      } catch(err) {
+      } catch (err) {
         console.error(err)
       } finally {
         setMessagesLoaded(true)
@@ -75,47 +83,49 @@ export default function LearningSession() {
   // Intro once loaded
   useEffect(() => {
     if (messagesLoaded && user?.username && topic.subject && !hasSpokenIntro) {
-      const opening = messages.length>0
-        ? `שלום ${user.username}, שמח לראות שחזרת אליי! השיעור על ${topic.subject} ממשיך.`
-        : `שלום ${user.username}, שמח לראות אותך! היום נלמד על ${topic.subject}.`
-      setMessages([{ sender:"bot", text:opening }])
+      const opening =
+        messages.length > 0
+          ? `שלום ${user.username}, שמח לראות שחזרת אליי! השיעור על ${topic.subject} ממשיך.`
+          : `שלום ${user.username}, שמח לראות אותך! היום נלמד על ${topic.subject}.`
+      setMessages([{ sender: "bot", text: opening }])
       setBotSpeech(opening)
       setHasSpokenIntro(true)
       speak(opening)
     }
-  },[messagesLoaded, user, topic, hasSpokenIntro, messages.length])
+  }, [messagesLoaded, user, topic, hasSpokenIntro, messages.length])
 
   // Start new lesson
   useEffect(() => {
     if (hasSpokenIntro && !lessonId && user?._id) {
-      axios.post(
-        `${socketServerUrl}/lessons/start`,
-        { userId:user._id, subject:topic.subject },
-        { headers:{ Authorization:`Bearer ${user?.accessToken}` } }
-      )
-      .then(r=>setLessonId(r.data.lessonId))
-      .catch(console.error)
+      axios
+        .post(
+          `${socketServerUrl}/lessons/start`,
+          { userId: user._id, subject: topic.subject },
+          { headers: { Authorization: `Bearer ${user?.accessToken}` } }
+        )
+        .then(r => setLessonId(r.data.lessonId))
+        .catch(console.error)
     }
-  },[hasSpokenIntro, lessonId, user, topic])
+  }, [hasSpokenIntro, lessonId, user, topic])
 
   // TTS
-  const speak = async (text:string) => {
+  const speak = async (text: string) => {
     try {
       setIsSpeaking(true)
       setListening(false)
       setBotStatus("...מדבר")
       const res = await axios.post(
         `${socketServerUrl}/api/tts`,
-        {text,lang:"he-IL"},
-        {responseType:"arraybuffer"}
+        { text, lang: "he-IL" },
+        { responseType: "arraybuffer" }
       )
-      const blob = new Blob([res.data],{type:"audio/mp3"})
+      const blob = new Blob([res.data], { type: "audio/mp3" })
       const url = URL.createObjectURL(blob)
       const audio = new Audio(url)
-      audio.volume = botVolume/100
+      audio.volume = botVolume / 100
       audioRef.current = audio
       await audio.play()
-      audio.onended = ()=> {
+      audio.onended = () => {
         setIsSpeaking(false)
         setListening(true)
         setBotStatus("..מקשיב")
@@ -128,7 +138,7 @@ export default function LearningSession() {
   }
 
   // Debounce transcript
-  const handleTranscript = (t:string) => {
+  const handleTranscript = (t: string) => {
     if (!listening) return
     lastTranscriptRef.current = t
     clearTimeout(silenceTimerRef.current!)
@@ -136,41 +146,55 @@ export default function LearningSession() {
       const final = lastTranscriptRef.current.trim()
       if (final) sendTranscript(final)
       lastTranscriptRef.current = ""
-    },2000)
+    }, 2000)
   }
 
   // Send to chat
-  const sendTranscript = async (input:string) => {
-    if (input===lastSentRef.current) return
+  const sendTranscript = async (input: string) => {
+    if (input === lastSentRef.current) return
     lastSentRef.current = input
-    setMessages(m=>[...m,{sender:"user",text:input}])
+    setMessages(m => [...m, { sender: "user", text: input }])
     try {
       const resp = await axios.post(
         `${socketServerUrl}/lessons/${lessonId}/chat`,
-        {question:input},
-        {headers:{Authorization:`Bearer ${user?.accessToken}`}}
+        { question: input },
+        { headers: { Authorization: `Bearer ${user?.accessToken}` } }
       )
       const ai = resp.data.answer
-      setMessages(m=>[...m,{sender:"bot",text:ai}])
+      setMessages(m => [...m, { sender: "bot", text: ai }])
       setBotSpeech(ai)
       speak(ai)
-    } catch(err){ console.error(err) }
+    } catch (err) {
+      console.error(err)
+    }
   }
 
   // Cleanup
-  useEffect(()=>()=>clearTimeout(silenceTimerRef.current!),[])
+  useEffect(() => () => clearTimeout(silenceTimerRef.current!), [])
 
   // Scan callbacks
-  const handleDrawingScan = (c:HTMLCanvasElement)=> {
-    console.log("scan drawing",c.toDataURL())
+  const handleDrawingScan = async (canvas: HTMLCanvasElement) => {
+    try {
+      // scanMathFromCanvas now returns a single string, not string[]
+      const mathText = await scanMathFromCanvas(canvas)
+      if (mathText) {
+        sendTranscript(mathText)    // send the string directly
+      } else {
+        console.warn("Tesseract: לא זוהה טקסט מתמטי")
+      }
+    } catch (err) {
+      console.error("Math OCR failed:", err)
+    } finally {
+      setResetKey(k => k + 1)
+    }
   }
-  const handleKeyboardScan = (text:string)=> {
-    console.log("scan keyboard",text)
-    sendTranscript(text)
+  const handleKeyboardScan = (displayedText: string) => {
+    if (!displayedText) return
+    sendTranscript(displayedText)
+    setResetKey(k => k + 1)
   }
 
-  // Control panel:
-  // 1) Start/Stop: always stops both speech+mic. Clicking again turns mic on only.
+  // Control panel actions...
   const handlePlayPause = () => {
     const audio = audioRef.current
     if (isSpeaking && audio) {
@@ -179,34 +203,28 @@ export default function LearningSession() {
       setBotStatus("עצור")
       return
     }
-  
     if (!isSpeaking && audio && audio.currentTime > 0 && audio.currentTime < audio.duration) {
       audio.play()
       setIsSpeaking(true)
       setBotStatus("...מדבר")
-      // במעבר חזרה לדיבור נפסיק להאזין
       setListening(false)
       return
     }
-  
     setListening(l => {
       const next = !l
       setBotStatus(next ? "..מקשיב" : "עצור")
       return next
     })
   }
-  // 2) Mute = mic toggle only
   const handleMute = () => {
-    setListening(l=>!l)
+    setListening(l => !l)
     setBotStatus(listening ? "עצור" : "..מקשיב")
   }
-  // 3) Volume cycles
   const handleAdjustVolume = () => {
-    const next = botVolume===100?60:botVolume===60?30:botVolume===30?0:100
+    const next = botVolume === 100 ? 60 : botVolume === 60 ? 30 : botVolume === 30 ? 0 : 100
     setBotVolume(next)
-    if (audioRef.current) audioRef.current.volume = next/100
+    if (audioRef.current) audioRef.current.volume = next / 100
   }
-  // 4) Repeat last when idle
   const handleRepeat = () => {
     if (isSpeaking) return
     if (audioRef.current) {
@@ -223,10 +241,7 @@ export default function LearningSession() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-200 to-purple-100 p-4 flex flex-col items-center justify-center">
       <div className="fixed top-4 right-4 z-50">
-        <ToggleControlButton
-          isOpen={controlsOpen}
-          onClick={()=>setControlsOpen(o=>!o)}
-        />
+        <ToggleControlButton isOpen={controlsOpen} onClick={() => setControlsOpen(o => !o)} />
       </div>
 
       {controlsOpen && (
@@ -240,7 +255,7 @@ export default function LearningSession() {
             onTogglePlayPause={handlePlayPause}
             onToggleMute={handleMute}
             onAdjustVolume={handleAdjustVolume}
-            onReturnToMain={()=>{}}
+            onReturnToMain={() => {}}
             onRepeatMessage={handleRepeat}
           />
         </div>
@@ -259,7 +274,7 @@ export default function LearningSession() {
             {currentQuestion}
           </div>
           <button
-            onClick={()=>setIsTranscriptOpen(true)}
+            onClick={() => setIsTranscriptOpen(true)}
             className="w-full bg-indigo-500 text-white font-bold py-3 px-6 rounded-xl shadow-md"
           >
             הצג תמלול שיחה
@@ -268,25 +283,28 @@ export default function LearningSession() {
         <div className="flex-1 bg-white rounded-3xl p-6 shadow-lg flex flex-col">
           <div className="flex mb-4">
             <button
-              className={`flex-1 py-3 px-6 rounded-l-full font-bold ${activeTab==="draw"?"bg-blue-500 text-white":"bg-gray-200 text-gray-500"}`}
-              onClick={()=>setActiveTab("draw")}
-            >ציור</button>
+              className={`flex-1 py-3 px-6 rounded-l-full font-bold ${activeTab === "draw" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-500"}`}
+              onClick={() => setActiveTab("draw")}
+            >
+              ציור
+            </button>
             <button
-              className={`flex-1 py-3 px-6 rounded-r-full font-bold ${activeTab==="keyboard"?"bg-blue-500 text-white":"bg-gray-200 text-gray-500"}`}
-              onClick={()=>setActiveTab("keyboard")}
-            >מחשבון</button>
+              className={`flex-1 py-3 px-6 rounded-r-full font-bold ${activeTab === "keyboard" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-500"}`}
+              onClick={() => setActiveTab("keyboard")}
+            >
+              מחשבון
+            </button>
           </div>
-          {activeTab==="draw"
-            ? <DrawingPanel onScan={handleDrawingScan} />
-            : <KeyboardPanel onScan={handleKeyboardScan} />
-          }
+          {activeTab === "draw" ? (
+            <DrawingPanel key={resetKey} onScan={handleDrawingScan} />
+          ) : (
+            <KeyboardPanel key={resetKey} onScan={handleKeyboardScan} />
+          )}
         </div>
       </div>
 
-      <RealTimeRecorder micMuted={!listening} onTranscript={handleTranscript}/>
-      {isTranscriptOpen && (
-        <TranscriptModel messages={messages} onClose={()=>setIsTranscriptOpen(false)}/>
-      )}
+      <RealTimeRecorder micMuted={!listening} onTranscript={handleTranscript} />
+      {isTranscriptOpen && <TranscriptModel messages={messages} onClose={() => setIsTranscriptOpen(false)} />}
     </div>
   )
 }
