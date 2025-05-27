@@ -12,12 +12,9 @@ import ControlPanel from "../components/control-panel";
 import ToggleControlButton from "../components/ ToggleControlButton";
 import RealTimeRecorder from "../components/RealTimeRecorder";
 import { useUser } from "../context/UserContext";
+import { scanMathFromCanvas } from "../services/tesseractOcrService";
 
-
-import { scanMathFromCanvas } from "../services/tesseractOcrService"
-
-const socketServerUrl = process.env.SERVER_API_URL || "http://localhost:4000"
-
+const socketServerUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 
 type LocationState = {
   state: {
@@ -27,18 +24,18 @@ type LocationState = {
 };
 
 export default function LearningSession() {
-  const recorderRef = useRef<any>(null); // Reference to the RealTimeRecorder component
+  const recorderRef = useRef<any>(null);
   const { user } = useUser();
   const {
     state: { topic, lessonId: initialLessonId },
   } = useLocation() as LocationState;
   const navigate = useNavigate();
+
+  // --- State ---
   const [lessonId, setLessonId] = useState<string | null>(
     initialLessonId ?? null
   );
-  const [messages, setMessages] = useState<
-    { sender: "bot" | "user"; text: string }[]
-  >([]);
+  const [messages, setMessages] = useState<{ sender: "bot" | "user"; text: string }[]>([]);
   const [messagesLoaded, setMessagesLoaded] = useState(false);
   const [hasSpokenIntro, setHasSpokenIntro] = useState(false);
   const [botSpeech, setBotSpeech] = useState("");
@@ -49,20 +46,46 @@ export default function LearningSession() {
   const [controlsOpen, setControlsOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<"draw" | "keyboard">("draw");
   const [botVolume, setBotVolume] = useState(100);
-  const [speechSpeed, setSpeechSpeed] = useState(1); // New state for speech speed
-  const [correctAnswersCount, setCorrectAnswersCount] = useState(0); // Track correct answers only
-  const [isLessonComplete, setIsLessonComplete] = useState(false); // Track if lesson is finished
+  const [speechSpeed, setSpeechSpeed] = useState(1);
+  const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
+  const [isLessonComplete, setIsLessonComplete] = useState(false);
+  const [resetKey, setResetKey] = useState(0);
 
-  const [resetKey, setResetKey] = useState(0)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  const silenceTimerRef = useRef<number | null>(null)
-  const lastTranscriptRef = useRef("")
-  const lastSentRef = useRef("")
+  // Yellow area: last user input
+  const [lastUserMessage, setLastUserMessage] = useState<string>("");
 
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const silenceTimerRef = useRef<number | null>(null);
+  const lastTranscriptRef = useRef("");
+  const lastSentRef = useRef("");
+
+  // Prevent overlapping requests
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const currentQuestion = topic.question || "";
 
-  // Fetch history once
+  // --- Cleanup & Back-Button Handling ---
+  useEffect(() => {
+    const stopAll = () => {
+      // stop speech
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+      setIsSpeaking(false);
+      setListening(false);
+      // stop recorder
+      recorderRef.current?.stopListening?.();
+    };
+    // handle browser back
+    window.addEventListener("popstate", stopAll);
+    return () => {
+      window.removeEventListener("popstate", stopAll);
+      stopAll();
+    };
+  }, []);
+
+  // --- Fetch existing conversation ---
   useEffect(() => {
     async function fetchMessages() {
       if (!lessonId) return;
@@ -70,7 +93,6 @@ export default function LearningSession() {
         const { data } = await axios.get(
           `${socketServerUrl}/lessons/${lessonId}/messages`,
           { headers: { Authorization: `Bearer ${user?.accessToken}` } }
-
         );
         const raw = data.messages as Array<{ role: string; content: string }>;
         const formatted = raw.slice(1).map((m) => ({
@@ -79,29 +101,18 @@ export default function LearningSession() {
         })) as { sender: "bot" | "user"; text: string }[];
         setMessages(formatted);
 
-        // Count correct answers from chat history
-        // Look for bot responses that indicate correct answers
-        const correctCount = formatted.filter((msg, index) => {
-          if (msg.sender === "bot" && index > 0) {
-            const text = msg.text.toLowerCase();
-            // Hebrew phrases that indicate correct answers
-            return (
-              text.includes("נכון") ||
-              text.includes("מצוין") ||
-              text.includes("בדיוק") ||
-              text.includes("כל הכבוד") ||
-              text.includes("תשובה נכונה") ||
-              text.includes("מושלם") ||
-              text.includes("יפה מאוד") ||
-              text.includes("בול") ||
-              text.includes("לנו") ||
-              text.includes("צודק") ||
-              text.includes("הצלחת")
-            );
+        // count correct
+        const correctCount = formatted.reduce((acc, msg, idx) => {
+          if (msg.sender === "bot" && idx > 0) {
+            const txt = msg.text.toLowerCase();
+            if (
+              ["נכון","מצוין","בדיוק","כל הכבוד","תשובה נכונה","מושלם",
+               "יפה מאוד","בול","לנו","צודק","הצלחת"]
+                .some(p => txt.includes(p))
+            ) return acc + 1;
           }
-          return false;
-        }).length;
-
+          return acc;
+        }, 0);
         setCorrectAnswersCount(correctCount);
         setIsLessonComplete(correctCount >= 15);
       } catch (err) {
@@ -113,13 +124,17 @@ export default function LearningSession() {
     fetchMessages();
   }, [lessonId, user?.accessToken]);
 
-  // Intro once loaded
+  // --- Intro message ---
   useEffect(() => {
-    if (messagesLoaded && user?.username && topic.subject && !hasSpokenIntro) {
+    if (
+      messagesLoaded &&
+      user?.username &&
+      topic.subject &&
+      !hasSpokenIntro
+    ) {
       const opening =
         messages.length > 0
           ? `שלום ${user.username}, שמח לראות שחזרת אליי! השיעור על ${topic.subject} ממשיך.`
-
           : `שלום ${user.username}, שמח לראות אותך! היום נלמד על ${topic.subject}.`;
       setMessages([{ sender: "bot", text: opening }]);
       setBotSpeech(opening);
@@ -128,7 +143,7 @@ export default function LearningSession() {
     }
   }, [messagesLoaded, user, topic, hasSpokenIntro, messages.length]);
 
-  // Start new lesson
+  // --- Start new lesson on server ---
   useEffect(() => {
     if (hasSpokenIntro && !lessonId && user?._id) {
       axios
@@ -137,67 +152,68 @@ export default function LearningSession() {
           { userId: user._id, subject: topic.subject },
           { headers: { Authorization: `Bearer ${user?.accessToken}` } }
         )
-
         .then((r) => setLessonId(r.data.lessonId))
         .catch(console.error);
     }
   }, [hasSpokenIntro, lessonId, user, topic]);
 
-  // TTS with speed control
+  // --- Text-to-Speech ---
   const speak = async (text: string) => {
+    // always stop anything first
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    recorderRef.current?.stopListening?.();
+    setListening(false);
+    setIsSpeaking(true);
+    setBotStatus("...מדבר");
+
     try {
-      setIsSpeaking(true);
-      setListening(false);
-      setBotStatus("...מדבר");
       const res = await axios.post(
         `${socketServerUrl}/api/tts`,
-
-        { text, lang: "he-IL", speed: speechSpeed }, // Include speed parameter
+        { text, lang: "he-IL", speed: speechSpeed },
         { responseType: "arraybuffer" }
       );
       const blob = new Blob([res.data], { type: "audio/mp3" });
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
       audio.volume = botVolume / 100;
-      audio.playbackRate = speechSpeed; // Set playback speed
+      audio.playbackRate = speechSpeed;
       audioRef.current = audio;
       await audio.play();
       audio.onended = () => {
         setIsSpeaking(false);
-        setListening(true);
         setBotStatus("..מקשיב");
+        setListening(true);
       };
-
     } catch {
       setIsSpeaking(false);
-      setListening(false);
       setBotStatus("עצור");
+      setListening(false);
     }
   };
+
   const stopTTS = () => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
-      setIsSpeaking(false);
-      setListening(true);
-      setBotStatus("עצור");
     }
-  }
- 
+    setIsSpeaking(false);
+    setBotStatus("עצור");
+    setListening(false);
+  };
 
- const handleReturnToMain = () => {
-  // Stop the AI from talking and listening
-  stopTTS(); // Stop Text-to-Speech
-  if (recorderRef.current) {
-    console.log("Calling stopListening...");
-    recorderRef.current.stopListening(); // Call stopListening method from RealTimeRecorder
-  }
-  navigate("/home");
-};
-  // Debounce transcript
+  // --- Return to main page ---
+  const handleReturnToMain = () => {
+    stopTTS();
+    recorderRef.current?.stopListening?.();
+    navigate("/home");
+  };
+
+  // --- Handle live speech transcript (debounced) ---
   const handleTranscript = (t: string) => {
-
-    if (!listening) return;
+    if (!listening || isSpeaking || isProcessing) return;
     lastTranscriptRef.current = t;
     clearTimeout(silenceTimerRef.current!);
     silenceTimerRef.current = window.setTimeout(() => {
@@ -207,10 +223,20 @@ export default function LearningSession() {
     }, 2000);
   };
 
-  // Send to chat
+  // --- Send user transcript or OCR result ---
   const sendTranscript = async (input: string) => {
-    if (input === lastSentRef.current) return;
+    if (isProcessing || input === lastSentRef.current) {
+      setListening(true);
+      return;
+    }
     lastSentRef.current = input;
+    setIsProcessing(true);
+    setListening(false);
+
+    // show in yellow area
+    setLastUserMessage(input);
+
+    // add to chat UI
     setMessages((m) => [...m, { sender: "user", text: input }]);
 
     try {
@@ -218,71 +244,64 @@ export default function LearningSession() {
         `${socketServerUrl}/lessons/${lessonId}/chat`,
         { question: input },
         { headers: { Authorization: `Bearer ${user?.accessToken}` } }
-
       );
       const ai = resp.data.answer;
       setMessages((m) => [...m, { sender: "bot", text: ai }]);
       setBotSpeech(ai);
 
-      // Check if the bot's response indicates a correct answer
-      const responseText = ai.toLowerCase();
-      const isCorrectAnswer =
-        responseText.includes("נכון") ||
-        responseText.includes("מצוין") ||
-        responseText.includes("בדיוק") ||
-        responseText.includes("כל הכבוד") ||
-        responseText.includes("תשובה נכונה") ||
-        responseText.includes("מושלם") ||
-        responseText.includes("יפה מאוד") ||
-        responseText.includes("בול") ||
-        responseText.includes("לנו") ||
-        responseText.includes("צודק") ||
-        responseText.includes("הצלחת");
-
-      if (isCorrectAnswer) {
+      // count correct answers
+      const low = ai.toLowerCase();
+      if (
+        ["נכון","מצוין","בדיוק","כל הכבוד","תשובה נכונה","מושלם",
+          "יפה מאוד","בול","לנו","צודק","הצלחת"]
+          .some(p => low.includes(p))
+      ) {
         setCorrectAnswersCount((prev) => {
-          const newCount = prev + 1;
-          if (newCount >= 15) {
-            setIsLessonComplete(true);
-            // Could trigger completion celebration here
-            console.log("Lesson completed! 🎉");
-          }
-          return newCount;
+          const next = prev + 1;
+          if (next >= 15) setIsLessonComplete(true);
+          return next;
         });
       }
 
+      // speak bot reply
       speak(ai);
     } catch (err) {
       console.error(err);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  // Cleanup
-  useEffect(() => () => clearTimeout(silenceTimerRef.current!), [])
-
-  // Scan callbacks
+  // --- OCR Scan Handlers ---
   const handleDrawingScan = async (canvas: HTMLCanvasElement) => {
+    if (isSpeaking || isProcessing) return;
+    setIsProcessing(true);
     try {
-      // scanMathFromCanvas now returns a single string, not string[]
-      const mathText = await scanMathFromCanvas(canvas)
+      const mathText = await scanMathFromCanvas(canvas);
       if (mathText) {
-        sendTranscript(mathText)    // send the string directly
+        setLastUserMessage(mathText);
+        await sendTranscript(mathText);
       } else {
-        console.warn("Tesseract: לא זוהה טקסט מתמטי")
+        console.warn("Tesseract: לא זוהה טקסט מתמטי");
       }
     } catch (err) {
-      console.error("Math OCR failed:", err)
+      console.error("Math OCR failed:", err);
     } finally {
-      setResetKey(k => k + 1)
+      setResetKey((k) => k + 1);
+      setIsProcessing(false);
     }
-  }
-  const handleKeyboardScan = (displayedText: string) => {
-    if (!displayedText) return
-    sendTranscript(displayedText)
-    setResetKey(k => k + 1)
-  }
+  };
 
-  // Control panel actions...
+  const handleKeyboardScan = async (displayedText: string) => {
+    if (!displayedText || isSpeaking || isProcessing) return;
+    setIsProcessing(true);
+    setLastUserMessage(displayedText);
+    await sendTranscript(displayedText);
+    setResetKey((k) => k + 1);
+    setIsProcessing(false);
+  };
+
+  // --- ControlPanel Handlers (play/pause, mute, volume, speed, repeat) ---
   const handlePlayPause = () => {
     const audio = audioRef.current;
     if (isSpeaking && audio) {
@@ -291,8 +310,6 @@ export default function LearningSession() {
       setBotStatus("עצור");
       return;
     }
-
-
     if (
       !isSpeaking &&
       audio &&
@@ -302,49 +319,32 @@ export default function LearningSession() {
       audio.play();
       setIsSpeaking(true);
       setBotStatus("...מדבר");
-      // במעבר חזרה לדיבור נפסיק להאזין
       setListening(false);
       return;
     }
-
     setListening((l) => {
       const next = !l;
       setBotStatus(next ? "..מקשיב" : "עצור");
       return next;
     });
   };
-  // 2) Mute = mic toggle only
   const handleMute = () => {
     setListening((l) => !l);
     setBotStatus(listening ? "עצור" : "..מקשיב");
   };
-  // 3) Volume cycles
   const handleAdjustVolume = () => {
     const next =
-      botVolume === 100
-        ? 60
-        : botVolume === 60
-        ? 30
-        : botVolume === 30
-        ? 0
-        : 100;
+      botVolume === 100 ? 60 : botVolume === 60 ? 30 : botVolume === 30 ? 0 : 100;
     setBotVolume(next);
     if (audioRef.current) audioRef.current.volume = next / 100;
   };
-  // 4) Speed cycles (0.5x, 1x, 1.25x, 1.5x, 2x)
   const handleAdjustSpeed = () => {
     const speeds = [0.5, 1, 1.25, 1.5, 2];
-    const currentIndex = speeds.indexOf(speechSpeed);
-    const nextIndex = (currentIndex + 1) % speeds.length;
-    const nextSpeed = speeds[nextIndex];
-    setSpeechSpeed(nextSpeed);
-
-    // Apply speed to current audio if playing
-    if (audioRef.current) {
-      audioRef.current.playbackRate = nextSpeed;
-    }
+    const idx = speeds.indexOf(speechSpeed);
+    const next = speeds[(idx + 1) % speeds.length];
+    setSpeechSpeed(next);
+    if (audioRef.current) audioRef.current.playbackRate = next;
   };
-  // 5) Repeat last when idle
   const handleRepeat = () => {
     if (isSpeaking) return;
     if (audioRef.current) {
@@ -359,16 +359,19 @@ export default function LearningSession() {
     }
   };
 
-  // Calculate progress percentage based on correct answers
   const progressPercentage = (correctAnswersCount / 15) * 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-200 to-purple-100 p-4 flex flex-col items-center justify-center">
+      {/* Toggle Button */}
       <div className="fixed top-4 right-4 z-50">
-        <ToggleControlButton isOpen={controlsOpen} onClick={() => setControlsOpen(o => !o)} />
-
+        <ToggleControlButton
+          isOpen={controlsOpen}
+          onClick={() => setControlsOpen((o) => !o)}
+        />
       </div>
 
+      {/* Control Panel */}
       {controlsOpen && (
         <div className="w-full max-w-3xl mb-4">
           <ControlPanel
@@ -391,7 +394,9 @@ export default function LearningSession() {
         </div>
       )}
 
+      {/* Main Content */}
       <div className="w-full max-w-3xl flex gap-6 flex-col md:flex-row mb-4">
+        {/* Left Panel */}
         <div className="flex-1 bg-white rounded-3xl p-6 shadow-lg flex flex-col items-center">
           <div className="bg-gradient-to-r from-blue-400 to-purple-400 rounded-full px-8 py-3 mb-6 font-bold text-xl text-right w-full text-white">
             {botStatus}
@@ -401,7 +406,7 @@ export default function LearningSession() {
             {botSpeech}
           </div>
           <div className="bg-yellow-50 rounded-2xl p-4 mb-6 text-right w-full border-2 border-yellow-200">
-            {currentQuestion}
+            {lastUserMessage}
           </div>
           <button
             onClick={() => setIsTranscriptOpen(true)}
@@ -410,18 +415,26 @@ export default function LearningSession() {
             הצג תמלול שיחה
           </button>
         </div>
+
+        {/* Right Panel */}
         <div className="flex-1 bg-white rounded-3xl p-6 shadow-lg flex flex-col">
           <div className="flex mb-4">
             <button
-              className={`flex-1 py-3 px-6 rounded-l-full font-bold ${activeTab === "draw" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-500"}`}
-
+              className={`flex-1 py-3 px-6 rounded-l-full font-bold ${
+                activeTab === "draw"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 text-gray-500"
+              }`}
               onClick={() => setActiveTab("draw")}
             >
               ציור
             </button>
             <button
-              className={`flex-1 py-3 px-6 rounded-r-full font-bold ${activeTab === "keyboard" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-500"}`}
-
+              className={`flex-1 py-3 px-6 rounded-r-full font-bold ${
+                activeTab === "keyboard"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 text-gray-500"
+              }`}
               onClick={() => setActiveTab("keyboard")}
             >
               מחשבון
@@ -431,14 +444,22 @@ export default function LearningSession() {
             <DrawingPanel key={resetKey} onScan={handleDrawingScan} />
           ) : (
             <KeyboardPanel key={resetKey} onScan={handleKeyboardScan} />
-
           )}
         </div>
       </div>
 
-      <RealTimeRecorder ref={recorderRef} micMuted={!listening} onTranscript={handleTranscript}  />
-      {isTranscriptOpen && <TranscriptModel messages={messages} onClose={() => setIsTranscriptOpen(false)} />}
-
+      {/* Recorder & Transcript Modal */}
+      <RealTimeRecorder
+        ref={recorderRef}
+        micMuted={!listening}
+        onTranscript={handleTranscript}
+      />
+      {isTranscriptOpen && (
+        <TranscriptModel
+          messages={messages}
+          onClose={() => setIsTranscriptOpen(false)}
+        />
+      )}
     </div>
   );
 }
