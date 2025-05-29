@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "../components/ui/button"
 import { Card, CardContent } from "../components/ui/card"
@@ -9,11 +9,14 @@ import { Input } from "../components/ui/input"
 import { Badge } from "../components/ui/badge"
 import { ArrowLeft, Trophy, Volume2, VolumeX, Star, Zap, Target, Clock } from 'lucide-react'
 import { useUser } from "../context/UserContext"
+import axios from "axios"
+import { toast } from "react-toastify"
+const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 
 export default function MathMiniGame() {
   const navigate = useNavigate()
   const { user } = useUser()
-
+  const accessToken = localStorage.getItem("accessToken")
   // Game states
   const [gameState, setGameState] = useState("menu")
   const [currentQuestion, setCurrentQuestion] = useState({
@@ -27,10 +30,10 @@ export default function MathMiniGame() {
   const [playerName, setPlayerName] = useState("")
   const [difficulty, setDifficulty] = useState("easy")
   const [leaderboard, setLeaderboard] = useState([
-    { name: "דן", score: 150, difficulty: "easy" },
-    { name: "שון", score: 120, difficulty: "medium" },
-    { name: "רועי", score: 200, difficulty: "hard" },
-    { name: "רותם", score: 90, difficulty: "easy" },
+    { username: "דן", score: 150, gameDifficulty: "easy" },
+    { username: "שון", score: 120, gameDifficulty: "medium" },
+    { username: "רועי", score: 200, gameDifficulty: "hard" },
+    { username: "רותם", score: 90, gameDifficulty: "easy" },
   ])
   const [feedback, setFeedback] = useState<"correct" | "incorrect" | null>(null)
   const [showConfetti, setShowConfetti] = useState(false)
@@ -40,6 +43,7 @@ export default function MathMiniGame() {
 
   // Get the effective player name (from context or local state)
   const effectivePlayerName = user?.username || playerName
+  const gameType = "math-challenge"; 
 
   const handleBackToSelection = () => {
     navigate("/home/gameSelection")
@@ -60,6 +64,32 @@ export default function MathMiniGame() {
     return () => clearTimeout(timer)
   }, [timeLeft, gameState])
 
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const response = await axios.get(`${baseUrl}/leaderboard`, {
+          params: { gameType, gameDifficulty: difficulty }, 
+          headers: {
+            Authorization: "jwt " + accessToken,  
+          },
+        });
+       if (response.data.length === 0) {
+          console.log("No leaderboard data found for this difficulty level.");
+          setLeaderboard([]);
+          return;
+        }
+        console.log("Fetched leaderboard:", response.data);
+        setLeaderboard(response.data); 
+      } catch (error) {
+        console.error("Error fetching leaderboard:", error); 
+      }
+    };
+  
+    fetchLeaderboard();
+  }, [difficulty]);
+
+
+
   // Feedback animation cleanup
   useEffect(() => {
     if (feedback) {
@@ -75,6 +105,7 @@ export default function MathMiniGame() {
       return () => clearTimeout(timer)
     }
   }, [showConfetti])
+ 
 
   const generateQuestion = (difficulty: string) => {
     const operators = ["+", "-", "×"]
@@ -156,22 +187,53 @@ export default function MathMiniGame() {
     setCurrentQuestion(generateQuestion(difficulty))
   }
 
-  const endGame = () => {
-    setGameState("gameOver")
-    const newEntry = {
-      name: effectivePlayerName,
-      score: score,
-      difficulty: difficulty,
+  const endGame = async () => {
+    setGameState("gameOver");
+  
+    try {
+      // שליחת הבקשה לשמור את התוצאה בלידרבורד
+      await axios.post(
+        `${baseUrl}/leaderboard/addScore`,
+        {
+          userId: user?._id,
+          username: user?.username,
+          score: score,
+          email: user?.email,
+          gameType: gameType,
+          gameDifficulty: difficulty,
+        },
+        {
+          headers: {
+            Authorization: "jwt " + accessToken,
+          },
+        }
+      );
+  
+      const newEntry = {
+        username: effectivePlayerName,
+        score: score,
+        gameDifficulty: difficulty,
+      };
+  
+      const updatedLeaderboard = [...leaderboard, newEntry]
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 10);
+  
+      console.log("Updated leaderboard:", updatedLeaderboard);
+  
+      toast.success("הניקוד נשמר בהצלחה!");
+  
+      setLeaderboard(updatedLeaderboard);
+  
+      if (score > 100 || updatedLeaderboard[0]?.username === effectivePlayerName) {
+        setShowConfetti(true);
+      }
+    } catch (error) {
+      console.error("Error saving score:", error);
+      toast.error("שגיאה בשמירת הניקוד");
     }
-
-    const updatedLeaderboard = [...leaderboard, newEntry].sort((a, b) => b.score - a.score).slice(0, 10)
-
-    setLeaderboard(updatedLeaderboard)
-
-    if (score > 100 || updatedLeaderboard[0]?.name === effectivePlayerName) {
-      setShowConfetti(true)
-    }
-  }
+  };
+  
 
   const resetGame = () => {
     setGameState("menu")
@@ -322,7 +384,7 @@ export default function MathMiniGame() {
                       <div className="font-bold text-lg text-green-600 flex items-center gap-2">
                         <span>{entry.score} נקודות</span>
                         <Badge variant="outline" className="text-xs">
-                          {entry.difficulty === "easy" ? "קל" : entry.difficulty === "medium" ? "בינוני" : "קשה"}
+                          {entry.gameDifficulty === "easy" ? "קל" : entry.gameDifficulty === "medium" ? "בינוני" : "קשה"}
                         </Badge>
                       </div>
                     </div>
@@ -330,7 +392,7 @@ export default function MathMiniGame() {
                       <span className="text-2xl">
                         {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `${index + 1}.`}
                       </span>
-                      <span className="font-bold text-lg">{entry.name}</span>
+                      <span className="font-bold text-lg">{entry?.username || "shon"}</span>
                     </div>
                   </div>
                 ))}
@@ -527,7 +589,7 @@ export default function MathMiniGame() {
                 <div
                   key={index}
                   className={`flex justify-between items-center p-4 rounded-lg transition-all duration-300 ${
-                    entry.name === effectivePlayerName && entry.score === score
+                    entry.username === effectivePlayerName && entry.score === score
                       ? "bg-gradient-to-r from-blue-100 to-purple-100 border-2 border-purple-400 shadow-lg"
                       : index === 0
                         ? "bg-gradient-to-r from-yellow-100 to-yellow-200 border-2 border-yellow-400"
@@ -542,7 +604,7 @@ export default function MathMiniGame() {
                     <div className="font-bold text-lg text-green-600 flex items-center gap-2">
                       <span>{entry.score} נקודות</span>
                       <Badge variant="outline" className="text-xs">
-                        {entry.difficulty === "easy" ? "קל" : entry.difficulty === "medium" ? "בינוני" : "קשה"}
+                        {entry.gameDifficulty === "easy" ? "קל" : entry.gameDifficulty === "medium" ? "בינוני" : "קשה"}
                       </Badge>
                     </div>
                   </div>
@@ -550,8 +612,8 @@ export default function MathMiniGame() {
                     <span className="text-2xl">
                       {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `${index + 1}.`}
                     </span>
-                    <span className="font-bold text-lg">{entry.name}</span>
-                    {entry.name === effectivePlayerName && entry.score === score && (
+                    <span className="font-bold text-lg">{entry.username}</span>
+                    {entry.username === effectivePlayerName && entry.score === score && (
                       <Badge className="bg-purple-500 text-white">חדש!</Badge>
                     )}
                   </div>
