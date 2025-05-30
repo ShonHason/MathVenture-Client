@@ -1,4 +1,3 @@
-// src/pages/LearningSession.tsx
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
@@ -11,13 +10,12 @@ import TranscriptModel from "../components/transcript-model";
 import ControlPanel from "../components/control-panel";
 import ToggleControlButton from "../components/ ToggleControlButton";
 import RealTimeRecorder from "../components/RealTimeRecorder";
+import SpeakingIndicator from "../components/SpeakingIndicator"; // Import SpeakingIndicator
 import { useUser } from "../context/UserContext";
 
+import { scanMathFromCanvas } from "../services/tesseractOcrService";
 
-import { scanMathFromCanvas } from "../services/tesseractOcrService"
-
-const socketServerUrl = process.env.SERVER_API_URL || "http://localhost:4000"
-
+const socketServerUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 
 type LocationState = {
   state: {
@@ -45,20 +43,21 @@ export default function LearningSession() {
   const [botStatus, setBotStatus] = useState("עצור");
   const [isTranscriptOpen, setIsTranscriptOpen] = useState(false);
   const [listening, setListening] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false); // This prop controls the indicator
   const [controlsOpen, setControlsOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<"draw" | "keyboard">("draw");
   const [botVolume, setBotVolume] = useState(100);
-  const [speechSpeed, setSpeechSpeed] = useState(1); // New state for speech speed
-  const [correctAnswersCount, setCorrectAnswersCount] = useState(0); // Track correct answers only
-  const [isLessonComplete, setIsLessonComplete] = useState(false); // Track if lesson is finished
+  const [speechSpeed, setSpeechSpeed] = useState(1);
+  const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
+  const [isLessonComplete, setIsLessonComplete] = useState(false);
 
-  const [resetKey, setResetKey] = useState(0)
-  const audioRef = useRef<HTMLAudioElement | null>(null)
-  const silenceTimerRef = useRef<number | null>(null)
-  const lastTranscriptRef = useRef("")
-  const lastSentRef = useRef("")
-
+  const [resetKey, setResetKey] = useState(0);
+  const audioRef = useRef<HTMLAudioElement | null>(null); // Keep this ref for direct audio control
+  const [currentAudioElement, setCurrentAudioElement] =
+    useState<HTMLAudioElement | null>(null); // NEW: State for the current audio element
+  const silenceTimerRef = useRef<number | null>(null);
+  const lastTranscriptRef = useRef("");
+  const lastSentRef = useRef("");
 
   const currentQuestion = topic.question || "";
 
@@ -70,7 +69,6 @@ export default function LearningSession() {
         const { data } = await axios.get(
           `${socketServerUrl}/lessons/${lessonId}/messages`,
           { headers: { Authorization: `Bearer ${user?.accessToken}` } }
-
         );
         const raw = data.messages as Array<{ role: string; content: string }>;
         const formatted = raw.slice(1).map((m) => ({
@@ -79,12 +77,9 @@ export default function LearningSession() {
         })) as { sender: "bot" | "user"; text: string }[];
         setMessages(formatted);
 
-        // Count correct answers from chat history
-        // Look for bot responses that indicate correct answers
         const correctCount = formatted.filter((msg, index) => {
           if (msg.sender === "bot" && index > 0) {
             const text = msg.text.toLowerCase();
-            // Hebrew phrases that indicate correct answers
             return (
               text.includes("נכון") ||
               text.includes("מצוין") ||
@@ -119,7 +114,6 @@ export default function LearningSession() {
       const opening =
         messages.length > 0
           ? `שלום ${user.username}, שמח לראות שחזרת אליי! השיעור על ${topic.subject} ממשיך.`
-
           : `שלום ${user.username}, שמח לראות אותך! היום נלמד על ${topic.subject}.`;
       setMessages([{ sender: "bot", text: opening }]);
       setBotSpeech(opening);
@@ -137,7 +131,6 @@ export default function LearningSession() {
           { userId: user._id, subject: topic.subject },
           { headers: { Authorization: `Bearer ${user?.accessToken}` } }
         )
-
         .then((r) => setLessonId(r.data.lessonId))
         .catch(console.error);
     }
@@ -146,57 +139,56 @@ export default function LearningSession() {
   // TTS with speed control
   const speak = async (text: string) => {
     try {
-      setIsSpeaking(true);
+      setIsSpeaking(true); // Set speaking to true when audio starts
       setListening(false);
       setBotStatus("...מדבר");
       const res = await axios.post(
         `${socketServerUrl}/api/tts`,
-
-        { text, lang: "he-IL", speed: speechSpeed }, // Include speed parameter
+        { text, lang: "he-IL", speed: speechSpeed },
         { responseType: "arraybuffer" }
       );
       const blob = new Blob([res.data], { type: "audio/mp3" });
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
       audio.volume = botVolume / 100;
-      audio.playbackRate = speechSpeed; // Set playback speed
-      audioRef.current = audio;
+      audio.playbackRate = speechSpeed;
+      audioRef.current = audio; // Keep this for direct control
+      setCurrentAudioElement(audio); // NEW: Set the audio element in state
       await audio.play();
       audio.onended = () => {
-        setIsSpeaking(false);
+        setIsSpeaking(false); // Set speaking to false when audio ends
         setListening(true);
         setBotStatus("..מקשיב");
+        setCurrentAudioElement(null); // NEW: Clear the audio element from state
       };
-
     } catch {
-      setIsSpeaking(false);
+      setIsSpeaking(false); // Ensure speaking is false on error
       setListening(false);
       setBotStatus("עצור");
+      setCurrentAudioElement(null); // NEW: Clear the audio element from state
     }
   };
+
   const stopTTS = () => {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
-      setIsSpeaking(false);
+      setIsSpeaking(false); // Set speaking to false when stopped
       setListening(true);
       setBotStatus("עצור");
+      setCurrentAudioElement(null); // NEW: Clear the audio element from state
     }
-  }
- 
+  };
 
- const handleReturnToMain = () => {
-  // Stop the AI from talking and listening
-  stopTTS(); // Stop Text-to-Speech
-  if (recorderRef.current) {
-    console.log("Calling stopListening...");
-    recorderRef.current.stopListening(); // Call stopListening method from RealTimeRecorder
-  }
-  navigate("/home");
-};
-  // Debounce transcript
+  const handleReturnToMain = () => {
+    stopTTS();
+    if (recorderRef.current) {
+      recorderRef.current.stopListening();
+    }
+    navigate("/home");
+  };
+
   const handleTranscript = (t: string) => {
-
     if (!listening) return;
     lastTranscriptRef.current = t;
     clearTimeout(silenceTimerRef.current!);
@@ -207,7 +199,6 @@ export default function LearningSession() {
     }, 2000);
   };
 
-  // Send to chat
   const sendTranscript = async (input: string) => {
     if (input === lastSentRef.current) return;
     lastSentRef.current = input;
@@ -218,13 +209,11 @@ export default function LearningSession() {
         `${socketServerUrl}/lessons/${lessonId}/chat`,
         { question: input },
         { headers: { Authorization: `Bearer ${user?.accessToken}` } }
-
       );
       const ai = resp.data.answer;
       setMessages((m) => [...m, { sender: "bot", text: ai }]);
       setBotSpeech(ai);
 
-      // Check if the bot's response indicates a correct answer
       const responseText = ai.toLowerCase();
       const isCorrectAnswer =
         responseText.includes("נכון") ||
@@ -244,54 +233,49 @@ export default function LearningSession() {
           const newCount = prev + 1;
           if (newCount >= 15) {
             setIsLessonComplete(true);
-            // Could trigger completion celebration here
             console.log("Lesson completed! 🎉");
           }
           return newCount;
         });
       }
-
       speak(ai);
     } catch (err) {
       console.error(err);
     }
   };
 
-  // Cleanup
-  useEffect(() => () => clearTimeout(silenceTimerRef.current!), [])
+  useEffect(() => () => clearTimeout(silenceTimerRef.current!), []);
 
-  // Scan callbacks
   const handleDrawingScan = async (canvas: HTMLCanvasElement) => {
     try {
-      // scanMathFromCanvas now returns a single string, not string[]
-      const mathText = await scanMathFromCanvas(canvas)
+      const mathText = await scanMathFromCanvas(canvas);
       if (mathText) {
-        sendTranscript(mathText)    // send the string directly
+        sendTranscript(mathText);
       } else {
-        console.warn("Tesseract: לא זוהה טקסט מתמטי")
+        console.warn("Tesseract: לא זוהה טקסט מתמטי");
       }
     } catch (err) {
-      console.error("Math OCR failed:", err)
+      console.error("Math OCR failed:", err);
     } finally {
-      setResetKey(k => k + 1)
+      setResetKey((k) => k + 1);
     }
-  }
-  const handleKeyboardScan = (displayedText: string) => {
-    if (!displayedText) return
-    sendTranscript(displayedText)
-    setResetKey(k => k + 1)
-  }
+  };
 
-  // Control panel actions...
+  const handleKeyboardScan = (displayedText: string) => {
+    if (!displayedText) return;
+    sendTranscript(displayedText);
+    setResetKey((k) => k + 1);
+  };
+
   const handlePlayPause = () => {
     const audio = audioRef.current;
     if (isSpeaking && audio) {
       audio.pause();
       setIsSpeaking(false);
       setBotStatus("עצור");
+      setCurrentAudioElement(null); // NEW: Clear on pause
       return;
     }
-
 
     if (
       !isSpeaking &&
@@ -302,8 +286,8 @@ export default function LearningSession() {
       audio.play();
       setIsSpeaking(true);
       setBotStatus("...מדבר");
-      // במעבר חזרה לדיבור נפסיק להאזין
       setListening(false);
+      setCurrentAudioElement(audio); // NEW: Set on play
       return;
     }
 
@@ -313,12 +297,12 @@ export default function LearningSession() {
       return next;
     });
   };
-  // 2) Mute = mic toggle only
+
   const handleMute = () => {
     setListening((l) => !l);
     setBotStatus(listening ? "עצור" : "..מקשיב");
   };
-  // 3) Volume cycles
+
   const handleAdjustVolume = () => {
     const next =
       botVolume === 100
@@ -331,7 +315,7 @@ export default function LearningSession() {
     setBotVolume(next);
     if (audioRef.current) audioRef.current.volume = next / 100;
   };
-  // 4) Speed cycles (0.5x, 1x, 1.25x, 1.5x, 2x)
+
   const handleAdjustSpeed = () => {
     const speeds = [0.5, 1, 1.25, 1.5, 2];
     const currentIndex = speeds.indexOf(speechSpeed);
@@ -339,12 +323,11 @@ export default function LearningSession() {
     const nextSpeed = speeds[nextIndex];
     setSpeechSpeed(nextSpeed);
 
-    // Apply speed to current audio if playing
     if (audioRef.current) {
       audioRef.current.playbackRate = nextSpeed;
     }
   };
-  // 5) Repeat last when idle
+
   const handleRepeat = () => {
     if (isSpeaking) return;
     if (audioRef.current) {
@@ -354,19 +337,21 @@ export default function LearningSession() {
       setIsSpeaking(true);
       setListening(false);
       setBotStatus("...מדבר");
+      setCurrentAudioElement(audioRef.current); // NEW: Set on repeat
     } else {
       speak(botSpeech);
     }
   };
 
-  // Calculate progress percentage based on correct answers
   const progressPercentage = (correctAnswersCount / 15) * 100;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-200 to-purple-100 p-4 flex flex-col items-center justify-center">
       <div className="fixed top-4 right-4 z-50">
-        <ToggleControlButton isOpen={controlsOpen} onClick={() => setControlsOpen(o => !o)} />
-
+        <ToggleControlButton
+          isOpen={controlsOpen}
+          onClick={() => setControlsOpen((o) => !o)}
+        />
       </div>
 
       {controlsOpen && (
@@ -393,8 +378,13 @@ export default function LearningSession() {
 
       <div className="w-full max-w-3xl flex gap-6 flex-col md:flex-row mb-4">
         <div className="flex-1 bg-white rounded-3xl p-6 shadow-lg flex flex-col items-center">
-          <div className="bg-gradient-to-r from-blue-400 to-purple-400 rounded-full px-8 py-3 mb-6 font-bold text-xl text-right w-full text-white">
-            {botStatus}
+          <div className="bg-gradient-to-r from-blue-400 to-purple-400 rounded-full px-8 py-3 mb-6 font-bold text-xl w-full text-white relative flex items-center">
+            <SpeakingIndicator
+              isSpeaking={isSpeaking}
+              audioElement={currentAudioElement}
+            />{" "}
+            {/* Pass audioElement */}
+            <span className="flex-grow text-right">{botStatus}</span>
           </div>
           <Avatar />
           <div className="bg-blue-50 rounded-2xl p-4 mb-6 text-right w-full border-2 border-blue-100">
@@ -413,15 +403,21 @@ export default function LearningSession() {
         <div className="flex-1 bg-white rounded-3xl p-6 shadow-lg flex flex-col">
           <div className="flex mb-4">
             <button
-              className={`flex-1 py-3 px-6 rounded-l-full font-bold ${activeTab === "draw" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-500"}`}
-
+              className={`flex-1 py-3 px-6 rounded-l-full font-bold ${
+                activeTab === "draw"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 text-gray-500"
+              }`}
               onClick={() => setActiveTab("draw")}
             >
               ציור
             </button>
             <button
-              className={`flex-1 py-3 px-6 rounded-r-full font-bold ${activeTab === "keyboard" ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-500"}`}
-
+              className={`flex-1 py-3 px-6 rounded-r-full font-bold ${
+                activeTab === "keyboard"
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 text-gray-500"
+              }`}
               onClick={() => setActiveTab("keyboard")}
             >
               מחשבון
@@ -431,14 +427,21 @@ export default function LearningSession() {
             <DrawingPanel key={resetKey} onScan={handleDrawingScan} />
           ) : (
             <KeyboardPanel key={resetKey} onScan={handleKeyboardScan} />
-
           )}
         </div>
       </div>
 
-      <RealTimeRecorder ref={recorderRef} micMuted={!listening} onTranscript={handleTranscript}  />
-      {isTranscriptOpen && <TranscriptModel messages={messages} onClose={() => setIsTranscriptOpen(false)} />}
-
+      <RealTimeRecorder
+        ref={recorderRef}
+        micMuted={!listening}
+        onTranscript={handleTranscript}
+      />
+      {isTranscriptOpen && (
+        <TranscriptModel
+          messages={messages}
+          onClose={() => setIsTranscriptOpen(false)}
+        />
+      )}
     </div>
   );
 }

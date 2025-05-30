@@ -1,128 +1,156 @@
 // src/components/DrawingPanel.tsx
-"use client"
 
-import React, { useState, useRef, useEffect } from "react"
-import { Maximize, Minimize, Scan, RefreshCw } from "lucide-react"
+"use client";
+
+import React, { useState, useRef, useEffect } from "react";
+import { Maximize, Minimize, Scan, RefreshCw } from "lucide-react";
 
 interface DrawingPanelProps {
-  onScan: (canvas: HTMLCanvasElement) => void
+  onScan: (canvas: HTMLCanvasElement) => void;
 }
 
 export default function DrawingPanel({ onScan }: DrawingPanelProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
-  const fullscreenCanvasRef = useRef<HTMLCanvasElement>(null)
-  const [isDrawing, setIsDrawing] = useState(false)
-  const [lastX, setLastX] = useState(0)
-  const [lastY, setLastY] = useState(0)
-  const [isFullscreen, setIsFullscreen] = useState(false)
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fullscreenCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [lastX, setLastX] = useState(0);
+  const [lastY, setLastY] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const GRID_CELLS = 20
+  const GRID_CELLS = 20;
 
   useEffect(() => {
-    if (canvasRef.current) initializeCanvas(canvasRef.current)
-  }, [])
+    if (canvasRef.current) initializeCanvas(canvasRef.current);
+  }, []);
 
   useEffect(() => {
     if (isFullscreen && fullscreenCanvasRef.current) {
-      initializeCanvas(fullscreenCanvasRef.current)
+      initializeCanvas(fullscreenCanvasRef.current);
       if (canvasRef.current) {
-        const fsCtx = fullscreenCanvasRef.current.getContext("2d")
+        const fsCtx = fullscreenCanvasRef.current.getContext("2d");
         fsCtx?.drawImage(
           canvasRef.current,
-          0, 0,
-          canvasRef.current.width, canvasRef.current.height,
-          0, 0,
-          fullscreenCanvasRef.current.width, fullscreenCanvasRef.current.height
-        )
+          0,
+          0,
+          canvasRef.current.width,
+          canvasRef.current.height,
+          0,
+          0,
+          fullscreenCanvasRef.current.width,
+          fullscreenCanvasRef.current.height
+        );
       }
     }
-  }, [isFullscreen])
+  }, [isFullscreen]);
 
   const initializeCanvas = (canvas: HTMLCanvasElement) => {
-    const ctx = canvas.getContext("2d")
-    if (!ctx) return
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    ctx.fillStyle = "#ffffff"
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-    drawGrid(ctx, canvas.width, canvas.height)
-  }
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    drawGrid(ctx, canvas.width, canvas.height);
+  };
 
   const drawGrid = (ctx: CanvasRenderingContext2D, w: number, h: number) => {
-    ctx.strokeStyle = "#ffcbcb"
-    ctx.lineWidth = 1
-    const cellW = w / GRID_CELLS
-    const cellH = h / GRID_CELLS
-    ctx.translate(0.5, 0.5)
+    ctx.strokeStyle = "#ffcbcb";
+    ctx.lineWidth = 1;
+    const cellW = w / GRID_CELLS;
+    const cellH = h / GRID_CELLS;
+    ctx.translate(0.5, 0.5);
     for (let i = 0; i <= GRID_CELLS; i++) {
-      const x = Math.floor(i * cellW)
-      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke()
+      const x = Math.floor(i * cellW);
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, h);
+      ctx.stroke();
     }
     for (let i = 0; i <= GRID_CELLS; i++) {
-      const y = Math.floor(i * cellH)
-      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke()
+      const y = Math.floor(i * cellH);
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(w, y);
+      ctx.stroke();
     }
-    ctx.translate(-0.5, -0.5)
-  }
+    ctx.translate(-0.5, -0.5);
+  };
 
-  const getCanvas = () => (isFullscreen ? fullscreenCanvasRef.current : canvasRef.current)
+  const getCanvas = () =>
+    isFullscreen ? fullscreenCanvasRef.current : canvasRef.current;
+
+  const getNormalizedCoords = (
+    e: React.MouseEvent<HTMLCanvasElement>,
+    canvas: HTMLCanvasElement
+  ) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    };
+  };
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const c = getCanvas()
-    if (!c) return
-    const rect = c.getBoundingClientRect()
-    setLastX(e.clientX - rect.left)
-    setLastY(e.clientY - rect.top)
-    setIsDrawing(true)
-  }
+    const c = getCanvas();
+    if (!c) return;
+    const { x, y } = getNormalizedCoords(e, c);
+    setLastX(x);
+    setLastY(y);
+    setIsDrawing(true);
+  };
 
   const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing) return
-    const c = getCanvas()
-    if (!c) return
-    const ctx = c.getContext("2d")
-    if (!ctx) return
-    const rect = c.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    ctx.strokeStyle = "#000000"
-    ctx.lineWidth = isFullscreen ? 6 : 3
-    ctx.lineCap = "round"
-    ctx.lineJoin = "round"
-    ctx.beginPath()
-    ctx.moveTo(lastX, lastY)
-    ctx.lineTo(x, y)
-    ctx.stroke()
-    setLastX(x)
-    setLastY(y)
-  }
+    if (!isDrawing) return;
+    const c = getCanvas();
+    if (!c) return;
+    const ctx = c.getContext("2d");
+    if (!ctx) return;
+    const { x, y } = getNormalizedCoords(e, c);
+    ctx.strokeStyle = "#000000";
+    ctx.lineWidth = isFullscreen ? 6 : 3;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    setLastX(x);
+    setLastY(y);
+  };
 
   const stopDrawing = () => {
-    setIsDrawing(false)
+    setIsDrawing(false);
     if (isFullscreen && fullscreenCanvasRef.current && canvasRef.current) {
-      const smallCtx = canvasRef.current.getContext("2d")
-      if (!smallCtx) return
-      initializeCanvas(canvasRef.current)
+      const smallCtx = canvasRef.current.getContext("2d");
+      if (!smallCtx) return;
+      initializeCanvas(canvasRef.current);
       smallCtx.drawImage(
         fullscreenCanvasRef.current,
-        0, 0,
-        fullscreenCanvasRef.current.width, fullscreenCanvasRef.current.height,
-        0, 0,
-        canvasRef.current.width, canvasRef.current.height
-      )
+        0,
+        0,
+        fullscreenCanvasRef.current.width,
+        fullscreenCanvasRef.current.height,
+        0,
+        0,
+        canvasRef.current.width,
+        canvasRef.current.height
+      );
     }
-  }
+  };
 
-  const toggleFullscreen = () => setIsFullscreen(f => !f)
+  const toggleFullscreen = () => setIsFullscreen((f) => !f);
 
   const handleScanClick = () => {
-    const c = getCanvas()
-    if (c) onScan(c)
-  }
+    const c = getCanvas();
+    if (c) onScan(c);
+  };
 
   const handleReset = () => {
-    if (canvasRef.current) initializeCanvas(canvasRef.current)
-    if (fullscreenCanvasRef.current && isFullscreen) initializeCanvas(fullscreenCanvasRef.current)
-  }
+    if (canvasRef.current) initializeCanvas(canvasRef.current);
+    if (fullscreenCanvasRef.current && isFullscreen)
+      initializeCanvas(fullscreenCanvasRef.current);
+  };
 
   return (
     <>
@@ -203,5 +231,5 @@ export default function DrawingPanel({ onScan }: DrawingPanelProps) {
         </div>
       )}
     </>
-  )
+  );
 }
