@@ -99,8 +99,8 @@ const LoginPage: React.FC = () => {
           </div>
 
           <div className="text-center space-y-1 rtl">
-            <h2 className="text-lg font-bold text-gray-800 font-heebo">!ברוכים הבאים למטיברס</h2>
-            <p className="text-sm text-gray-600 font-heebo">:בחרו אחת מן האופציות הבאות</p>
+            <h2 className="text-lg font-bold text-gray-800 font-heebo">ברוכים הבאים למאטוונצ׳ר!</h2>
+            <p className="text-sm text-gray-600 font-heebo">בחרו אחת מן האופציות הבאות:</p>
           </div>
 
           <div className="w-full">

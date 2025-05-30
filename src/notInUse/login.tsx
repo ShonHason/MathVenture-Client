@@ -1,15 +1,19 @@
 import React from "react";
 import { Form, Input, Button, Tabs, Typography, Space, Radio, message } from "antd";
-import { GoogleOutlined, AppleOutlined, FacebookOutlined } from "@ant-design/icons";
+
+import {
+  GoogleOutlined,
+  AppleOutlined,
+  FacebookOutlined,
+} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import full_logo from "../images/full_logo.png";
-import user_api from "../services/user_api";
+import user_api from "../services/user_api"; // Import your user_api which includes loginUser
 import { useUser } from "../context/UserContext";
-
 const { Title } = Typography;
 
 interface LoginFormValues {
-  email: string;
+  email: string; // Use 'email'
   password: string;
 }
 
@@ -21,29 +25,33 @@ interface RegisterFormValues {
   confirmPassword: string;
 }
 
-const LoginRegistration: React.FC = () => {
-  const [loginForm] = Form.useForm<LoginFormValues>();
-  const [registerForm] = Form.useForm<RegisterFormValues>();
+export const LoginRegistration: React.FC = () => {
+  const [loginForm] = Form.useForm();
+  const [registerForm] = Form.useForm();
   const navigate = useNavigate();
   const { setUser } = useUser();
-
+  // Login function now uses 'email'
   const onLoginFinish = async (values: LoginFormValues) => {
     try {
       console.log("Login Attempt:", values);
+      // Call the loginUser function from user_api using 'email'
       const data = await user_api.loginUser({
         email: values.email,
         password: values.password,
+        
       });
       sessionStorage.setItem("accessToken", data.accessToken);
       sessionStorage.setItem("refreshToken", data.refreshToken);
+
       setUser({
         ...data,
-        subjectsList: data.subjectsList || [],
+        subjectsList: data.subjectsList || [], // Ensure subjectsList is always defined
       });
-      sessionStorage.setItem("user", JSON.stringify(data));
+      console.log("User SubjectList:", data);
       message.success("Login successful!");
-      console.log("User data:");
-      navigate("/home");
+      sessionStorage.setItem("user", JSON.stringify(data));
+
+      navigate("/home"); // Redirect after successful login
     } catch (error) {
       console.error("Login failed:", error);
       message.error("Login failed");
@@ -54,22 +62,26 @@ const LoginRegistration: React.FC = () => {
     try {
       const { confirmPassword, ...registrationData } = values;
       console.log("Registration Attempt:", registrationData);
+
+      // Map the registration data as needed
       const mappedData = {
-        username: registrationData.username,
         email: registrationData.email,
         password: registrationData.password,
-        gender: registrationData.gender,
+        username: registrationData.username,
+        gender : registrationData.gender,
       };
-      const newuser = await user_api.register(mappedData);
-      setUser((prev) => ({
-        ...prev!,
+
+      const newuser =  await user_api.register(mappedData);
+      setUser((prevUser) => ({
+        ...prevUser!,
         ...newuser,
       }));
+
       message.success("Registration successful");
       navigate("/quiz");
     } catch (error) {
-      console.error("Registration failed:", error);
       message.error("Registration failed");
+      console.error(error);
     }
   };
 
@@ -123,15 +135,19 @@ const LoginRegistration: React.FC = () => {
                 >
                   <Form.Item
                     label="אימייל"
-                    name="email"
-                    rules={[{ required: true, message: "אנא הכנס את האימייל שלך!" }]}
+                    name="email" // Changed to "email"
+                    rules={[
+                      { required: true, message: "אנא הכנס את האימייל שלך!" },
+                    ]}
                   >
                     <Input placeholder="הכנס אימייל" />
                   </Form.Item>
                   <Form.Item
                     label="סיסמא"
                     name="password"
-                    rules={[{ required: true, message: "אנא הכנס את הסיסמא שלך!" }]}
+                    rules={[
+                      { required: true, message: "אנא הכנס את הסיסמא שלך!" },
+                    ]}
                   >
                     <Input.Password placeholder="הכנס סיסמא" />
                   </Form.Item>
@@ -156,7 +172,9 @@ const LoginRegistration: React.FC = () => {
                   <Form.Item
                     label="שם המשתמש"
                     name="username"
-                    rules={[{ required: true, message: "אנא הכנס את שם המשתמש!" }]}
+                    rules={[
+                      { required: true, message: "אנא הכנס את שם המשתמש!" },
+                    ]}
                   >
                     <Input placeholder="שם המשתמש" />
                   </Form.Item>
@@ -197,17 +215,17 @@ const LoginRegistration: React.FC = () => {
                   >
                     <Input.Password placeholder="אשר את הסיסמא שלך" />
                   </Form.Item>
-                  <Form.Item
-                    label="מין"
-                    name="gender"
-                    initialValue="female"
-                    rules={[{ required: true, message: "אנא בחר/י מין" }]}
-                  >
-                    <Radio.Group>
-                      <Radio value="female">נקבה</Radio>
-                      <Radio value="male">זכר</Radio>
-                    </Radio.Group>
-                  </Form.Item>
+                   <Form.Item
+    label="מין"
+    name="gender"
+    initialValue="female"
+    rules={[{ required: true, message: "אנא בחר/י מין" }]}
+  >
+    <Radio.Group>
+      <Radio value="female">נקבה</Radio>
+      <Radio value="male">זכר</Radio>
+    </Radio.Group>
+  </Form.Item>
                   <Form.Item>
                     <Button type="primary" htmlType="submit" block>
                       הירשם
@@ -218,6 +236,7 @@ const LoginRegistration: React.FC = () => {
             },
           ]}
         />
+
         <Space
           direction="horizontal"
           style={{
@@ -227,9 +246,21 @@ const LoginRegistration: React.FC = () => {
           }}
           align="center"
         >
-          <Button icon={<GoogleOutlined />} style={{ width: "30%" }} size="large" />
-          <Button icon={<AppleOutlined />} style={{ width: "30%" }} size="large" />
-          <Button icon={<FacebookOutlined />} style={{ width: "30%" }} size="large" />
+          <Button
+            icon={<GoogleOutlined />}
+            style={{ width: "30%" }}
+            size="large"
+          ></Button>
+          <Button
+            icon={<AppleOutlined />}
+            style={{ width: "30%" }}
+            size="large"
+          ></Button>
+          <Button
+            icon={<FacebookOutlined />}
+            style={{ width: "30%" }}
+            size="large"
+          ></Button>
         </Space>
       </Space>
     </Space>

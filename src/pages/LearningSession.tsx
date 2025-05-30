@@ -12,8 +12,8 @@ import ToggleControlButton from "../components/ ToggleControlButton";
 import RealTimeRecorder from "../components/RealTimeRecorder";
 import SpeakingIndicator from "../components/SpeakingIndicator"; // Import SpeakingIndicator
 import { useUser } from "../context/UserContext";
-
 import { scanMathFromCanvas } from "../services/tesseractOcrService";
+
 
 const socketServerUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 
@@ -25,18 +25,18 @@ type LocationState = {
 };
 
 export default function LearningSession() {
-  const recorderRef = useRef<any>(null); // Reference to the RealTimeRecorder component
+  const recorderRef = useRef<any>(null);
   const { user } = useUser();
   const {
     state: { topic, lessonId: initialLessonId },
   } = useLocation() as LocationState;
   const navigate = useNavigate();
+
+  // --- State ---
   const [lessonId, setLessonId] = useState<string | null>(
     initialLessonId ?? null
   );
-  const [messages, setMessages] = useState<
-    { sender: "bot" | "user"; text: string }[]
-  >([]);
+  const [messages, setMessages] = useState<{ sender: "bot" | "user"; text: string }[]>([]);
   const [messagesLoaded, setMessagesLoaded] = useState(false);
   const [hasSpokenIntro, setHasSpokenIntro] = useState(false);
   const [botSpeech, setBotSpeech] = useState("");
@@ -50,18 +50,45 @@ export default function LearningSession() {
   const [speechSpeed, setSpeechSpeed] = useState(1);
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
   const [isLessonComplete, setIsLessonComplete] = useState(false);
-
   const [resetKey, setResetKey] = useState(0);
-  const audioRef = useRef<HTMLAudioElement | null>(null); // Keep this ref for direct audio control
+
+  // Yellow area: last user input
+  const [lastUserMessage, setLastUserMessage] = useState<string>("");
   const [currentAudioElement, setCurrentAudioElement] =
     useState<HTMLAudioElement | null>(null); // NEW: State for the current audio element
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const silenceTimerRef = useRef<number | null>(null);
   const lastTranscriptRef = useRef("");
   const lastSentRef = useRef("");
 
+  // Prevent overlapping requests
+  const [isProcessing, setIsProcessing] = useState(false);
+
+
   const currentQuestion = topic.question || "";
 
-  // Fetch history once
+  // --- Cleanup & Back-Button Handling ---
+  useEffect(() => {
+    const stopAll = () => {
+      // stop speech
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.currentTime = 0;
+      }
+      setIsSpeaking(false);
+      setListening(false);
+      // stop recorder
+      recorderRef.current?.stopListening?.();
+    };
+    // handle browser back
+    window.addEventListener("popstate", stopAll);
+    return () => {
+      window.removeEventListener("popstate", stopAll);
+      stopAll();
+    };
+  }, []);
+
+  // --- Fetch existing conversation ---
   useEffect(() => {
     async function fetchMessages() {
       if (!lessonId) return;
@@ -77,26 +104,19 @@ export default function LearningSession() {
         })) as { sender: "bot" | "user"; text: string }[];
         setMessages(formatted);
 
-        const correctCount = formatted.filter((msg, index) => {
-          if (msg.sender === "bot" && index > 0) {
-            const text = msg.text.toLowerCase();
-            return (
-              text.includes("נכון") ||
-              text.includes("מצוין") ||
-              text.includes("בדיוק") ||
-              text.includes("כל הכבוד") ||
-              text.includes("תשובה נכונה") ||
-              text.includes("מושלם") ||
-              text.includes("יפה מאוד") ||
-              text.includes("בול") ||
-              text.includes("לנו") ||
-              text.includes("צודק") ||
-              text.includes("הצלחת")
-            );
-          }
-          return false;
-        }).length;
+        // count correct
+        const correctCount = formatted.reduce((acc, msg, idx) => {
+          if (msg.sender === "bot" && idx > 0) {
+            const txt = msg.text.toLowerCase();
+            if (
+              ["נכון","מצוין","בדיוק","כל הכבוד","תשובה נכונה","מושלם",
+               "יפה מאוד","בול","לנו","צודק","הצלחת"]
+                .some(p => txt.includes(p))
+            ) return acc + 1;
 
+          }
+          return acc;
+        }, 0);
         setCorrectAnswersCount(correctCount);
         setIsLessonComplete(correctCount >= 15);
       } catch (err) {
@@ -108,9 +128,14 @@ export default function LearningSession() {
     fetchMessages();
   }, [lessonId, user?.accessToken]);
 
-  // Intro once loaded
+  // --- Intro message ---
   useEffect(() => {
-    if (messagesLoaded && user?.username && topic.subject && !hasSpokenIntro) {
+    if (
+      messagesLoaded &&
+      user?.username &&
+      topic.subject &&
+      !hasSpokenIntro
+    ) {
       const opening =
         messages.length > 0
           ? `שלום ${user.username}, שמח לראות שחזרת אליי! השיעור על ${topic.subject} ממשיך.`
@@ -122,7 +147,7 @@ export default function LearningSession() {
     }
   }, [messagesLoaded, user, topic, hasSpokenIntro, messages.length]);
 
-  // Start new lesson
+  // --- Start new lesson on server ---
   useEffect(() => {
     if (hasSpokenIntro && !lessonId && user?._id) {
       axios
@@ -136,12 +161,20 @@ export default function LearningSession() {
     }
   }, [hasSpokenIntro, lessonId, user, topic]);
 
-  // TTS with speed control
+  // --- Text-to-Speech ---
   const speak = async (text: string) => {
+    // always stop anything first
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    recorderRef.current?.stopListening?.();
+    setListening(false);
+    setIsSpeaking(true);
+    setBotStatus("...מדבר");
+
     try {
-      setIsSpeaking(true); // Set speaking to true when audio starts
-      setListening(false);
-      setBotStatus("...מדבר");
+
       const res = await axios.post(
         `${socketServerUrl}/api/tts`,
         { text, lang: "he-IL", speed: speechSpeed },
@@ -152,6 +185,7 @@ export default function LearningSession() {
       const audio = new Audio(url);
       audio.volume = botVolume / 100;
       audio.playbackRate = speechSpeed;
+
       audioRef.current = audio; // Keep this for direct control
       setCurrentAudioElement(audio); // NEW: Set the audio element in state
       await audio.play();
@@ -173,6 +207,7 @@ export default function LearningSession() {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
+
       setIsSpeaking(false); // Set speaking to false when stopped
       setListening(true);
       setBotStatus("עצור");
@@ -189,7 +224,7 @@ export default function LearningSession() {
   };
 
   const handleTranscript = (t: string) => {
-    if (!listening) return;
+    if (!listening || isSpeaking || isProcessing) return;
     lastTranscriptRef.current = t;
     clearTimeout(silenceTimerRef.current!);
     silenceTimerRef.current = window.setTimeout(() => {
@@ -199,9 +234,21 @@ export default function LearningSession() {
     }, 2000);
   };
 
+  // --- Send user transcript or OCR result ---
+
   const sendTranscript = async (input: string) => {
-    if (input === lastSentRef.current) return;
+    if (isProcessing || input === lastSentRef.current) {
+      setListening(true);
+      return;
+    }
     lastSentRef.current = input;
+    setIsProcessing(true);
+    setListening(false);
+
+    // show in yellow area
+    setLastUserMessage(input);
+
+    // add to chat UI
     setMessages((m) => [...m, { sender: "user", text: input }]);
 
     try {
@@ -214,43 +261,40 @@ export default function LearningSession() {
       setMessages((m) => [...m, { sender: "bot", text: ai }]);
       setBotSpeech(ai);
 
-      const responseText = ai.toLowerCase();
-      const isCorrectAnswer =
-        responseText.includes("נכון") ||
-        responseText.includes("מצוין") ||
-        responseText.includes("בדיוק") ||
-        responseText.includes("כל הכבוד") ||
-        responseText.includes("תשובה נכונה") ||
-        responseText.includes("מושלם") ||
-        responseText.includes("יפה מאוד") ||
-        responseText.includes("בול") ||
-        responseText.includes("לנו") ||
-        responseText.includes("צודק") ||
-        responseText.includes("הצלחת");
-
-      if (isCorrectAnswer) {
+      // count correct answers
+      const low = ai.toLowerCase();
+      if (
+        ["נכון","מצוין","בדיוק","כל הכבוד","תשובה נכונה","מושלם",
+          "יפה מאוד","בול","לנו","צודק","הצלחת"]
+          .some(p => low.includes(p))
+      ) {
         setCorrectAnswersCount((prev) => {
-          const newCount = prev + 1;
-          if (newCount >= 15) {
-            setIsLessonComplete(true);
-            console.log("Lesson completed! 🎉");
-          }
-          return newCount;
+          const next = prev + 1;
+          if (next >= 15) setIsLessonComplete(true);
+          return next;
         });
       }
+
+      // speak bot reply
+
       speak(ai);
     } catch (err) {
       console.error(err);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  useEffect(() => () => clearTimeout(silenceTimerRef.current!), []);
 
   const handleDrawingScan = async (canvas: HTMLCanvasElement) => {
+    if (isSpeaking || isProcessing) return;
+    setIsProcessing(true);
     try {
       const mathText = await scanMathFromCanvas(canvas);
       if (mathText) {
-        sendTranscript(mathText);
+        setLastUserMessage(mathText);
+        await sendTranscript(mathText);
+
       } else {
         console.warn("Tesseract: לא זוהה טקסט מתמטי");
       }
@@ -258,14 +302,20 @@ export default function LearningSession() {
       console.error("Math OCR failed:", err);
     } finally {
       setResetKey((k) => k + 1);
+      setIsProcessing(false);
     }
   };
 
-  const handleKeyboardScan = (displayedText: string) => {
-    if (!displayedText) return;
-    sendTranscript(displayedText);
+  const handleKeyboardScan = async (displayedText: string) => {
+    if (!displayedText || isSpeaking || isProcessing) return;
+    setIsProcessing(true);
+    setLastUserMessage(displayedText);
+    await sendTranscript(displayedText);
     setResetKey((k) => k + 1);
+    setIsProcessing(false);
   };
+
+  // --- ControlPanel Handlers (play/pause, mute, volume, speed, repeat) ---
 
   const handlePlayPause = () => {
     const audio = audioRef.current;
@@ -290,7 +340,6 @@ export default function LearningSession() {
       setCurrentAudioElement(audio); // NEW: Set on play
       return;
     }
-
     setListening((l) => {
       const next = !l;
       setBotStatus(next ? "..מקשיב" : "עצור");
@@ -305,16 +354,11 @@ export default function LearningSession() {
 
   const handleAdjustVolume = () => {
     const next =
-      botVolume === 100
-        ? 60
-        : botVolume === 60
-        ? 30
-        : botVolume === 30
-        ? 0
-        : 100;
+      botVolume === 100 ? 60 : botVolume === 60 ? 30 : botVolume === 30 ? 0 : 100;
     setBotVolume(next);
     if (audioRef.current) audioRef.current.volume = next / 100;
   };
+
 
   const handleAdjustSpeed = () => {
     const speeds = [0.5, 1, 1.25, 1.5, 2];
@@ -347,6 +391,7 @@ export default function LearningSession() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-200 to-purple-100 p-4 flex flex-col items-center justify-center">
+      {/* Toggle Button */}
       <div className="fixed top-4 right-4 z-50">
         <ToggleControlButton
           isOpen={controlsOpen}
@@ -354,6 +399,7 @@ export default function LearningSession() {
         />
       </div>
 
+      {/* Control Panel */}
       {controlsOpen && (
         <div className="w-full max-w-3xl mb-4">
           <ControlPanel
@@ -376,7 +422,9 @@ export default function LearningSession() {
         </div>
       )}
 
+      {/* Main Content */}
       <div className="w-full max-w-3xl flex gap-6 flex-col md:flex-row mb-4">
+        {/* Left Panel */}
         <div className="flex-1 bg-white rounded-3xl p-6 shadow-lg flex flex-col items-center">
           <div className="bg-gradient-to-r from-blue-400 to-purple-400 rounded-full px-8 py-3 mb-6 font-bold text-xl w-full text-white relative flex items-center">
             <SpeakingIndicator
@@ -391,7 +439,7 @@ export default function LearningSession() {
             {botSpeech}
           </div>
           <div className="bg-yellow-50 rounded-2xl p-4 mb-6 text-right w-full border-2 border-yellow-200">
-            {currentQuestion}
+            {lastUserMessage}
           </div>
           <button
             onClick={() => setIsTranscriptOpen(true)}
@@ -400,6 +448,8 @@ export default function LearningSession() {
             הצג תמלול שיחה
           </button>
         </div>
+
+        {/* Right Panel */}
         <div className="flex-1 bg-white rounded-3xl p-6 shadow-lg flex flex-col">
           <div className="flex mb-4">
             <button
@@ -430,6 +480,8 @@ export default function LearningSession() {
           )}
         </div>
       </div>
+
+      {/* Recorder & Transcript Modal */}
 
       <RealTimeRecorder
         ref={recorderRef}
