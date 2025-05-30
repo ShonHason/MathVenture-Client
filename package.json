@@ -39,7 +39,7 @@
     "clsx": "^2.1.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "framer-motion": "^12.12.1",
+    "framer-motion": "^12.14.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.511.0",
     "mongo": "^0.1.0",

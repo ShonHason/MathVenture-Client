@@ -9,61 +9,62 @@ interface RealTimeRecorderInstance {
   stopListening: () => void;
 }
 
-const RealTimeRecorder = React.forwardRef<RealTimeRecorderInstance, RealTimeRecorderProps>(
-  ({ onTranscript, micMuted }, ref) => {
-    const recognitionRef = useRef<any>(null);
+const RealTimeRecorder = React.forwardRef<
+  RealTimeRecorderInstance,
+  RealTimeRecorderProps
+>(({ onTranscript, micMuted }, ref) => {
+  const recognitionRef = useRef<any>(null);
 
-    // Expose the stopListening method to the parent component
-    useImperativeHandle(ref, () => ({
-      stopListening: () => {
-        if (recognitionRef.current) {
-          console.log("Stopping recognition...");
-          recognitionRef.current.stop(); // Stop the recognition
-        }
-      },
-    }));
-
-    useEffect(() => {
-      const SpeechRecognition =
-        (window as any).SpeechRecognition ||
-        (window as any).webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        console.error("Speech recognition is not supported in this browser.");
-        return;
+  // Expose the stopListening method to the parent component
+  useImperativeHandle(ref, () => ({
+    stopListening: () => {
+      if (recognitionRef.current) {
+        console.log("Stopping recognition...");
+        recognitionRef.current.stop(); // Stop the recognition
       }
+    },
+  }));
 
-      const recognition = new SpeechRecognition();
-      recognition.continuous = true;
-      recognition.interimResults = true;
-      recognition.lang = "he-IL"; // Hebrew language
+  useEffect(() => {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      console.error("Speech recognition is not supported in this browser.");
+      return;
+    }
 
-      recognition.onresult = (event: any) => {
-        let transcript = "";
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          transcript += event.results[i][0].transcript;
-        }
-        onTranscript(transcript);
-      };
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "he-IL"; // Hebrew language
 
-      recognition.onerror = (event: any) => {
-        console.error("Speech recognition error:", event.error);
-      };
-
-      recognitionRef.current = recognition;
-
-      if (!micMuted) {
-        recognition.start();
+    recognition.onresult = (event: any) => {
+      let transcript = "";
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        transcript += event.results[i][0].transcript;
       }
+      onTranscript(transcript);
+    };
 
-      return () => {
-        if (recognitionRef.current) {
-          recognitionRef.current.stop();
-        }
-      };
-    }, [micMuted, onTranscript]);
+    recognition.onerror = (event: any) => {
+      console.error("Speech recognition error:", event.error);
+    };
 
-    return null; // This component does not render any visible elements
-  }
-);
+    recognitionRef.current = recognition;
+
+    if (!micMuted) {
+      recognition.start();
+    }
+
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+    };
+  }, [micMuted, onTranscript]);
+
+  return null; // This component does not render any visible elements
+});
 
 export default RealTimeRecorder;
