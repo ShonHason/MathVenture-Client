@@ -1,7 +1,6 @@
 "use client"
 
-import type React from "react"
-import { useState, useEffect, use } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { Button } from "../components/ui/button"
 import { Card, CardContent } from "../components/ui/card"
@@ -11,14 +10,16 @@ import { ArrowLeft, Trophy, Volume2, VolumeX, Star, Zap, Target, Clock } from 'l
 import { useUser } from "../context/UserContext"
 import axios from "axios"
 import { toast } from "react-toastify"
+
 const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 
 export default function MathMiniGame() {
   const navigate = useNavigate()
   const { user } = useUser()
   const accessToken = localStorage.getItem("accessToken")
+
   // Game states
-  const [gameState, setGameState] = useState("menu")
+  const [gameState, setGameState] = useState<"menu" | "playing" | "gameOver">("menu")
   const [currentQuestion, setCurrentQuestion] = useState({
     num1: 0,
     num2: 0,
@@ -28,7 +29,7 @@ export default function MathMiniGame() {
   const [score, setScore] = useState(0)
   const [timeLeft, setTimeLeft] = useState(60)
   const [playerName, setPlayerName] = useState("")
-  const [difficulty, setDifficulty] = useState("easy")
+  const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("easy")
   const [leaderboard, setLeaderboard] = useState([
     { username: "דן", score: 150, gameDifficulty: "easy" },
     { username: "שון", score: 120, gameDifficulty: "medium" },
@@ -41,13 +42,32 @@ export default function MathMiniGame() {
   const [streak, setStreak] = useState(0)
   const [bestStreak, setBestStreak] = useState(0)
 
-  // Get the effective player name (from context or local state)
+  // Audio refs and helper
+  function playSound(audio: HTMLAudioElement) {
+    audio.pause()
+    audio.currentTime = 0
+    audio.play()
+  }
+  const startAudio     = useRef(new Audio("/sounds/startgameSound.mp3"))
+  const correctAudio   = useRef(new Audio("/sounds/correct.mp3"))
+  const incorrectAudio = useRef(new Audio("/sounds/incorrect.mp3"))
+  const endAudio       = useRef(new Audio("/sounds/end.mp3"))
+
+  // Effective player name
   const effectivePlayerName = user?.username || playerName
-  const gameType = "math-challenge"; 
+  const gameType = "math-challenge"
 
   const handleBackToSelection = () => {
     navigate("/home/gameSelection")
   }
+
+  // Set audio volume once
+  useEffect(() => {
+    startAudio.current.volume     = 0.5
+    correctAudio.current.volume   = 0.5
+    incorrectAudio.current.volume = 0.5
+    endAudio.current.volume       = 0.5
+  }, [])
 
   // Timer effect
   useEffect(() => {
@@ -64,31 +84,27 @@ export default function MathMiniGame() {
     return () => clearTimeout(timer)
   }, [timeLeft, gameState])
 
+  // Fetch leaderboard on difficulty change
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
         const response = await axios.get(`${baseUrl}/leaderboard`, {
-          params: { gameType, gameDifficulty: difficulty }, 
+          params: { gameType, gameDifficulty: difficulty },
           headers: {
-            Authorization: "jwt " + accessToken,  
+            Authorization: "jwt " + accessToken,
           },
-        });
-       if (response.data.length === 0) {
-          console.log("No leaderboard data found for this difficulty level.");
-          setLeaderboard([]);
-          return;
+        })
+        if (response.data.length === 0) {
+          setLeaderboard([])
+          return
         }
-        console.log("Fetched leaderboard:", response.data);
-        setLeaderboard(response.data); 
+        setLeaderboard(response.data)
       } catch (error) {
-        console.error("Error fetching leaderboard:", error); 
+        console.error("Error fetching leaderboard:", error)
       }
-    };
-  
-    fetchLeaderboard();
-  }, [difficulty]);
-
-
+    }
+    fetchLeaderboard()
+  }, [difficulty])
 
   // Feedback animation cleanup
   useEffect(() => {
@@ -105,13 +121,13 @@ export default function MathMiniGame() {
       return () => clearTimeout(timer)
     }
   }, [showConfetti])
- 
 
+  // Generate a new question
   const generateQuestion = (difficulty: string) => {
     const operators = ["+", "-", "×"]
     const operator = operators[Math.floor(Math.random() * operators.length)]
 
-    let num1, num2
+    let num1: number, num2: number
     if (difficulty === "easy") {
       num1 = Math.floor(Math.random() * 10) + 1
       num2 = Math.floor(Math.random() * 10) + 1
@@ -123,12 +139,14 @@ export default function MathMiniGame() {
       num2 = Math.floor(Math.random() * 50) + 1
     }
 
+    // Ensure num1 >= num2 for subtraction logic in calculation (answer)
     if (operator === "-" && num2 > num1) {
       ;[num1, num2] = [num2, num1]
     }
     return { num1, num2, operator }
   }
 
+  // Calculate correct answer
   const calculateAnswer = (question: { num1: number; num2: number; operator: string }) => {
     const { num1, num2, operator } = question
     switch (operator) {
@@ -143,13 +161,13 @@ export default function MathMiniGame() {
     }
   }
 
+  // Start game handler
   const startGame = () => {
-    console.log("Starting game with:", { effectivePlayerName, difficulty })
-
     if (!effectivePlayerName.trim()) {
       alert("אנא הכנס שם לפני תחילת המשחק")
       return
     }
+    if (soundEnabled) playSound(startAudio.current)
 
     setGameState("playing")
     setScore(0)
@@ -159,6 +177,7 @@ export default function MathMiniGame() {
     setCurrentQuestion(generateQuestion(difficulty))
   }
 
+  // Submit answer handler
   const submitAnswer = () => {
     if (!userAnswer) return
     const correctAnswer = calculateAnswer(currentQuestion)
@@ -169,6 +188,7 @@ export default function MathMiniGame() {
       const streakBonus = Math.floor(streak / 3) * 5
       const points = basePoints + streakBonus
 
+      if (soundEnabled) playSound(correctAudio.current)
       setScore((prevScore) => prevScore + points)
       setStreak((prevStreak) => {
         const newStreak = prevStreak + 1
@@ -179,6 +199,7 @@ export default function MathMiniGame() {
       })
       setFeedback("correct")
     } else {
+      if (soundEnabled) playSound(incorrectAudio.current)
       setStreak(0)
       setFeedback("incorrect")
     }
@@ -187,11 +208,12 @@ export default function MathMiniGame() {
     setCurrentQuestion(generateQuestion(difficulty))
   }
 
+  // End game handler
   const endGame = async () => {
-    setGameState("gameOver");
-  
+    setGameState("gameOver")
+    //if (soundEnabled) playSound(endAudio.current)
+
     try {
-      // שליחת הבקשה לשמור את התוצאה בלידרבורד
       await axios.post(
         `${baseUrl}/leaderboard/addScore`,
         {
@@ -207,34 +229,31 @@ export default function MathMiniGame() {
             Authorization: "jwt " + accessToken,
           },
         }
-      );
-  
+      )
+
       const newEntry = {
         username: effectivePlayerName,
         score: score,
         gameDifficulty: difficulty,
-      };
-  
+      }
+
       const updatedLeaderboard = [...leaderboard, newEntry]
         .sort((a, b) => b.score - a.score)
-        .slice(0, 10);
-  
-      console.log("Updated leaderboard:", updatedLeaderboard);
-  
-      toast.success("הניקוד נשמר בהצלחה!");
-  
-      setLeaderboard(updatedLeaderboard);
-  
+        .slice(0, 10)
+
+      toast.success("הניקוד נשמר בהצלחה!")
+      setLeaderboard(updatedLeaderboard)
+
       if (score > 100 || updatedLeaderboard[0]?.username === effectivePlayerName) {
-        setShowConfetti(true);
+        setShowConfetti(true)
       }
     } catch (error) {
-      console.error("Error saving score:", error);
-      toast.error("שגיאה בשמירת הניקוד");
+      console.error("Error saving score:", error)
+      toast.error("שגיאה בשמירת הניקוד")
     }
-  };
-  
+  }
 
+  // Reset game to menu
   const resetGame = () => {
     setGameState("menu")
     setScore(0)
@@ -251,13 +270,14 @@ export default function MathMiniGame() {
   }
 
   const handleDifficultyChange = (newDifficulty: string) => {
-    setDifficulty(newDifficulty)
+    setDifficulty(newDifficulty as "easy" | "medium" | "hard")
   }
 
   const handlePlayerNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPlayerName(e.target.value)
   }
 
+  // RENDER MENU
   if (gameState === "menu") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-red-600 flex flex-col items-center justify-center p-6 relative overflow-hidden">
@@ -290,7 +310,7 @@ export default function MathMiniGame() {
           </p>
         </div>
 
-        {/* Game setup and leaderboard - Same height containers */}
+        {/* Game setup and leaderboard */}
         <div className="grid md:grid-cols-2 gap-8 max-w-6xl w-full relative z-10">
           {/* Game setup form */}
           <Card className="bg-white/95 backdrop-blur-sm shadow-2xl h-full">
@@ -298,7 +318,7 @@ export default function MathMiniGame() {
               <h2 className="text-2xl font-bold text-center mb-6 text-gray-800 flex items-center justify-center gap-2">
                 🎮 הגדרות משחק
               </h2>
-              
+
               <div className="space-y-6 flex-1">
                 {/* Player name input */}
                 <div>
@@ -346,7 +366,7 @@ export default function MathMiniGame() {
                 </div>
               </div>
 
-              {/* Start game button - Always at bottom */}
+              {/* Start game button */}
               <div className="mt-6">
                 <Button
                   onClick={startGame}
@@ -365,7 +385,7 @@ export default function MathMiniGame() {
               <h3 className="text-2xl font-bold text-center mb-6 text-gray-800 flex items-center justify-center gap-2">
                 <Trophy className="w-8 h-8 text-yellow-500" />🏆 לוח תוצאות 🏆
               </h3>
-              
+
               <div className="space-y-3 flex-1 overflow-y-auto">
                 {leaderboard.slice(0, 5).map((entry, index) => (
                   <div
@@ -392,13 +412,12 @@ export default function MathMiniGame() {
                       <span className="text-2xl">
                         {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `${index + 1}.`}
                       </span>
-                      <span className="font-bold text-lg">{entry?.username || "shon"}</span>
+                      <span className="font-bold text-lg">{entry.username}</span>
                     </div>
                   </div>
                 ))}
               </div>
 
-              {/* Tips section at bottom */}
               <div className="mt-6 text-center">
                 <p className="text-purple-600 text-sm font-medium">💡 עצה: התחילו ממשחק קל והתקדמו לרמות קשות יותר!</p>
               </div>
@@ -409,7 +428,19 @@ export default function MathMiniGame() {
     )
   }
 
+  // RENDER PLAYING
   if (gameState === "playing") {
+    // Extract question values
+    const { num1, num2, operator } = currentQuestion
+
+    // Decide display order for subtraction
+    let displayLeft = num1
+    let displayRight = num2
+    if (operator === "-") {
+      displayRight  = Math.max(num1, num2)
+      displayLeft = Math.min(num1, num2)
+    }
+
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 flex flex-col items-center justify-center p-6 relative overflow-hidden">
         {/* Confetti effect */}
@@ -425,9 +456,7 @@ export default function MathMiniGame() {
             <Card className="bg-white/90 backdrop-blur-sm">
               <CardContent className="p-4 text-center">
                 <Clock className="w-8 h-8 mx-auto mb-2 text-blue-500" />
-                <div
-                  className={`text-2xl font-bold ${timeLeft <= 10 ? "text-red-500 animate-pulse" : "text-blue-600"}`}
-                >
+                <div className={`text-2xl font-bold ${timeLeft <= 10 ? "text-red-500 animate-pulse" : "text-blue-600"}`}>
                   {timeLeft}s
                 </div>
                 <div className="text-sm text-gray-600">זמן נותר</div>
@@ -471,8 +500,9 @@ export default function MathMiniGame() {
           }`}
         >
           <CardContent className="p-12 text-center relative">
+            {/* Display subtraction correctly: larger number first */}
             <div className="text-8xl font-bold text-gray-800 mb-8 animate-pulse">
-              {currentQuestion.num1} {currentQuestion.operator} {currentQuestion.num2} = ?
+            ? = {displayLeft} {operator} {displayRight}
             </div>
 
             <Input
@@ -494,12 +524,8 @@ export default function MathMiniGame() {
             </Button>
 
             {feedback && (
-              <div className={`absolute inset-0 flex items-center justify-center pointer-events-none`}>
-                <div
-                  className={`text-9xl font-bold animate-bounce ${
-                    feedback === "correct" ? "text-green-500" : "text-red-500"
-                  }`}
-                >
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className={`text-9xl font-bold animate-bounce ${feedback === "correct" ? "text-green-500" : "text-red-500"}`}>
                   {feedback === "correct" ? "🎉" : "❌"}
                 </div>
               </div>
@@ -526,6 +552,7 @@ export default function MathMiniGame() {
     )
   }
 
+  // RENDER GAME OVER
   if (gameState === "gameOver") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-600 via-blue-600 to-purple-600 flex flex-col items-center justify-center p-6 relative overflow-hidden">
