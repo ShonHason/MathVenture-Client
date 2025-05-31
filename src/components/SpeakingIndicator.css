@@ -1,0 +1,30 @@
+.equalizer-bars-container {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-30%);
+
+  display: flex;
+  justify-content: center;
+  align-items: center; /* Align bars to the center vertically */
+
+  width: 60px;
+  height: 30px; /* Give enough height for bars to expand */
+
+  z-index: 1;
+}
+
+.bar {
+  background: #fff; /* White bars to stand out on the blue/purple gradient */
+  width: 4px; /* Width of each bar */
+  margin: 0px 1px; /* Spacing between bars */
+  border-radius: 1px; /* Slightly rounded corners */
+
+  /* Base state when not speaking or for initial render */
+  height: 3px; /* Static dot height */
+  opacity: 0.7; /* Static dot opacity */
+
+  /* Ensure smooth transitions for JS-controlled properties */
+  transition: transform 0.05s linear, opacity 0.05s linear; /* Fast transitions for real-time feel */
+  transform-origin: bottom; /* Make bars scale up from their bottom */
+}

@@ -97,6 +97,7 @@ const RealTimeRecorder = React.forwardRef<
   }, [micMuted, onTranscript, onNoSpeech]);
 
   return null;
+
 });
 
 export default RealTimeRecorder;
