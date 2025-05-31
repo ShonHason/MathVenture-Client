@@ -1,313 +1,290 @@
 :root {
-    --fun-bg: #f0f9ff;
-    --fun-primary: #ff6b6b;
-    --fun-secondary: #4ecdc4;
-    --fun-accent: #ffbe0b;
-    --fun-text: #2d3748;
-    --fun-border-radius: 20px;
-  }
-  
+  --fun-bg: #f0f9ff;
+  --fun-primary: #ff6b6b;
+  --fun-secondary: #4ecdc4;
+  --fun-accent: #ffbe0b;
+  --fun-text: #2d3748;
+  --fun-border-radius: 20px;
+}
+
 .fun-container {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   overflow: hidden;
-  padding-top: 10px; 
+  height: 100vh;
+  overflow: hidden;
+
+  padding-top: 2cm;
+  margin-top: -2cm; 
 }
 
+.clouds {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  overflow: hidden;
+  z-index: -1;
+}
+
+/* קוד העננים לא השתנה */
+.cloud {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  opacity: 0.8;
+}
+.cloud:before,
+.cloud:after {
+  content: "";
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+}
+
+.cloud-1 {
+  width: 120px;
+  height: 60px;
+  top: 10%;
+  left: 10%;
+  animation: float 30s linear infinite;
+}
+.cloud-1:before {
+  width: 60px;
+  height: 60px;
+  top: -30px;
+  left: 15px;
+}
+.cloud-1:after {
+  width: 80px;
+  height: 80px;
+  top: -40px;
+  right: 15px;
+}
+
+.cloud-2 {
+  width: 100px;
+  height: 50px;
+  top: 20%;
+  right: 15%;
+  animation: float 25s linear infinite reverse;
+}
+.cloud-2:before {
+  width: 50px;
+  height: 50px;
+  top: -25px;
+  left: 10px;
+}
+.cloud-2:after {
+  width: 70px;
+  height: 70px;
+  top: -35px;
+  right: 10px;
+}
+
+.cloud-3 {
+  width: 150px;
+  height: 75px;
+  bottom: 25%;
+  left: 20%;
+  animation: float 35s linear infinite;
+}
+.cloud-3:before {
+  width: 75px;
+  height: 75px;
+  top: -37px;
+  left: 20px;
+}
+.cloud-3:after {
+  width: 100px;
+  height: 100px;
+  top: -50px;
+  right: 20px;
+}
+
+.cloud-4 {
+  width: 80px;
+  height: 40px;
+  bottom: 15%;
+  right: 25%;
+  animation: float 20s linear infinite reverse;
+}
+.cloud-4:before {
+  width: 40px;
+  height: 40px;
+  top: -20px;
+  left: 10px;
+}
+.cloud-4:after {
+  width: 60px;
+  height: 60px;
+  top: -30px;
+  right: 10px;
+}
+
+@keyframes float {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(calc(100vw + 100%));
+  }
+}
 
 .fun-header {
-  flex: 0 0 auto;
-    padding-top: 10px; 
+  margin-top: 0.5rem; 
+  margin-bottom: 0.5rem;
+  text-align: center;
+  animation: bounce 1s ease infinite alternate;
+}
+
+@keyframes bounce {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-10px);
+  }
+}
+
+.fun-header h1 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: var(--fun-primary);
+  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+  margin: 0; /* אין מרווח בנוסף ל־padding-top כי הורדנו אותו */
+}
+
+.fun-header p {
+  font-size: 1.1rem;
+  color: var(--fun-text);
+  margin: 0.2rem 0; 
 }
 
 .fun-content {
-  flex: 1 1 auto;
-  overflow: hidden;
-    padding-top: 50px; 
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; 
+  flex-grow: 1;
+  position: relative;
+  padding-top: 1rem; 
+}
+
+.game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-grow: 1;
+  gap: 0.5rem; 
+}
+
+.navigation-controls {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem; /* ירדנו מ־1rem ל־0.5rem */
+  margin-top: 0.25rem; /* ירדנו מ־0.5rem ל־0.25rem */
+}
+
+.nav-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--fun-secondary);
+  border: none;
+  border-radius: var(--fun-border-radius);
+  padding: 0.4rem 0.8rem; 
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.nav-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.1);
+}
+
+.nav-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.start-button {
+  background-color: var(--fun-primary);
+  border: none;
+  border-radius: var(--fun-border-radius);
+  padding: 0.4rem 1rem; /* מצמצם מעט */
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.start-button:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.1);
+}
+
+.start-button:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.1);
 }
 
 .fun-footer {
-  flex: 0 0 60px;
+  height: 60px;
+  position: relative;
+  margin-top: 0.5rem; /* צמצום מרווח מלמעלה */
 }
 
-  
-  
-  /* Clouds animation */
-  .clouds {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 100%;
-    overflow: hidden;
-    z-index: -1;
+.character {
+  position: absolute;
+  bottom: 0;
+  width: 60px;
+  height: 60px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: bottom center;
+}
+
+@keyframes wave {
+  0% {
+    transform: translateY(0) rotate(-5deg);
   }
-  
-  .cloud {
-    position: absolute;
-    background: white;
-    border-radius: 50%;
-    opacity: 0.8;
+  100% {
+    transform: translateY(-10px) rotate(5deg);
   }
-  
-  .cloud:before,
-  .cloud:after {
-    content: "";
-    position: absolute;
-    background: white;
-    border-radius: 50%;
+}
+
+@media (min-width: 1024px) {
+  .fun-content {
+    flex-direction: row;
+    align-items: center;
   }
-  
-  .cloud-1 {
-    width: 120px;
-    height: 60px;
-    top: 10%;
-    left: 10%;
-    animation: float 30s linear infinite;
+
+  .fun-header h1 {
+    font-size: 3rem;
   }
-  
-  .cloud-1:before {
-    width: 60px;
-    height: 60px;
-    top: -30px;
-    left: 15px;
+
+  .fun-header p {
+    font-size: 1.25rem;
   }
-  
-  .cloud-1:after {
+
+  .fun-footer {
+    height: 80px;
+  }
+
+  .character {
     width: 80px;
     height: 80px;
-    top: -40px;
-    right: 15px;
   }
-  
-  .cloud-2 {
-    width: 100px;
-    height: 50px;
-    top: 20%;
-    right: 15%;
-    animation: float 25s linear infinite reverse;
-  }
-  
-  .cloud-2:before {
-    width: 50px;
-    height: 50px;
-    top: -25px;
-    left: 10px;
-  }
-  
-  .cloud-2:after {
-    width: 70px;
-    height: 70px;
-    top: -35px;
-    right: 10px;
-  }
-  
-  .cloud-3 {
-    width: 150px;
-    height: 75px;
-    bottom: 25%;
-    left: 20%;
-    animation: float 35s linear infinite;
-  }
-  
-  .cloud-3:before {
-    width: 75px;
-    height: 75px;
-    top: -37px;
-    left: 20px;
-  }
-  
-  .cloud-3:after {
-    width: 100px;
-    height: 100px;
-    top: -50px;
-    right: 20px;
-  }
-  
-  .cloud-4 {
-    width: 80px;
-    height: 40px;
-    bottom: 15%;
-    right: 25%;
-    animation: float 20s linear infinite reverse;
-  }
-  
-  .cloud-4:before {
-    width: 40px;
-    height: 40px;
-    top: -20px;
-    left: 10px;
-  }
-  
-  .cloud-4:after {
-    width: 60px;
-    height: 60px;
-    top: -30px;
-    right: 10px;
-  }
-  
-  @keyframes float {
-    0% {
-      transform: translateX(-100%);
-    }
-    100% {
-      transform: translateX(calc(100vw + 100%));
-    }
-  }
-  
-  .fun-header {
-    margin-bottom: 1rem;
-    margin-top: 3rem;
-    text-align: center;
-    animation: bounce 1s ease infinite alternate;
-  }
-  
-  @keyframes bounce {
-    from {
-      transform: translateY(0);
-    }
-    to {
-      transform: translateY(-10px);
-    }
-  }
-  
-  .fun-header h1 {
-    font-size: 2.5rem;
-    font-weight: bold;
-    color: var(--fun-primary);
-    text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
-    margin-top: 0px;
-
-  }
-  
-  .fun-header p {
-    font-size: 1.1rem;
-    color: var(--fun-text);
-  }
-  
-  .fun-content {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    flex-grow: 1;
-    position: relative;
-  }
-  
-  .game-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex-grow: 1;
-    gap: 1rem;
-  }
-  
-  .navigation-controls {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-top: 0.5rem;
-  }
-  
-  .nav-button {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background-color: var(--fun-secondary);
-    border: none;
-    border-radius: var(--fun-border-radius);
-    padding: 0.5rem 1rem;
-    font-weight: 600;
-    font-size: 0.9rem;
-    color: white;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
-  }
-  
-  .nav-button:hover:not(:disabled) {
-    transform: translateY(-3px);
-    box-shadow: 0 7px 0 rgba(0, 0, 0, 0.1);
-  }
-  
-  .nav-button:active:not(:disabled) {
-    transform: translateY(0);
-    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
-  }
-  
-  .nav-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-  
-  .start-button {
-    background-color: var(--fun-primary);
-    border: none;
-    border-radius: var(--fun-border-radius);
-    padding: 0.5rem 1.25rem;
-    font-weight: 600;
-    font-size: 1rem;
-    color: white;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.1);
-  }
-  
-  .start-button:hover {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 7px 0 rgba(0, 0, 0, 0.1);
-  }
-  
-  .start-button:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
-  }
-  
-  .fun-footer {
-    height: 60px;
-    position: relative;
-    margin-top: 1rem;
-  }
-  
-  .character {
-    position: absolute;
-    bottom: 0;
-    width: 60px;
-    height: 60px;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: bottom center;
-  }
-  
- 
-  @keyframes wave {
-    0% {
-      transform: translateY(0) rotate(-5deg);
-    }
-    100% {
-      transform: translateY(-10px) rotate(5deg);
-    }
-  }
-  
-  @media (min-width: 1024px) {
-    .fun-content {
-      flex-direction: row;
-      align-items: center;
-    }
-  
-    .fun-header h1 {
-      font-size: 3rem;
-    }
-  
-    .fun-header p {
-      font-size: 1.25rem;
-    }
-  
-    .fun-footer {
-      height: 80px;
-    }
-  
-    .character {
-      width: 80px;
-      height: 80px;
-    }
-  }
+}
