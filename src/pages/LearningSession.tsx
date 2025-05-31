@@ -14,8 +14,8 @@ import SpeakingIndicator from "../components/SpeakingIndicator"; // Import Speak
 import { useUser } from "../context/UserContext";
 import { scanMathFromCanvas } from "../services/tesseractOcrService";
 
+const socketServerUrl = process.env.SERVER_API_URL || "http://localhost:4000"
 
-const socketServerUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 
 type LocationState = {
   state: {
@@ -23,6 +23,20 @@ type LocationState = {
     lessonId?: string;
   };
 };
+interface Analytics{
+  totalQuestions: number;
+  correctAnswers: number;
+  accuracyPct: number;
+  avgResponseTimeMs: number;
+   logs: Array<{
+    question:       string;
+    questionTime:   string;  // ISO string from the server
+    answer:         string;
+    answerTime:     string;  // ISO string from the server
+    isCorrect:      boolean;
+    responseTimeMs: number;
+  }>;
+}
 
 export default function LearningSession() {
   const recorderRef = useRef<any>(null);
@@ -36,7 +50,9 @@ export default function LearningSession() {
   const [lessonId, setLessonId] = useState<string | null>(
     initialLessonId ?? null
   );
+
   const [messages, setMessages] = useState<{ sender: "bot" | "user"; text: string }[]>([]);
+  const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [messagesLoaded, setMessagesLoaded] = useState(false);
   const [hasSpokenIntro, setHasSpokenIntro] = useState(false);
   const [botSpeech, setBotSpeech] = useState("");
@@ -104,15 +120,29 @@ export default function LearningSession() {
         })) as { sender: "bot" | "user"; text: string }[];
         setMessages(formatted);
 
-        // count correct
-        const correctCount = formatted.reduce((acc, msg, idx) => {
-          if (msg.sender === "bot" && idx > 0) {
-            const txt = msg.text.toLowerCase();
-            if (
-              ["נכון","מצוין","בדיוק","כל הכבוד","תשובה נכונה","מושלם",
-               "יפה מאוד","בול","לנו","צודק","הצלחת"]
-                .some(p => txt.includes(p))
-            ) return acc + 1;
+        // Count correct answers from chat history
+        // Look for bot responses that indicate correct answers
+        const correctCount = formatted.filter((msg, index) => {
+          if (msg.sender === "bot" && index > 0) {
+            const text = msg.text;
+            // Hebrew phrases that indicate correct answers
+            return (
+              text.includes("נכון") ||
+              text.includes("מצוין") ||
+              text.includes("בדיוק") ||
+              text.includes("כל הכבוד") ||
+              text.includes("תשובה נכונה") ||
+              text.includes("מושלם") ||
+              text.includes("יפה מאוד") ||
+              text.includes("בול") ||
+              text.includes("לנו") ||
+              text.includes("צודק") ||
+              text.includes("הצלחת")
+            );
+          }
+          return false;
+        }).length;
+
 
           }
           return acc;
@@ -161,7 +191,21 @@ export default function LearningSession() {
     }
   }, [hasSpokenIntro, lessonId, user, topic]);
 
-  // --- Text-to-Speech ---
+
+   useEffect(() => {
+    if (!isLessonComplete) return;
+
+    axios
+      .get<Analytics>(`${socketServerUrl}/lessons/${lessonId}/analytics`)
+      .then((response) => {
+        // 3) Put the server’s data into your state
+        setAnalytics(response.data);
+      })
+      .catch(console.error);
+  }, [isLessonComplete, lessonId]);
+
+  // TTS with speed control
+
   const speak = async (text: string) => {
     // always stop anything first
     if (audioRef.current) {
@@ -174,20 +218,25 @@ export default function LearningSession() {
     setBotStatus("...מדבר");
 
     try {
-
-      const res = await axios.post(
+       console.log("🔊 speak(): requesting TTS for text:", text);
+       const url1 = `${socketServerUrl}/api/tts`;
+        console.log("🔊 speak(): POSTing to", url1);
+        const res = await axios.post(
         `${socketServerUrl}/api/tts`,
         { text, lang: "he-IL", speed: speechSpeed },
         { responseType: "arraybuffer" }
       );
+      console.log("🔊 speak(): received audio, constructing blob");
       const blob = new Blob([res.data], { type: "audio/mp3" });
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
       audio.volume = botVolume / 100;
-      audio.playbackRate = speechSpeed;
-
-      audioRef.current = audio; // Keep this for direct control
+      audio.playbackRate = speechSpeed; // Set playback speed
+      audioRef.current = audio;
+      console.log("🔊 speak(): playing audio");
       setCurrentAudioElement(audio); // NEW: Set the audio element in state
+
+
       await audio.play();
       audio.onended = () => {
         setIsSpeaking(false); // Set speaking to false when audio ends
@@ -195,8 +244,10 @@ export default function LearningSession() {
         setBotStatus("..מקשיב");
         setCurrentAudioElement(null); // NEW: Clear the audio element from state
       };
-    } catch {
-      setIsSpeaking(false); // Ensure speaking is false on error
+
+    } catch(err) {
+      console.error("❌ speak() error:", err);
+      setIsSpeaking(false);
       setListening(false);
       setBotStatus("עצור");
       setCurrentAudioElement(null); // NEW: Clear the audio element from state
@@ -213,11 +264,13 @@ export default function LearningSession() {
       setBotStatus("עצור");
       setCurrentAudioElement(null); // NEW: Clear the audio element from state
     }
-  };
+
 
   const handleReturnToMain = () => {
     stopTTS();
     if (recorderRef.current) {
+          console.log("Calling stopListening...");
+
       recorderRef.current.stopListening();
     }
     navigate("/home");
@@ -234,56 +287,115 @@ export default function LearningSession() {
     }, 2000);
   };
 
-  // --- Send user transcript or OCR result ---
+  const hebrewNumbers = [
+  "אפס","אחת","שניים","שתיים","שלוש","ארבע","חמש",
+  "שש","שבע","שמונה","תשע","עשר","אחת־עשרה",
+  // …add more if needed…
+];
 
-  const sendTranscript = async (input: string) => {
-    if (isProcessing || input === lastSentRef.current) {
-      setListening(true);
-      return;
+
+const numberWordPattern = new RegExp(
+  `(^|\\s)(${hebrewNumbers.join("|")})(\\s|$)`,
+  "i"
+);
+const hebrewNumberWords: Record<string, number> = {
+  "אחד": 1, "אחת": 1, "שניים": 2, "שתיים": 2,
+  "שלוש": 3, "ארבע": 4, "חמש": 5, "שש": 6,
+  "שבע": 7, "שמונה": 8, "תשע": 9, "עשר": 10,
+  "אחת עשרה": 11, "שתים עשרה": 12,
+  "עשרים": 20, "שלושים": 30
+};
+const fractionWords: Record<string, number> = {
+  "חצי": 1/2, "שליש": 1/3, "רבע": 1/4,
+  "שמינית": 1/8, "שמיניות": 1/8,
+};
+
+function parseHebrewFraction(phrase: string): number | null {
+  const parts = phrase.trim().split(" ");
+  if (parts.length === 2) {
+    const numerator = hebrewNumberWords[parts[0]];
+    const denominator = fractionWords[parts[1]];
+    if (numerator && denominator) return numerator * denominator;
+  }
+  return null;
+}
+const fractionWordPattern = new RegExp(
+  `\\b(${Object.keys(fractionWords).join("|")})\\b`,
+  "i"
+);
+
+function isHebrewDivision(text: string): boolean {
+  const words = text.trim().split(/\s+/);
+  const index = words.indexOf("חלקי");
+  if (index > 0 && index < words.length - 1) {
+    const numerator = hebrewNumberWords[words[index - 1]];
+    const denominator = hebrewNumberWords[words[index + 1]];
+    return !!(numerator && denominator);
+  }
+  return false;
+}
+ const isMathQuestion = (text: string) =>
+  /\d/.test(text) ||                            // digits
+  /[+\-*/^]/.test(text) ||                      // operators
+  numberWordPattern.test(text) ||               // spelled-out numbers (your regex)
+  /\b(כמה|מה התשובה|פתור)\b/.test(text) ||     // math-related keywords
+  parseHebrewFraction(text) !== null || 
+  isHebrewDivision(text); // check for division phrases
+  
+  // detected fraction like "חמש שמיניות"
+  // Send to chat
+const sendTranscript = async (input: string) => {
+  if (input === lastSentRef.current) return;
+  lastSentRef.current = input;
+        
+  setMessages((m) => [...m, { sender: "user", text: input }]);
+  setLastUserMessage(input);
+
+  try {
+    // 1) Send only { question: input }
+    const resp = await axios.post(
+      `${socketServerUrl}/lessons/${lessonId}/chat`,
+      { question: input },
+      { headers: { Authorization: `Bearer ${user?.accessToken}` } }
+    );
+
+    // 2) The back end now returns:
+    //    resp.data.answer        → a plain Hebrew string
+    //    resp.data.mathQuestionsCount  → updated count
+    //    resp.data.isCorrect     → true/false
+    const aiRaw: string = resp.data.answer;
+    const isCorrectFromServer: boolean = resp.data.isCorrect;
+    const updatedMathCount: number = resp.data.mathQuestionsCount;
+
+    // 3) Strip any stray “*” so TTS won’t read “כוכבית”
+    const aiClean = aiRaw.replace(/\*/g, "");
+
+    // 4) Push the cleaned AI reply into messages & TTS
+    setMessages((m) => [...m, { sender: "bot", text: aiClean }]);
+    setBotSpeech(aiClean);
+
+    // 5) If the server says isCorrect===true, bump your local correct counter
+    if (isCorrectFromServer) {
+      setCorrectAnswersCount((prev) => {
+        const newCount = prev + 1;
+        if (newCount >= 15) {
+          setIsLessonComplete(true);
+          console.log("Lesson completed! 🎉");
+        }
+        return newCount;
+      });
     }
-    lastSentRef.current = input;
-    setIsProcessing(true);
-    setListening(false);
 
-    // show in yellow area
-    setLastUserMessage(input);
+    // 6) If you want to show mathQuestionsCount somewhere in your UI, update it now:
+    //    e.g. setLocalMathCount(updatedMathCount);
 
-    // add to chat UI
-    setMessages((m) => [...m, { sender: "user", text: input }]);
+    // 7) Finally, speak the cleaned text
+    speak(aiClean);
+  } catch (err) {
+    console.error(err);
+  }
+};
 
-    try {
-      const resp = await axios.post(
-        `${socketServerUrl}/lessons/${lessonId}/chat`,
-        { question: input },
-        { headers: { Authorization: `Bearer ${user?.accessToken}` } }
-      );
-      const ai = resp.data.answer;
-      setMessages((m) => [...m, { sender: "bot", text: ai }]);
-      setBotSpeech(ai);
-
-      // count correct answers
-      const low = ai.toLowerCase();
-      if (
-        ["נכון","מצוין","בדיוק","כל הכבוד","תשובה נכונה","מושלם",
-          "יפה מאוד","בול","לנו","צודק","הצלחת"]
-          .some(p => low.includes(p))
-      ) {
-        setCorrectAnswersCount((prev) => {
-          const next = prev + 1;
-          if (next >= 15) setIsLessonComplete(true);
-          return next;
-        });
-      }
-
-      // speak bot reply
-
-      speak(ai);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
 
 
   const handleDrawingScan = async (canvas: HTMLCanvasElement) => {
