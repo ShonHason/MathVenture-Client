@@ -1,6 +1,8 @@
 .home-layout {
     display: flex;
     direction: rtl;
+    height: 100vh; 
+
   }
   
   .main-content {
@@ -8,5 +10,11 @@
     padding: 24px;
     margin-right: 260px; 
     box-sizing: border-box;
+    margin: 0.1;
   }
-  
+  .sidebar {
+    width: 260px;        
+    flex-shrink: 0;     
+    box-sizing: border-box;
+    background: #f0f0f0;
+  }
