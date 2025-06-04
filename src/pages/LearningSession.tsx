@@ -1,21 +1,33 @@
+// src/pages/LearningSession.tsx
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import DrawingPanel from "../components/drawing-panel";
 import KeyboardPanel from "../components/keyboard-panel";
 import Avatar from "../components/Avatar";
-import TranscriptModel from "../components/transcript-model";
-import ControlPanel from "../components/control-panel";
-import ToggleControlButton from "../components/ ToggleControlButton";
-import RealTimeRecorder from "../components/RealTimeRecorder";
 import SpeakingIndicator from "../components/SpeakingIndicator"; // Import SpeakingIndicator
+
+import TranscriptModel from "../components/transcript-model";
+import ControlPanel from "../components/control-panel"; // Keep ControlPanel component
+// import ToggleControlButton from "../components/ToggleControlButton";
+import RealTimeRecorder from "../components/RealTimeRecorder";
 import { useUser } from "../context/UserContext";
+import "./LearningSession.css";
 import { scanMathFromCanvas } from "../services/tesseractOcrService";
+import {
+  ControlPanelProvider,
+  useControlPanel,
+} from "../context/ControlPanelContext"; // Import provider and hook
 
-const socketServerUrl = process.env.SERVER_API_URL || "http://localhost:4000"
+const socketServerUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 
+interface LessonBackendData {
+  _id: string;
+  mathQuestionsCount: number;
+  currentQuestionAttempts: number;
+}
 
 type LocationState = {
   state: {
@@ -23,22 +35,9 @@ type LocationState = {
     lessonId?: string;
   };
 };
-interface Analytics{
-  totalQuestions: number;
-  correctAnswers: number;
-  accuracyPct: number;
-  avgResponseTimeMs: number;
-   logs: Array<{
-    question:       string;
-    questionTime:   string;  // ISO string from the server
-    answer:         string;
-    answerTime:     string;  // ISO string from the server
-    isCorrect:      boolean;
-    responseTimeMs: number;
-  }>;
-}
 
-export default function LearningSession() {
+// This component will contain the actual session logic and consume the context
+function LearningSessionContent() {
   const recorderRef = useRef<any>(null);
   const { user } = useUser();
   const {
@@ -46,546 +45,398 @@ export default function LearningSession() {
   } = useLocation() as LocationState;
   const navigate = useNavigate();
 
-  // --- State ---
-  const [lessonId, setLessonId] = useState<string | null>(
-    initialLessonId ?? null
+  // Local state for lesson details coming from the backend API
+  const [lessonDetails, setLessonDetails] = useState<LessonBackendData | null>(
+    null
   );
-
-  const [messages, setMessages] = useState<{ sender: "bot" | "user"; text: string }[]>([]);
-  const [analytics, setAnalytics] = useState<Analytics | null>(null);
+  const [messages, setMessages] = useState<
+    { sender: "bot" | "user"; text: string }[]
+  >([]);
   const [messagesLoaded, setMessagesLoaded] = useState(false);
   const [hasSpokenIntro, setHasSpokenIntro] = useState(false);
-  const [botSpeech, setBotSpeech] = useState("");
-  const [botStatus, setBotStatus] = useState("עצור");
   const [isTranscriptOpen, setIsTranscriptOpen] = useState(false);
-  const [listening, setListening] = useState(false);
-  const [isSpeaking, setIsSpeaking] = useState(false); // This prop controls the indicator
-  const [controlsOpen, setControlsOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<"draw" | "keyboard">("draw");
-  const [botVolume, setBotVolume] = useState(100);
-  const [speechSpeed, setSpeechSpeed] = useState(1);
-  const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
-  const [isLessonComplete, setIsLessonComplete] = useState(false);
   const [resetKey, setResetKey] = useState(0);
-
-  // Yellow area: last user input
-  const [lastUserMessage, setLastUserMessage] = useState<string>("");
   const [currentAudioElement, setCurrentAudioElement] =
-    useState<HTMLAudioElement | null>(null); // NEW: State for the current audio element
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+    useState<HTMLAudioElement | null>(null);
   const silenceTimerRef = useRef<number | null>(null);
   const lastTranscriptRef = useRef("");
   const lastSentRef = useRef("");
 
-  // Prevent overlapping requests
-  const [isProcessing, setIsProcessing] = useState(false);
+  // *** USE CONTEXT HERE to get all necessary states and functions ***
+  const {
+    isVisible,
+    setIsVisible,
+    isLessonComplete,
+    setIsLessonComplete,
+    progress,
+    setProgress,
+    currentQuestion,
+    setCurrentQuestion,
+    correctAnswers,
+    setCorrectAnswers,
+    isPlaying,
+    isMuted,
+    botVolume,
+    speechSpeed,
+    botSpeech,
+    setBotSpeech,
+    botStatus,
+    setBotStatus,
+    speak,
+    stopTTS,
+    onRepeatMessage,
+    onTogglePlayPause,
+    onToggleMute,
+    onAdjustVolume,
+    onAdjustSpeed,
+  } = useControlPanel();
 
+  // Derived state for easier access from backend data
+  const lessonId = lessonDetails?._id;
+  const backendCorrectAnswersCount = lessonDetails?.mathQuestionsCount ?? 0;
+  const backendCurrentQuestionAttempts =
+    lessonDetails?.currentQuestionAttempts ?? 0;
 
-  const currentQuestion = topic.question || "";
-
-  // --- Cleanup & Back-Button Handling ---
+  // Sync backend-derived states with the context's internal states
   useEffect(() => {
-    const stopAll = () => {
-      // stop speech
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
-      setIsSpeaking(false);
-      setListening(false);
-      // stop recorder
-      recorderRef.current?.stopListening?.();
-    };
-    // handle browser back
-    window.addEventListener("popstate", stopAll);
-    return () => {
-      window.removeEventListener("popstate", stopAll);
-      stopAll();
-    };
-  }, []);
+    const calculatedProgress = (backendCorrectAnswersCount / 15) * 100;
+    setProgress(calculatedProgress);
+  }, [backendCorrectAnswersCount, setProgress]);
 
-  // --- Fetch existing conversation ---
   useEffect(() => {
-    async function fetchMessages() {
-      if (!lessonId) return;
-      try {
-        const { data } = await axios.get(
-          `${socketServerUrl}/lessons/${lessonId}/messages`,
-          { headers: { Authorization: `Bearer ${user?.accessToken}` } }
+    setCurrentQuestion(backendCorrectAnswersCount + 1);
+  }, [backendCorrectAnswersCount, setCurrentQuestion]);
+
+  useEffect(() => {
+    setCorrectAnswers(backendCorrectAnswersCount);
+  }, [backendCorrectAnswersCount, setCorrectAnswers]);
+
+  useEffect(() => {
+    setIsLessonComplete(backendCorrectAnswersCount >= 15);
+  }, [backendCorrectAnswersCount, setIsLessonComplete]);
+
+  // 1. Initialize Lesson (start new or resume existing)
+  useEffect(() => {
+    async function initializeLesson() {
+      console.log("initializeLesson: START");
+      if (!user?._id || !topic.subject) {
+        console.error(
+          "initializeLesson: User ID or topic subject not available. Redirecting to home."
         );
-        const raw = data.messages as Array<{ role: string; content: string }>;
-        const formatted = raw.slice(1).map((m) => ({
-          sender: m.role === "user" ? "user" : "bot",
-          text: m.content,
-        })) as { sender: "bot" | "user"; text: string }[];
-        setMessages(formatted);
+        navigate("/home");
+        return;
+      }
 
-        // Count correct answers from chat history
-        // Look for bot responses that indicate correct answers
-        const correctCount = formatted.filter((msg, index) => {
-          if (msg.sender === "bot" && index > 0) {
-            const text = msg.text;
-            // Hebrew phrases that indicate correct answers
-            return (
-              text.includes("נכון") ||
-              text.includes("מצוין") ||
-              text.includes("בדיוק") ||
-              text.includes("כל הכבוד") ||
-              text.includes("תשובה נכונה") ||
-              text.includes("מושלם") ||
-              text.includes("יפה מאוד") ||
-              text.includes("בול") ||
-              text.includes("לנו") ||
-              text.includes("צודק") ||
-              text.includes("הצלחת")
-            );
-          }
-          return false;
-        }).length;
+      try {
+        let lessonResponse;
+        if (initialLessonId) {
+          console.log(
+            `initializeLesson: Attempting to resume lesson with ID: ${initialLessonId}`
+          );
+          lessonResponse = await axios.post<LessonBackendData>(
+            `${socketServerUrl}/lessons/startNew/${initialLessonId}`,
+            { userId: user._id, subject: topic.subject },
+            { headers: { Authorization: `Bearer ${user.accessToken}` } }
+          );
+        } else {
+          console.log("initializeLesson: Attempting to start a new lesson.");
+          lessonResponse = await axios.post<LessonBackendData>(
+            `${socketServerUrl}/lessons/startNew`,
+            {
+              userId: user._id,
+              subject: topic.subject,
+              username: user.username,
+              grade: user.grade || "default_grade",
+              rank: user.rank || "default_rank",
+              sampleQuestions: [],
+            },
+            { headers: { Authorization: `Bearer ${user.accessToken}` } }
+          );
+        }
 
+        setLessonDetails(lessonResponse.data);
 
-          }
-          return acc;
-        }, 0);
-        setCorrectAnswersCount(correctCount);
-        setIsLessonComplete(correctCount >= 15);
+        if (!initialLessonId && lessonResponse.data._id) {
+          navigate(`/lessons/${lessonResponse.data._id}`, {
+            replace: true,
+            state: { topic: topic },
+          });
+        }
+
+        if (lessonResponse.data._id) {
+          const { data: historyData } = await axios.get(
+            `${socketServerUrl}/lessons/${lessonResponse.data._id}/messages`,
+            { headers: { Authorization: `Bearer ${user.accessToken}` } }
+          );
+          const raw = historyData.messages as Array<{
+            role: string;
+            content: string;
+          }>;
+          const formatted = raw
+            .filter((m) => m.role !== "system")
+            .map((m) => ({
+              sender: m.role === "user" ? "user" : "bot",
+              text: m.content,
+            })) as { sender: "bot" | "user"; text: string }[];
+          setMessages(formatted);
+        }
       } catch (err) {
-        console.error(err);
+        console.error("initializeLesson: Error during API calls.", err);
+        if (axios.isAxiosError(err)) {
+          console.error("Axios error response:", err.response?.data);
+        }
       } finally {
         setMessagesLoaded(true);
       }
     }
-    fetchMessages();
-  }, [lessonId, user?.accessToken]);
 
-  // --- Intro message ---
+    if (user?._id && topic.subject && !lessonDetails) {
+      initializeLesson();
+    }
+  }, [user, topic, initialLessonId, navigate, lessonDetails]);
+
+  // 2. Initial Intro Speech
   useEffect(() => {
     if (
       messagesLoaded &&
+      lessonDetails &&
       user?.username &&
       topic.subject &&
       !hasSpokenIntro
     ) {
-      const opening =
-        messages.length > 0
-          ? `שלום ${user.username}, שמח לראות שחזרת אליי! השיעור על ${topic.subject} ממשיך.`
-          : `שלום ${user.username}, שמח לראות אותך! היום נלמד על ${topic.subject}.`;
-      setMessages([{ sender: "bot", text: opening }]);
-      setBotSpeech(opening);
+      let openingMessageText = "";
+
+      if (messages.length > 0 && messages[0].sender === "bot") {
+        openingMessageText = messages[0].text;
+      } else {
+        openingMessageText = `שלום ${user.username}, שמח לראות אותך! היום נלמד על ${topic.subject}. מוכן להתחיל?`;
+        setMessages([{ sender: "bot", text: openingMessageText }]);
+      }
+
+      setBotSpeech(openingMessageText); // Update bot speech in context
+      speak(openingMessageText); // Use speak from context
       setHasSpokenIntro(true);
-      speak(opening);
     }
-  }, [messagesLoaded, user, topic, hasSpokenIntro, messages.length]);
+  }, [
+    messagesLoaded,
+    lessonDetails,
+    user,
+    topic,
+    hasSpokenIntro,
+    messages,
+    setBotSpeech,
+    speak,
+  ]);
 
-  // --- Start new lesson on server ---
-  useEffect(() => {
-    if (hasSpokenIntro && !lessonId && user?._id) {
-      axios
-        .post(
-          `${socketServerUrl}/lessons/start`,
-          { userId: user._id, subject: topic.subject },
-          { headers: { Authorization: `Bearer ${user?.accessToken}` } }
-        )
-        .then((r) => setLessonId(r.data.lessonId))
-        .catch(console.error);
-    }
-  }, [hasSpokenIntro, lessonId, user, topic]);
-
-
-   useEffect(() => {
-    if (!isLessonComplete) return;
-
-    axios
-      .get<Analytics>(`${socketServerUrl}/lessons/${lessonId}/analytics`)
-      .then((response) => {
-        // 3) Put the server’s data into your state
-        setAnalytics(response.data);
-      })
-      .catch(console.error);
-  }, [isLessonComplete, lessonId]);
-
-  // TTS with speed control
-
-  const speak = async (text: string) => {
-    // always stop anything first
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    recorderRef.current?.stopListening?.();
-    setListening(false);
-    setIsSpeaking(true);
-    setBotStatus("...מדבר");
-
-    try {
-       console.log("🔊 speak(): requesting TTS for text:", text);
-       const url1 = `${socketServerUrl}/api/tts`;
-        console.log("🔊 speak(): POSTing to", url1);
-        const res = await axios.post(
-        `${socketServerUrl}/api/tts`,
-        { text, lang: "he-IL", speed: speechSpeed },
-        { responseType: "arraybuffer" }
-      );
-      console.log("🔊 speak(): received audio, constructing blob");
-      const blob = new Blob([res.data], { type: "audio/mp3" });
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      audio.volume = botVolume / 100;
-      audio.playbackRate = speechSpeed; // Set playback speed
-      audioRef.current = audio;
-      console.log("🔊 speak(): playing audio");
-      setCurrentAudioElement(audio); // NEW: Set the audio element in state
-
-
-      await audio.play();
-      audio.onended = () => {
-        setIsSpeaking(false); // Set speaking to false when audio ends
-        setListening(true);
-        setBotStatus("..מקשיב");
-        setCurrentAudioElement(null); // NEW: Clear the audio element from state
-      };
-
-    } catch(err) {
-      console.error("❌ speak() error:", err);
-      setIsSpeaking(false);
-      setListening(false);
-      setBotStatus("עצור");
-      setCurrentAudioElement(null); // NEW: Clear the audio element from state
-    }
-  };
-
-  const stopTTS = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-
-      setIsSpeaking(false); // Set speaking to false when stopped
-      setListening(true);
-      setBotStatus("עצור");
-      setCurrentAudioElement(null); // NEW: Clear the audio element from state
-    }
-
-
-  const handleReturnToMain = () => {
-    stopTTS();
-    if (recorderRef.current) {
-          console.log("Calling stopListening...");
-
-      recorderRef.current.stopListening();
-    }
-    navigate("/home");
-  };
-
+  // Debounce transcript
   const handleTranscript = (t: string) => {
-    if (!listening || isSpeaking || isProcessing) return;
+    if (isMuted || isPlaying) return; // Use isMuted and isPlaying from context
     lastTranscriptRef.current = t;
     clearTimeout(silenceTimerRef.current!);
     silenceTimerRef.current = window.setTimeout(() => {
       const final = lastTranscriptRef.current.trim();
-      if (final) sendTranscript(final);
+      if (final) {
+        sendTranscript(final);
+      }
       lastTranscriptRef.current = "";
     }, 2000);
   };
 
-  const hebrewNumbers = [
-  "אפס","אחת","שניים","שתיים","שלוש","ארבע","חמש",
-  "שש","שבע","שמונה","תשע","עשר","אחת־עשרה",
-  // …add more if needed…
-];
-
-
-const numberWordPattern = new RegExp(
-  `(^|\\s)(${hebrewNumbers.join("|")})(\\s|$)`,
-  "i"
-);
-const hebrewNumberWords: Record<string, number> = {
-  "אחד": 1, "אחת": 1, "שניים": 2, "שתיים": 2,
-  "שלוש": 3, "ארבע": 4, "חמש": 5, "שש": 6,
-  "שבע": 7, "שמונה": 8, "תשע": 9, "עשר": 10,
-  "אחת עשרה": 11, "שתים עשרה": 12,
-  "עשרים": 20, "שלושים": 30
-};
-const fractionWords: Record<string, number> = {
-  "חצי": 1/2, "שליש": 1/3, "רבע": 1/4,
-  "שמינית": 1/8, "שמיניות": 1/8,
-};
-
-function parseHebrewFraction(phrase: string): number | null {
-  const parts = phrase.trim().split(" ");
-  if (parts.length === 2) {
-    const numerator = hebrewNumberWords[parts[0]];
-    const denominator = fractionWords[parts[1]];
-    if (numerator && denominator) return numerator * denominator;
-  }
-  return null;
-}
-const fractionWordPattern = new RegExp(
-  `\\b(${Object.keys(fractionWords).join("|")})\\b`,
-  "i"
-);
-
-function isHebrewDivision(text: string): boolean {
-  const words = text.trim().split(/\s+/);
-  const index = words.indexOf("חלקי");
-  if (index > 0 && index < words.length - 1) {
-    const numerator = hebrewNumberWords[words[index - 1]];
-    const denominator = hebrewNumberWords[words[index + 1]];
-    return !!(numerator && denominator);
-  }
-  return false;
-}
- const isMathQuestion = (text: string) =>
-  /\d/.test(text) ||                            // digits
-  /[+\-*/^]/.test(text) ||                      // operators
-  numberWordPattern.test(text) ||               // spelled-out numbers (your regex)
-  /\b(כמה|מה התשובה|פתור)\b/.test(text) ||     // math-related keywords
-  parseHebrewFraction(text) !== null || 
-  isHebrewDivision(text); // check for division phrases
-  
-  // detected fraction like "חמש שמיניות"
   // Send to chat
-const sendTranscript = async (input: string) => {
-  if (input === lastSentRef.current) return;
-  lastSentRef.current = input;
-        
-  setMessages((m) => [...m, { sender: "user", text: input }]);
-  setLastUserMessage(input);
-
-  try {
-    // 1) Send only { question: input }
-    const resp = await axios.post(
-      `${socketServerUrl}/lessons/${lessonId}/chat`,
-      { question: input },
-      { headers: { Authorization: `Bearer ${user?.accessToken}` } }
-    );
-
-    // 2) The back end now returns:
-    //    resp.data.answer        → a plain Hebrew string
-    //    resp.data.mathQuestionsCount  → updated count
-    //    resp.data.isCorrect     → true/false
-    const aiRaw: string = resp.data.answer;
-    const isCorrectFromServer: boolean = resp.data.isCorrect;
-    const updatedMathCount: number = resp.data.mathQuestionsCount;
-
-    // 3) Strip any stray “*” so TTS won’t read “כוכבית”
-    const aiClean = aiRaw.replace(/\*/g, "");
-
-    // 4) Push the cleaned AI reply into messages & TTS
-    setMessages((m) => [...m, { sender: "bot", text: aiClean }]);
-    setBotSpeech(aiClean);
-
-    // 5) If the server says isCorrect===true, bump your local correct counter
-    if (isCorrectFromServer) {
-      setCorrectAnswersCount((prev) => {
-        const newCount = prev + 1;
-        if (newCount >= 15) {
-          setIsLessonComplete(true);
-          console.log("Lesson completed! 🎉");
-        }
-        return newCount;
-      });
+  const sendTranscript = async (input: string) => {
+    if (!input.trim() || input === lastSentRef.current || !lessonId) {
+      console.warn(
+        "Skipping sendTranscript: empty input, duplicate, or no lessonId.",
+        { input, lastSentRef: lastSentRef.current, lessonId }
+      );
+      return;
     }
+    lastSentRef.current = input;
+    setMessages((m) => [...m, { sender: "user", text: input }]);
+    setBotStatus("חושב..."); // Update bot status via context
 
-    // 6) If you want to show mathQuestionsCount somewhere in your UI, update it now:
-    //    e.g. setLocalMathCount(updatedMathCount);
+    try {
+      const resp = await axios.post(
+        `${socketServerUrl}/lessons/${lessonId}/chat`,
+        {
+          question: input,
+          currentQuestionAttempts: lessonDetails?.currentQuestionAttempts,
+        },
+        { headers: { Authorization: `Bearer ${user?.accessToken}` } }
+      );
 
-    // 7) Finally, speak the cleaned text
-    speak(aiClean);
-  } catch (err) {
-    console.error(err);
-  }
-};
+      const {
+        answer,
+        mathQuestionsCount,
+        currentQuestionAttempts,
+        done,
+        strengths,
+        weaknesses,
+        tips,
+      } = resp.data;
 
+      setLessonDetails({
+        _id: lessonId,
+        mathQuestionsCount: mathQuestionsCount,
+        currentQuestionAttempts: currentQuestionAttempts,
+      });
 
+      if (done) {
+        setBotSpeech(answer); // Update bot speech in context
+        setMessages((m) => [...m, { sender: "bot", text: answer }]);
+        console.log("Lesson Completed! Summary:", {
+          strengths,
+          weaknesses,
+          tips,
+        });
+        speak(answer); // Use speak from context
+      } else {
+        setMessages((m) => [...m, { sender: "bot", text: answer }]);
+        setBotSpeech(answer); // Update bot speech in context
+        speak(answer); // Use speak from context
+      }
+    } catch (err) {
+      console.error("Error sending message to chat:", err);
+      if (axios.isAxiosError(err)) {
+        console.error("Axios chat error response:", err.response?.data);
+      }
+      const errorMessage = "אני מצטער, אירעה שגיאה. אנא נסה שוב.";
+      setMessages((m) => [...m, { sender: "bot", text: errorMessage }]);
+      setBotSpeech(errorMessage); // Update bot speech in context
+      speak(errorMessage); // Use speak from context
+    }
+  };
 
+  // Cleanup for silence timer
+  useEffect(() => () => clearTimeout(silenceTimerRef.current!), []);
+
+  // Scan callbacks
   const handleDrawingScan = async (canvas: HTMLCanvasElement) => {
-    if (isSpeaking || isProcessing) return;
-    setIsProcessing(true);
     try {
       const mathText = await scanMathFromCanvas(canvas);
       if (mathText) {
-        setLastUserMessage(mathText);
-        await sendTranscript(mathText);
-
+        sendTranscript(mathText);
       } else {
         console.warn("Tesseract: לא זוהה טקסט מתמטי");
       }
     } catch (err) {
       console.error("Math OCR failed:", err);
     } finally {
-      setResetKey((k) => k + 1);
-      setIsProcessing(false);
+      setResetKey((k) => k + 1); // Reset drawing panel
     }
   };
 
-  const handleKeyboardScan = async (displayedText: string) => {
-    if (!displayedText || isSpeaking || isProcessing) return;
-    setIsProcessing(true);
-    setLastUserMessage(displayedText);
-    await sendTranscript(displayedText);
-    setResetKey((k) => k + 1);
-    setIsProcessing(false);
+  const handleKeyboardScan = (displayedText: string) => {
+    if (!displayedText) return;
+    sendTranscript(displayedText);
+    setResetKey((k) => k + 1); // Reset keyboard panel
   };
 
-  // --- ControlPanel Handlers (play/pause, mute, volume, speed, repeat) ---
-
-  const handlePlayPause = () => {
-    const audio = audioRef.current;
-    if (isSpeaking && audio) {
-      audio.pause();
-      setIsSpeaking(false);
-      setBotStatus("עצור");
-      setCurrentAudioElement(null); // NEW: Clear on pause
-      return;
+  // This function is passed to the ControlPanelProvider for navigation
+  // and will be used by ControlPanel via its props.
+  const handleReturnToMainActual = useCallback(() => {
+    stopTTS(); // Stop Text-to-Speech (from context)
+    if (recorderRef.current) {
+      recorderRef.current.stopListening(); // Call stopListening method from RealTimeRecorder
     }
+    navigate("/home");
+  }, [stopTTS, navigate]);
 
-    if (
-      !isSpeaking &&
-      audio &&
-      audio.currentTime > 0 &&
-      audio.currentTime < audio.duration
-    ) {
-      audio.play();
-      setIsSpeaking(true);
-      setBotStatus("...מדבר");
-      setListening(false);
-      setCurrentAudioElement(audio); // NEW: Set on play
-      return;
-    }
-    setListening((l) => {
-      const next = !l;
-      setBotStatus(next ? "..מקשיב" : "עצור");
-      return next;
-    });
-  };
-
-  const handleMute = () => {
-    setListening((l) => !l);
-    setBotStatus(listening ? "עצור" : "..מקשיב");
-  };
-
-  const handleAdjustVolume = () => {
-    const next =
-      botVolume === 100 ? 60 : botVolume === 60 ? 30 : botVolume === 30 ? 0 : 100;
-    setBotVolume(next);
-    if (audioRef.current) audioRef.current.volume = next / 100;
-  };
-
-
-  const handleAdjustSpeed = () => {
-    const speeds = [0.5, 1, 1.25, 1.5, 2];
-    const currentIndex = speeds.indexOf(speechSpeed);
-    const nextIndex = (currentIndex + 1) % speeds.length;
-    const nextSpeed = speeds[nextIndex];
-    setSpeechSpeed(nextSpeed);
-
-    if (audioRef.current) {
-      audioRef.current.playbackRate = nextSpeed;
-    }
-  };
-
-  const handleRepeat = () => {
-    if (isSpeaking) return;
-    if (audioRef.current) {
-      audioRef.current.currentTime = 0;
-      audioRef.current.playbackRate = speechSpeed;
-      audioRef.current.play();
-      setIsSpeaking(true);
-      setListening(false);
-      setBotStatus("...מדבר");
-      setCurrentAudioElement(audioRef.current); // NEW: Set on repeat
-    } else {
-      speak(botSpeech);
-    }
-  };
-
-  const progressPercentage = (correctAnswersCount / 15) * 100;
+  // Render loading state if messages haven't been loaded yet
+  if (!messagesLoaded) {
+    return <div className="loading-container">טוען שיעור...</div>;
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-sky-200 to-purple-100 p-4 flex flex-col items-center justify-center">
-      {/* Toggle Button */}
-      <div className="fixed top-4 right-4 z-50">
+    <div className="learning-session-container">
+      <button
+        className="return-home-button"
+        onClick={handleReturnToMainActual}
+        title="Return to Home"
+      >
+        <img src="/logo.png" alt="MathVenture Logo" className="logo-image" />
+      </button>
+      {/* <div className="toggle-button-fixed">
         <ToggleControlButton
-          isOpen={controlsOpen}
-          onClick={() => setControlsOpen((o) => !o)}
+          isOpen={isVisible} // From context
+          onClick={() => setIsVisible(!isVisible)} // From context
         />
-      </div>
+      </div> */}
 
-      {/* Control Panel */}
-      {controlsOpen && (
-        <div className="w-full max-w-3xl mb-4">
-          <ControlPanel
-            progress={progressPercentage}
-            currentQuestion={correctAnswersCount + 1}
-            correctAnswers={correctAnswersCount}
-            isLessonComplete={isLessonComplete}
-            isVisible
-            isPlaying={isSpeaking}
-            isMuted={!listening}
-            botVolume={botVolume}
-            speechSpeed={speechSpeed}
-            onTogglePlayPause={handlePlayPause}
-            onToggleMute={handleMute}
-            onAdjustVolume={handleAdjustVolume}
-            onAdjustSpeed={handleAdjustSpeed}
-            onReturnToMain={handleReturnToMain}
-            onRepeatMessage={handleRepeat}
-          />
-        </div>
-      )}
+      {/* Pass all context values as props to ControlPanel */}
+      <ControlPanel
+        progress={progress}
+        currentQuestion={currentQuestion}
+        correctAnswers={correctAnswers}
+        isLessonComplete={isLessonComplete}
+        isVisible={isVisible}
+        isPlaying={isPlaying}
+        isMuted={isMuted}
+        botVolume={botVolume}
+        speechSpeed={speechSpeed}
+        onTogglePlayPause={onTogglePlayPause}
+        onAdjustVolume={onAdjustVolume}
+        onAdjustSpeed={onAdjustSpeed}
+        onToggleMute={onToggleMute}
+        onReturnToMain={handleReturnToMainActual} // Pass the actual handler
+        onRepeatMessage={onRepeatMessage}
+      />
 
-      {/* Main Content */}
-      <div className="w-full max-w-3xl flex gap-6 flex-col md:flex-row mb-4">
-        {/* Left Panel */}
-        <div className="flex-1 bg-white rounded-3xl p-6 shadow-lg flex flex-col items-center">
-          <div className="bg-gradient-to-r from-blue-400 to-purple-400 rounded-full px-8 py-3 mb-6 font-bold text-xl w-full text-white relative flex items-center">
+      <div className="main-content-panels">
+        <div className="bot-status-panel">
+          <div className="bot-status-display">
             <SpeakingIndicator
-              isSpeaking={isSpeaking}
+              isSpeaking={isPlaying}
               audioElement={currentAudioElement}
-            />{" "}
-            {/* Pass audioElement */}
-            <span className="flex-grow text-right">{botStatus}</span>
-          </div>
+            />
+            {botStatus}
+          </div>{" "}
+          {/* From context */}
           <Avatar />
-          <div className="bg-blue-50 rounded-2xl p-4 mb-6 text-right w-full border-2 border-blue-100">
-            {botSpeech}
-          </div>
-          <div className="bg-yellow-50 rounded-2xl p-4 mb-6 text-right w-full border-2 border-yellow-200">
-            {lastUserMessage}
+          <div className="bot-speech-display">{botSpeech}</div>{" "}
+          {/* From context */}
+          <div className="current-attempts-display">
+            מספר ניסיונות בשאלה זו: {backendCurrentQuestionAttempts}{" "}
+            {/* Still from local lessonDetails state */}
           </div>
           <button
             onClick={() => setIsTranscriptOpen(true)}
-            className="w-full bg-indigo-500 text-white font-bold py-3 px-6 rounded-xl shadow-md"
+            className="show-transcript-button"
           >
             הצג תמלול שיחה
           </button>
         </div>
-
-        {/* Right Panel */}
-        <div className="flex-1 bg-white rounded-3xl p-6 shadow-lg flex flex-col">
-          <div className="flex mb-4">
+        <div className="input-panel">
+          <div className="tab-buttons-container">
             <button
-              className={`flex-1 py-3 px-6 rounded-l-full font-bold ${
+              className={`tab-button ${
                 activeTab === "draw"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-500"
+                  ? "tab-button-active"
+                  : "tab-button-inactive"
               }`}
               onClick={() => setActiveTab("draw")}
+              disabled={isLessonComplete} // From context
             >
               ציור
             </button>
             <button
-              className={`flex-1 py-3 px-6 rounded-r-full font-bold ${
+              className={`tab-button ${
                 activeTab === "keyboard"
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 text-gray-500"
+                  ? "tab-button-active"
+                  : "tab-button-inactive"
               }`}
               onClick={() => setActiveTab("keyboard")}
+              disabled={isLessonComplete} // From context
             >
               מחשבון
             </button>
           </div>
-          {activeTab === "draw" ? (
+          {isLessonComplete ? ( // From context
+            <div className="lesson-complete-message">
+              כל הכבוד! סיימת את השיעור בהצלחה!
+            </div>
+          ) : activeTab === "draw" ? (
             <DrawingPanel key={resetKey} onScan={handleDrawingScan} />
           ) : (
             <KeyboardPanel key={resetKey} onScan={handleKeyboardScan} />
@@ -593,11 +444,9 @@ const sendTranscript = async (input: string) => {
         </div>
       </div>
 
-      {/* Recorder & Transcript Modal */}
-
       <RealTimeRecorder
         ref={recorderRef}
-        micMuted={!listening}
+        micMuted={isMuted || isLessonComplete || isPlaying} // Use isMuted and isPlaying from context
         onTranscript={handleTranscript}
       />
       {isTranscriptOpen && (
@@ -607,5 +456,28 @@ const sendTranscript = async (input: string) => {
         />
       )}
     </div>
+  );
+}
+
+// The main LearningSession export that wraps LearningSessionContent with the provider
+export default function LearningSession() {
+  const navigate = useNavigate();
+  const recorderRef = useRef<any>(null); // Still need this ref for the recorder
+
+  // This function is passed to the ControlPanelProvider
+  const handleReturnToMainForProvider = useCallback(() => {
+    // This is the function that the ControlPanel will eventually call via its props.
+    // It's passed into the provider, which then makes it available via the context,
+    // and finally LearningSessionContent extracts it from context to pass as a prop to ControlPanel.
+    if (recorderRef.current) {
+      recorderRef.current.stopListening();
+    }
+    navigate("/home");
+  }, [navigate]);
+
+  return (
+    <ControlPanelProvider onReturnToMain={handleReturnToMainForProvider}>
+      <LearningSessionContent />
+    </ControlPanelProvider>
   );
 }

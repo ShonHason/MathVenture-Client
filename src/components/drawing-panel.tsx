@@ -4,6 +4,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { Maximize, Minimize, Scan, RefreshCw } from "lucide-react";
+import FullScreenNotebook from "./FullScreenNotebook";
 
 interface DrawingPanelProps {
   onScan: (canvas: HTMLCanvasElement) => void;
@@ -191,44 +192,17 @@ export default function DrawingPanel({ onScan }: DrawingPanelProps) {
       </div>
 
       {isFullscreen && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-5xl h-[85vh] flex flex-col">
-            <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white p-4 flex justify-between items-center">
-              <h2 className="text-xl">מצב ציור מורחב</h2>
-              <button onClick={toggleFullscreen}>
-                <Minimize className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="flex-1 p-6 bg-blue-50 rounded-xl m-4 border-2 border-blue-100 overflow-hidden">
-              <canvas
-                ref={fullscreenCanvasRef}
-                width={800}
-                height={800}
-                className="w-full h-full cursor-crosshair rounded-lg"
-                onMouseDown={startDrawing}
-                onMouseMove={draw}
-                onMouseUp={stopDrawing}
-                onMouseLeave={stopDrawing}
-              />
-            </div>
-            <div className="p-4 bg-gray-50 flex justify-center gap-6">
-              <button
-                onClick={handleScanClick}
-                className="bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 px-8 rounded-xl flex items-center gap-2"
-              >
-                <Scan className="h-5 w-5" />
-                <span>סריקה</span>
-              </button>
-              <button
-                onClick={handleReset}
-                className="bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 px-8 rounded-xl flex items-center gap-2"
-              >
-                <RefreshCw className="h-5 w-5" />
-                <span>איפוס</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        <FullScreenNotebook
+          onClose={toggleFullscreen}
+          onScan={handleScanClick}
+          onReset={handleReset}
+          canvasRef={fullscreenCanvasRef as React.RefObject<HTMLCanvasElement>}
+          onMouseDown={startDrawing}
+          onMouseMove={draw}
+          onMouseUp={stopDrawing}
+          onMouseLeave={stopDrawing}
+          onReturnToMain={toggleFullscreen}
+        />
       )}
     </>
   );
