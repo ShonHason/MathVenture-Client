@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
+
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import DrawingPanel from "../components/drawing-panel";
@@ -28,6 +29,9 @@ interface LessonBackendData {
   mathQuestionsCount: number;
   currentQuestionAttempts: number;
 }
+import { l } from "framer-motion/dist/types.d-CtuPurYT";
+import { finishLessonFunction } from "../services/lessons_api";
+
 
 type LocationState = {
   state: {
@@ -35,6 +39,27 @@ type LocationState = {
     lessonId?: string;
   };
 };
+
+
+interface AIResponse {
+  text: string;
+  mathexpression?: string; 
+  counter?: number;       
+}
+interface Analytics {
+  totalQuestions: number;
+  correctAnswers: number;
+  accuracyPct: number;
+  avgResponseTimeMs: number;
+  logs: Array<{
+    question: string;
+    questionTime: string; // ISO string from the server
+    answer: string;
+    answerTime: string; // ISO string from the server
+    isCorrect: boolean;
+    responseTimeMs: number;
+  }>;
+}
 
 // This component will contain the actual session logic and consume the context
 function LearningSessionContent() {
@@ -52,11 +77,20 @@ function LearningSessionContent() {
   const [messages, setMessages] = useState<
     { sender: "bot" | "user"; text: string }[]
   >([]);
+
+  const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [messagesLoaded, setMessagesLoaded] = useState(false);
   const [hasSpokenIntro, setHasSpokenIntro] = useState(false);
   const [isTranscriptOpen, setIsTranscriptOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"draw" | "keyboard">("draw");
   const [resetKey, setResetKey] = useState(0);
+  const [oldExp, setoldExp] = useState("");
+  const [newExp, setnewExp] = useState("");
+  const [questionCounter, setQuestionCounter] = useState(0);
+  const [isLessonComplete, setIsLessonComplete] = useState(false);
+ 
+
+  const [lastUserMessage, setLastUserMessage] = useState<string>("");
   const [currentAudioElement, setCurrentAudioElement] =
     useState<HTMLAudioElement | null>(null);
   const silenceTimerRef = useRef<number | null>(null);
@@ -112,6 +146,43 @@ function LearningSessionContent() {
     setCorrectAnswers(backendCorrectAnswersCount);
   }, [backendCorrectAnswersCount, setCorrectAnswers]);
 
+  const currentQuestion = topic.question || "";
+
+  const checkIfOver = async () => {
+    
+    console.log("Checking if lesson is over for lessonId:",lessonId);    
+    try {
+      
+     const { data } = await axios.get(
+  `${socketServerUrl}/lessons/isOver/${lessonId}`,
+  {
+    headers: { Authorization: `JWT ${user?.accessToken}` },
+  }
+);
+      setQuestionCounter(data.size)
+      console.log("checkIfOver response:", data);
+      console.log("isfinished:", isLessonComplete);
+      if (data.isOver) {
+        setIsLessonComplete(true);
+      }
+    } catch (err) {
+      console.error("Error checking isOver:", err);
+    }
+  };
+  useEffect(() => {
+    checkIfOver();
+  }, []);
+
+  useEffect(() => {
+    // הפונקציה הזו תופעל רק ברגע ש־isLessonComplete יהפוך ל־true
+    if (isLessonComplete) {
+      if (lessonId && user) {
+        finishLessonFunction(lessonId, user);
+      }
+    }
+  }, [isLessonComplete]);
+
+  // --- Cleanup & Back-Button Handling ---
   useEffect(() => {
     setIsLessonComplete(backendCorrectAnswersCount >= 15);
   }, [backendCorrectAnswersCount, setIsLessonComplete]);
@@ -169,18 +240,22 @@ function LearningSessionContent() {
             `${socketServerUrl}/lessons/${lessonResponse.data._id}/messages`,
             { headers: { Authorization: `Bearer ${user.accessToken}` } }
           );
-          const raw = historyData.messages as Array<{
-            role: string;
-            content: string;
-          }>;
-          const formatted = raw
-            .filter((m) => m.role !== "system")
-            .map((m) => ({
-              sender: m.role === "user" ? "user" : "bot",
-              text: m.content,
-            })) as { sender: "bot" | "user"; text: string }[];
-          setMessages(formatted);
-        }
+
+        const raw = data.messages as Array<{
+          role: string;
+          content: string;
+        }>;
+        const formatted = raw.slice(1).map((m) => ({
+          sender: m.role === "user" ? "user" : "bot",
+          text: m.content,
+        })) as { sender: "bot" | "user"; text: string }[];
+        setMessages(formatted);
+
+        // Count correct answers from chat history
+        //axios function to get corrcet count.. questionlog.length
+        // Look for bot responses that indicate correct answers
+       
+        
       } catch (err) {
         console.error("initializeLesson: Error during API calls.", err);
         if (axios.isAxiosError(err)) {
@@ -205,18 +280,106 @@ function LearningSessionContent() {
       topic.subject &&
       !hasSpokenIntro
     ) {
-      let openingMessageText = "";
 
-      if (messages.length > 0 && messages[0].sender === "bot") {
-        openingMessageText = messages[0].text;
-      } else {
-        openingMessageText = `שלום ${user.username}, שמח לראות אותך! היום נלמד על ${topic.subject}. מוכן להתחיל?`;
-        setMessages([{ sender: "bot", text: openingMessageText }]);
-      }
-
-      setBotSpeech(openingMessageText); // Update bot speech in context
-      speak(openingMessageText); // Use speak from context
+      const opening =
+        messages.length > 0
+          ? `שלום ${user.username}, שמח לראות שחזרת אליי! השיעור על ${topic.subject} ממשיך.`
+          : `שלום ${user.username}, שמח לראות אותך! היום נלמד על ${topic.subject}.`;
+      setMessages([{ sender: "bot", text: opening }]);
+      setBotSpeech(opening);
       setHasSpokenIntro(true);
+      speak(opening);
+    }
+  }, [messagesLoaded, user, topic, hasSpokenIntro, messages.length]);
+
+  // --- Start new lesson on server ---
+  useEffect(() => {
+    if (hasSpokenIntro && !lessonId && user?._id) {
+      axios
+        .post(
+          `${socketServerUrl}/lessons/start`,
+          { userId: user._id, subject: topic.subject },
+          { headers: { Authorization: `Bearer ${user?.accessToken}` } }
+        )
+        .then((r) => setLessonId(r.data.lessonId))
+        .catch(console.error);
+    }
+  }, [hasSpokenIntro, lessonId, user, topic]);
+
+  useEffect(() => {
+    if (!isLessonComplete) return;
+
+    axios
+      .get<Analytics>(`${socketServerUrl}/lessons/${lessonId}/analytics`)
+      .then((response) => {
+        // 3) Put the server’s data into your state
+        setAnalytics(response.data);
+      })
+      .catch(console.error);
+  }, [isLessonComplete, lessonId]);
+
+  // TTS with speed control
+  const speak = async (text: string) => {
+    // always stop anything first
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    recorderRef.current?.stopListening?.();
+    setListening(false);
+    setIsSpeaking(true);
+    setBotStatus("...מדבר");
+
+    try {
+      console.log("🔊 speak(): requesting TTS for text:", text);
+      const res = await axios.post(
+        `${socketServerUrl}/api/tts`,
+        { text, lang: "he-IL", speed: speechSpeed },
+        { responseType: "arraybuffer" }
+      );
+      console.log("🔊 speak(): received audio, constructing blob");
+      const blob = new Blob([res.data], { type: "audio/mp3" });
+      const url = URL.createObjectURL(blob);
+      const audio = new Audio(url);
+      audio.volume = botVolume / 100;
+      audio.playbackRate = speechSpeed; // Set playback speed
+      audioRef.current = audio;
+      console.log("🔊 speak(): playing audio");
+      setCurrentAudioElement(audio); // NEW: Set the audio element in state
+
+      await audio.play();
+      audio.onended = () => {
+        setIsSpeaking(false); // Set speaking to false when audio ends
+        setListening(true);
+        setBotStatus("..מקשיב");
+        setCurrentAudioElement(null); // NEW: Clear the audio element from state
+      };
+    } catch (err) {
+      console.error("❌ speak() error:", err);
+      setIsSpeaking(false);
+      setListening(false);
+      setBotStatus("עצור");
+      setCurrentAudioElement(null); // NEW: Clear the audio element from state
+    }
+  };
+
+  const stopTTS = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+
+      setIsSpeaking(false); // Set speaking to false when stopped
+      setListening(true);
+      setBotStatus("עצור");
+      setCurrentAudioElement(null); // NEW: Clear the audio element from state
+    }
+  }; // <--- תוספת הסוגר החסרה כאן
+
+  const handleReturnToMain = () => {
+    stopTTS();
+    if (recorderRef.current) {
+      console.log("Calling stopListening...");
+      recorderRef.current.stopListening();
     }
   }, [
     messagesLoaded,
@@ -243,80 +406,188 @@ function LearningSessionContent() {
     }, 2000);
   };
 
-  // Send to chat
-  const sendTranscript = async (input: string) => {
-    if (!input.trim() || input === lastSentRef.current || !lessonId) {
-      console.warn(
-        "Skipping sendTranscript: empty input, duplicate, or no lessonId.",
-        { input, lastSentRef: lastSentRef.current, lessonId }
-      );
-      return;
-    }
-    lastSentRef.current = input;
-    setMessages((m) => [...m, { sender: "user", text: input }]);
-    setBotStatus("חושב..."); // Update bot status via context
 
+
+
+  const digitPattern = /\d/; 
+  const operatorPattern = /[+\-*/^%]/; // סימני חיבור, חיסור, כפל, חילוק, חזקה, אחוז
+const numberWordsPattern = /\b(אפס|אחד|שתיים|שלוש|ארבע|חמש|שש|שבע|שמונה|תשע|עשר|עשרים|שלושים|ארבעים|חמישים|שישים|שבעים|שמונים|תשעים|מאה|אלף|מיליון)\b/;
+const fractionWordsPattern = /\b(חצי|רבע|שליש|שמינית|חמישית|עשירית)\b/;
+const mathOpWordsPattern = /\b(כפול|חלק|חילק|חיבור|חיסור|חזקת|שורש|גדול מ|קטן מ|שווה ל)\b/;
+const questionWordsPattern = /\b(כמה|מה התשובה|פתור|חשב)\b/;
+const slashFractionPattern = /\d+\s*\/\s*\d+/; // צורה “3/4” או “  12/ 5 ”
+
+// הפונקציה עצמה
+ function isMathRelated(text: string): boolean {
+  // ננטרל קידוד אותיות מיוחדות ונמיר לרישיות לצורך בדיקות insensitive
+  const t = text.normalize("NFC");
+
+  // 1) ספרה מכל כתב (Unicode digit)
+  if (digitPattern.test(t)) return true;
+
+  // 2) סימני פעולה חשבונית
+  if (operatorPattern.test(t)) return true;
+
+
+  // 4) תבנית “X/Y”
+  if (slashFractionPattern.test(t)) return true;
+
+  // 5) מילות מספר במילים
+  if (numberWordsPattern.test(t)) return true;
+
+  // 6) מילות שבר
+  if (fractionWordsPattern.test(t)) return true;
+
+  // 7) מילות פעולה חישובית
+  if (mathOpWordsPattern.test(t)) return true;
+
+  // 8) מילות שאלה מתמטית
+  if (questionWordsPattern.test(t)) return true;
+
+  return false;
+}
+
+
+  const sendTranscript = async (input: string) => {
+    if (input === lastSentRef.current) return;
+    lastSentRef.current = input;
+  
+    // 1) Append the user’s message
+    setMessages((m) => [...m, { sender: "user", text: input }]);
+    setLastUserMessage(input);
+  console.log("addQuestionLog is called");
+  console.log("isMathRelated: ", isMathRelated(input), "\nnewExp: ", newExp , "\noldExp: ", oldExp);
+
+    if (newExp && isMathRelated(input) && oldExp != newExp) {
+      setQuestionCounter((prev) => prev + 1);
+      console.log("addQustionLog is working!!!!!!!");
+      const response = await axios.put(
+        `${socketServerUrl}/lessons/addQustionLog`,
+        { lessonId :lessonId, mathExp: newExp, text :input },
+      
+        { headers: { Authorization: `JWT ${user?.accessToken}` } }
+      );
+    }
+    console.log("addAnswer is called");
+    console.log("oldExp: ", oldExp , "\nneed to be equal newExp: ", newExp , "\nisMathRelated: ", (isMathRelated(input) || /נכונה|נכון|לא נכון|לא נכונה/.test(input)) );
+   
+    if (oldExp === newExp && (isMathRelated(input) || /נכונה|נכון|לא נכון|לא נכונה/.test(input)) && oldExp !== "") {
+      console.log("addAnswer is working!!!!!!!!!");
+      setQuestionCounter((prev) => prev);
+      const response = await axios.put(
+        `${socketServerUrl}/lessons/addAnswer`,
+        { lessonId :lessonId,mathExp: newExp, text: input },
+        { headers: { Authorization: `JWT ${user?.accessToken}` } }
+      );
+    }
     try {
       const resp = await axios.post(
         `${socketServerUrl}/lessons/${lessonId}/chat`,
-        {
-          question: input,
-          currentQuestionAttempts: lessonDetails?.currentQuestionAttempts,
-        },
+        { question: input },
         { headers: { Authorization: `Bearer ${user?.accessToken}` } }
       );
+   
+      
+      // 2) Extract fields from server response
+      const aiRaw: string = resp.data.answer;                  // full AI response (may include Markdown fences + undefined fields)
+      const isCorrectFromServer: boolean = resp.data.isCorrect;
+      console.log("AI raw response:", aiRaw);
+      console.log("isCorrectFromServer:", isCorrectFromServer);
+  
+      // 3) Find the JSON braces
+      const firstBrace = aiRaw.indexOf("{");
+      const lastBrace = aiRaw.lastIndexOf("}");
+      let onlyText: string;
+      let mathExpression: string | undefined;
+      let counter: number | undefined;
+  
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        // 4) Extract exactly from “{” to “}”
+        let jsonOnly = aiRaw.slice(firstBrace, lastBrace + 1);
+  
+        // 5) Remove any Markdown fences (```json … ```)
+        //    If it starts with “```”, drop that line.
+        if (jsonOnly.startsWith("```")) {
+          const firstLineEnd = jsonOnly.indexOf("\n");
+          if (firstLineEnd !== -1) {
+            jsonOnly = jsonOnly.slice(firstLineEnd + 1);
+          }
+        }
+        //    If it ends with “```” at the very end, strip it too.
+        if (jsonOnly.endsWith("```")) {
+          jsonOnly = jsonOnly.slice(0, -3).trim();
+        }
+  
+        // 6) Remove any `"mathexpression": undefined` or `"counter": undefined`, plus dangling commas
+        jsonOnly = jsonOnly
+          // remove `"mathexpression": undefined` (and optional comma)
+          .replace(/"mathexpression"\s*:\s*undefined\s*,?/, "")
+          // remove `"counter": undefined` (and optional comma)
+          .replace(/"counter"\s*:\s*undefined\s*,?/, "")
+          // remove any trailing comma before closing brace: `{ "text": "...", }` → `{ "text": "..." }`
+          .replace(/,\s*}/, "}");
+  
+        // 7) Now attempt to parse the cleaned JSON
+        try {
+          const parsed = JSON.parse(jsonOnly) as AIResponse;
+          console.log("Parsed AI response:", parsed);
+  
+          onlyText = parsed.text;
+          mathExpression = parsed.mathexpression;
+          counter = parsed.counter;
+          console.log("addBotResponse is called");
+          console.log("newExp: ",newExp , "\nisMathRelated(onlyText): ", isMathRelated(onlyText));
+          if(newExp && isMathRelated(onlyText)) {
+            console.log("addBotResponse is working!!!!!!!!!");
+            const response = await axios.put(
+              `${socketServerUrl}/lessons/addBotResponse`,
+              { lessonId :lessonId,mathExp: newExp, botResponse: onlyText },
+              { headers: { Authorization: `JWT ${user?.accessToken}` } }
+            ) }
 
-      const {
-        answer,
-        mathQuestionsCount,
-        currentQuestionAttempts,
-        done,
-        strengths,
-        weaknesses,
-        tips,
-      } = resp.data;
+          if(mathExpression) {
+            setoldExp(newExp);
+            setnewExp(mathExpression);
+            console.log("set new mathExpression:", mathExpression);
+            console.log("set new counter:", counter);
+          }
+         
+          
 
-      setLessonDetails({
-        _id: lessonId,
-        mathQuestionsCount: mathQuestionsCount,
-        currentQuestionAttempts: currentQuestionAttempts,
-      });
-
-      if (done) {
-        setBotSpeech(answer); // Update bot speech in context
-        setMessages((m) => [...m, { sender: "bot", text: answer }]);
-        console.log("Lesson Completed! Summary:", {
-          strengths,
-          weaknesses,
-          tips,
-        });
-        speak(answer); // Use speak from context
+        } catch (e) {
+          console.error("Failed to parse cleaned JSON substring:", e);
+          // fallback: treat entire aiRaw as plain Hebrew feedback
+          onlyText = aiRaw;
+        }
       } else {
-        setMessages((m) => [...m, { sender: "bot", text: answer }]);
-        setBotSpeech(answer); // Update bot speech in context
-        speak(answer); // Use speak from context
+        // No valid “{…}” found → treat entire aiRaw as plain text
+        onlyText = aiRaw;
       }
+  
+      // 8) Strip stray “*” so TTS won’t read “כוכבית”
+      const aiClean = onlyText.replace(/\*/g, "");
+      
+  
+      // 9) Push the bot’s cleaned text into messages (so it appears in chat)
+      setMessages((m) => [...m, { sender: "bot", text: aiClean }]);
+      setBotSpeech(aiClean);
+  
+      //check if the lesson is over
+     checkIfOver();
+  
+      // 11) Finally, speak only the cleaned “text” field.
+      //     (If you want to append “ מוכן לשאלה הזו?”, do it here.)
+      speak(aiClean);
     } catch (err) {
-      console.error("Error sending message to chat:", err);
-      if (axios.isAxiosError(err)) {
-        console.error("Axios chat error response:", err.response?.data);
-      }
-      const errorMessage = "אני מצטער, אירעה שגיאה. אנא נסה שוב.";
-      setMessages((m) => [...m, { sender: "bot", text: errorMessage }]);
-      setBotSpeech(errorMessage); // Update bot speech in context
-      speak(errorMessage); // Use speak from context
+      console.error(err);
     }
   };
-
-  // Cleanup for silence timer
-  useEffect(() => () => clearTimeout(silenceTimerRef.current!), []);
-
-  // Scan callbacks
   const handleDrawingScan = async (canvas: HTMLCanvasElement) => {
     try {
       const mathText = await scanMathFromCanvas(canvas);
       if (mathText) {
         sendTranscript(mathText);
+
       } else {
         console.warn("Tesseract: לא זוהה טקסט מתמטי");
       }
@@ -339,6 +610,7 @@ function LearningSessionContent() {
     stopTTS(); // Stop Text-to-Speech (from context)
     if (recorderRef.current) {
       recorderRef.current.stopListening(); // Call stopListening method from RealTimeRecorder
+
     }
     navigate("/home");
   }, [stopTTS, navigate]);
@@ -362,26 +634,30 @@ function LearningSessionContent() {
           isOpen={isVisible} // From context
           onClick={() => setIsVisible(!isVisible)} // From context
         />
-      </div> */}
+      </div>
 
-      {/* Pass all context values as props to ControlPanel */}
-      <ControlPanel
-        progress={progress}
-        currentQuestion={currentQuestion}
-        correctAnswers={correctAnswers}
-        isLessonComplete={isLessonComplete}
-        isVisible={isVisible}
-        isPlaying={isPlaying}
-        isMuted={isMuted}
-        botVolume={botVolume}
-        speechSpeed={speechSpeed}
-        onTogglePlayPause={onTogglePlayPause}
-        onAdjustVolume={onAdjustVolume}
-        onAdjustSpeed={onAdjustSpeed}
-        onToggleMute={onToggleMute}
-        onReturnToMain={handleReturnToMainActual} // Pass the actual handler
-        onRepeatMessage={onRepeatMessage}
-      />
+      {/* Control Panel */}
+      {controlsOpen && (
+        <div className="w-full max-w-3xl mb-4">
+          <ControlPanel
+            progress={progressPercentage}
+            currentQuestion={questionCounter}
+            correctAnswers={questionCounter}
+            isLessonComplete={isLessonComplete}
+            isVisible
+            isPlaying={isSpeaking}
+            isMuted={!listening}
+            botVolume={botVolume}
+            speechSpeed={speechSpeed}
+            onTogglePlayPause={handlePlayPause}
+            onToggleMute={handleMute}
+            onAdjustVolume={handleAdjustVolume}
+            onAdjustSpeed={handleAdjustSpeed}
+            onReturnToMain={handleReturnToMain}
+            onRepeatMessage={handleRepeat}
+          />
+        </div>
+      )}
 
       <div className="main-content-panels">
         <div className="bot-status-panel">
@@ -444,6 +720,8 @@ function LearningSessionContent() {
         </div>
       </div>
 
+
+     
       <RealTimeRecorder
         ref={recorderRef}
         micMuted={isMuted || isLessonComplete || isPlaying} // Use isMuted and isPlaying from context

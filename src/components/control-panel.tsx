@@ -111,7 +111,7 @@ export default function ControlPanel({
                   >
                     {isLessonComplete
                       ? "🎉 השיעור הושלם!"
-                      : `${currentQuestion} שאלה מספר`}
+                      : `${currentQuestion+1} שאלה מספר`}
                   </span>
                 </div>
               </div>
@@ -124,7 +124,7 @@ export default function ControlPanel({
               >
                 {isLessonComplete
                   ? "כל הכבוד! סיימת את השיעור"
-                  : `שאלה נוכחית: ${currentQuestion + 1}`}
+                  : `שאלה באה: ${currentQuestion + 2}`}
               </div>
             </div>
           </div>

@@ -172,7 +172,10 @@ const checkTokenExp = async () => {
     console.error("Error checking token expiration", error);
   }
 };
+
+checkTokenExp(); 
 setInterval(checkTokenExp, 100000);
+
 
 // Delete user
 export const deleteUser = async () => {
