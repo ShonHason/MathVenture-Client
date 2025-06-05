@@ -7,7 +7,7 @@ import MathMiniGame from "./MathMiniGame";
 
 const ProfilePage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
-    "details" | "personal-area" | "delete-account" | "math-mini-game"
+    "details" | "personal-area" | "delete-account" | "emails"
   >("details");
 
   return (
@@ -21,10 +21,10 @@ const ProfilePage: React.FC = () => {
           פרטים אישיים
         </div>
         <div
-          className={`tab ${activeTab === "math-mini-game" ? "active" : ""}`}
-          onClick={() => setActiveTab("math-mini-game")}
+          className={`tab ${activeTab === "emails" ? "active" : ""}`}
+          onClick={() => setActiveTab("emails")}
         >
-          🎮 משחקים חינוכיים
+         ✉️ מיילים ✉️
         </div>
         <div
           className={`tab ${activeTab === "delete-account" ? "active" : ""}`}
@@ -36,7 +36,7 @@ const ProfilePage: React.FC = () => {
 
       <div className="profile-content">
         {activeTab === "details" && <PersonalInfo />}
-        {activeTab === "math-mini-game" && <MathMiniGame />}
+        {/*activeTab === "emails" && */}
         {/* {activeTab === "personal-area" && <PersonalArea />} */}
         {activeTab === "delete-account" && <DeleteAccount />}
       </div>

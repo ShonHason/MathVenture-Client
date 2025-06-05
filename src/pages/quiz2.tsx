@@ -140,7 +140,7 @@ export default function Quiz2() {
     if (currentStep === 0) {
       // Validate personal info - update the phone validation
       const required = [
-        "username",
+        "fullname",
         "grade",
         "dateOfBirth",
         "parent_name",
@@ -211,6 +211,7 @@ export default function Quiz2() {
       // Here you would call your actual endOfRegistration function
       const userDataToSend = {
         userId: user?._id,
+        fullname: formData.fullname,
         parent_name: formData.parent_name,
         parent_email: formData.parent_email,
         parent_phone: formData.parent_phone,
@@ -243,12 +244,12 @@ export default function Quiz2() {
 
       <div className="form-grid">
         <div className="form-group">
-          <label>איך קוראים לך? 😊</label>
+          <label>מה השם המלא שלך?</label>
           <input
             type="text"
-            value={formData.username}
-            onChange={(e) => handleInputChange("username", e.target.value)}
-            placeholder="השם שלך..."
+            value={formData.full}
+            onChange={(e) => handleInputChange("fullname", e.target.value)}
+            placeholder="השם המלא שלך..."
             className="fun-input"
           />
         </div>

@@ -8,7 +8,8 @@
   .main-content {
     flex-grow: 1;
     padding: 24px;
-    margin-right: 260px; 
+    margin-right: 230px; 
+    margin-top: -25px;
     box-sizing: border-box;
     margin: 0.1;
   }

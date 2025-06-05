@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { use, useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import DrawingPanel from "../components/drawing-panel";
@@ -13,9 +13,10 @@ import RealTimeRecorder from "../components/RealTimeRecorder";
 import SpeakingIndicator from "../components/SpeakingIndicator"; // Import SpeakingIndicator
 import { useUser } from "../context/UserContext";
 import { scanMathFromCanvas } from "../services/tesseractOcrService";
-
-const socketServerUrl = process.env.SERVER_API_URL || "http://localhost:4000"
-
+import { l } from "framer-motion/dist/types.d-CtuPurYT";
+import { finishLessonFunction } from "../services/lessons_api";
+const socketServerUrl =
+  process.env.SERVER_API_URL || "http://localhost:4000";
 
 type LocationState = {
   state: {
@@ -23,17 +24,23 @@ type LocationState = {
     lessonId?: string;
   };
 };
-interface Analytics{
+
+interface AIResponse {
+  text: string;
+  mathexpression?: string; 
+  counter?: number;       
+}
+interface Analytics {
   totalQuestions: number;
   correctAnswers: number;
   accuracyPct: number;
   avgResponseTimeMs: number;
-   logs: Array<{
-    question:       string;
-    questionTime:   string;  // ISO string from the server
-    answer:         string;
-    answerTime:     string;  // ISO string from the server
-    isCorrect:      boolean;
+  logs: Array<{
+    question: string;
+    questionTime: string; // ISO string from the server
+    answer: string;
+    answerTime: string; // ISO string from the server
+    isCorrect: boolean;
     responseTimeMs: number;
   }>;
 }
@@ -50,8 +57,9 @@ export default function LearningSession() {
   const [lessonId, setLessonId] = useState<string | null>(
     initialLessonId ?? null
   );
-
-  const [messages, setMessages] = useState<{ sender: "bot" | "user"; text: string }[]>([]);
+  const [messages, setMessages] = useState<
+    { sender: "bot" | "user"; text: string }[]
+  >([]);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [messagesLoaded, setMessagesLoaded] = useState(false);
   const [hasSpokenIntro, setHasSpokenIntro] = useState(false);
@@ -64,9 +72,15 @@ export default function LearningSession() {
   const [activeTab, setActiveTab] = useState<"draw" | "keyboard">("draw");
   const [botVolume, setBotVolume] = useState(100);
   const [speechSpeed, setSpeechSpeed] = useState(1);
+
+  const [resetKey, setResetKey] = useState(0);
+
+  const [oldExp, setoldExp] = useState("");
+  const [newExp, setnewExp] = useState("");
+  const [questionCounter, setQuestionCounter] = useState(0);
   const [correctAnswersCount, setCorrectAnswersCount] = useState(0);
   const [isLessonComplete, setIsLessonComplete] = useState(false);
-  const [resetKey, setResetKey] = useState(0);
+  
 
   // Yellow area: last user input
   const [lastUserMessage, setLastUserMessage] = useState<string>("");
@@ -80,8 +94,41 @@ export default function LearningSession() {
   // Prevent overlapping requests
   const [isProcessing, setIsProcessing] = useState(false);
 
-
   const currentQuestion = topic.question || "";
+
+  const checkIfOver = async () => {
+    
+    console.log("Checking if lesson is over for lessonId:",lessonId);    
+    try {
+      
+     const { data } = await axios.get(
+  `${socketServerUrl}/lessons/isOver/${lessonId}`,
+  {
+    headers: { Authorization: `JWT ${user?.accessToken}` },
+  }
+);
+      setQuestionCounter(data.size)
+      console.log("checkIfOver response:", data);
+      console.log("isfinished:", isLessonComplete);
+      if (data.isOver) {
+        setIsLessonComplete(true);
+      }
+    } catch (err) {
+      console.error("Error checking isOver:", err);
+    }
+  };
+  useEffect(() => {
+    checkIfOver();
+  }, []);
+
+  useEffect(() => {
+    // הפונקציה הזו תופעל רק ברגע ש־isLessonComplete יהפוך ל־true
+    if (isLessonComplete) {
+      if (lessonId && user) {
+        finishLessonFunction(lessonId, user);
+      }
+    }
+  }, [isLessonComplete]);
 
   // --- Cleanup & Back-Button Handling ---
   useEffect(() => {
@@ -113,7 +160,10 @@ export default function LearningSession() {
           `${socketServerUrl}/lessons/${lessonId}/messages`,
           { headers: { Authorization: `Bearer ${user?.accessToken}` } }
         );
-        const raw = data.messages as Array<{ role: string; content: string }>;
+        const raw = data.messages as Array<{
+          role: string;
+          content: string;
+        }>;
         const formatted = raw.slice(1).map((m) => ({
           sender: m.role === "user" ? "user" : "bot",
           text: m.content,
@@ -121,34 +171,10 @@ export default function LearningSession() {
         setMessages(formatted);
 
         // Count correct answers from chat history
+        //axios function to get corrcet count.. questionlog.length
         // Look for bot responses that indicate correct answers
-        const correctCount = formatted.filter((msg, index) => {
-          if (msg.sender === "bot" && index > 0) {
-            const text = msg.text;
-            // Hebrew phrases that indicate correct answers
-            return (
-              text.includes("נכון") ||
-              text.includes("מצוין") ||
-              text.includes("בדיוק") ||
-              text.includes("כל הכבוד") ||
-              text.includes("תשובה נכונה") ||
-              text.includes("מושלם") ||
-              text.includes("יפה מאוד") ||
-              text.includes("בול") ||
-              text.includes("לנו") ||
-              text.includes("צודק") ||
-              text.includes("הצלחת")
-            );
-          }
-          return false;
-        }).length;
-
-
-          }
-          return acc;
-        }, 0);
-        setCorrectAnswersCount(correctCount);
-        setIsLessonComplete(correctCount >= 15);
+       
+        
       } catch (err) {
         console.error(err);
       } finally {
@@ -191,8 +217,7 @@ export default function LearningSession() {
     }
   }, [hasSpokenIntro, lessonId, user, topic]);
 
-
-   useEffect(() => {
+  useEffect(() => {
     if (!isLessonComplete) return;
 
     axios
@@ -205,7 +230,6 @@ export default function LearningSession() {
   }, [isLessonComplete, lessonId]);
 
   // TTS with speed control
-
   const speak = async (text: string) => {
     // always stop anything first
     if (audioRef.current) {
@@ -218,10 +242,8 @@ export default function LearningSession() {
     setBotStatus("...מדבר");
 
     try {
-       console.log("🔊 speak(): requesting TTS for text:", text);
-       const url1 = `${socketServerUrl}/api/tts`;
-        console.log("🔊 speak(): POSTing to", url1);
-        const res = await axios.post(
+      console.log("🔊 speak(): requesting TTS for text:", text);
+      const res = await axios.post(
         `${socketServerUrl}/api/tts`,
         { text, lang: "he-IL", speed: speechSpeed },
         { responseType: "arraybuffer" }
@@ -236,7 +258,6 @@ export default function LearningSession() {
       console.log("🔊 speak(): playing audio");
       setCurrentAudioElement(audio); // NEW: Set the audio element in state
 
-
       await audio.play();
       audio.onended = () => {
         setIsSpeaking(false); // Set speaking to false when audio ends
@@ -244,8 +265,7 @@ export default function LearningSession() {
         setBotStatus("..מקשיב");
         setCurrentAudioElement(null); // NEW: Clear the audio element from state
       };
-
-    } catch(err) {
+    } catch (err) {
       console.error("❌ speak() error:", err);
       setIsSpeaking(false);
       setListening(false);
@@ -264,13 +284,12 @@ export default function LearningSession() {
       setBotStatus("עצור");
       setCurrentAudioElement(null); // NEW: Clear the audio element from state
     }
-
+  }; // <--- תוספת הסוגר החסרה כאן
 
   const handleReturnToMain = () => {
     stopTTS();
     if (recorderRef.current) {
-          console.log("Calling stopListening...");
-
+      console.log("Calling stopListening...");
       recorderRef.current.stopListening();
     }
     navigate("/home");
@@ -287,117 +306,183 @@ export default function LearningSession() {
     }, 2000);
   };
 
-  const hebrewNumbers = [
-  "אפס","אחת","שניים","שתיים","שלוש","ארבע","חמש",
-  "שש","שבע","שמונה","תשע","עשר","אחת־עשרה",
-  // …add more if needed…
-];
 
 
-const numberWordPattern = new RegExp(
-  `(^|\\s)(${hebrewNumbers.join("|")})(\\s|$)`,
-  "i"
-);
-const hebrewNumberWords: Record<string, number> = {
-  "אחד": 1, "אחת": 1, "שניים": 2, "שתיים": 2,
-  "שלוש": 3, "ארבע": 4, "חמש": 5, "שש": 6,
-  "שבע": 7, "שמונה": 8, "תשע": 9, "עשר": 10,
-  "אחת עשרה": 11, "שתים עשרה": 12,
-  "עשרים": 20, "שלושים": 30
-};
-const fractionWords: Record<string, number> = {
-  "חצי": 1/2, "שליש": 1/3, "רבע": 1/4,
-  "שמינית": 1/8, "שמיניות": 1/8,
-};
 
-function parseHebrewFraction(phrase: string): number | null {
-  const parts = phrase.trim().split(" ");
-  if (parts.length === 2) {
-    const numerator = hebrewNumberWords[parts[0]];
-    const denominator = fractionWords[parts[1]];
-    if (numerator && denominator) return numerator * denominator;
-  }
-  return null;
-}
-const fractionWordPattern = new RegExp(
-  `\\b(${Object.keys(fractionWords).join("|")})\\b`,
-  "i"
-);
 
-function isHebrewDivision(text: string): boolean {
-  const words = text.trim().split(/\s+/);
-  const index = words.indexOf("חלקי");
-  if (index > 0 && index < words.length - 1) {
-    const numerator = hebrewNumberWords[words[index - 1]];
-    const denominator = hebrewNumberWords[words[index + 1]];
-    return !!(numerator && denominator);
-  }
+  const digitPattern = /\d/; 
+  const operatorPattern = /[+\-*/^%]/; // סימני חיבור, חיסור, כפל, חילוק, חזקה, אחוז
+const numberWordsPattern = /\b(אפס|אחד|שתיים|שלוש|ארבע|חמש|שש|שבע|שמונה|תשע|עשר|עשרים|שלושים|ארבעים|חמישים|שישים|שבעים|שמונים|תשעים|מאה|אלף|מיליון)\b/;
+const fractionWordsPattern = /\b(חצי|רבע|שליש|שמינית|חמישית|עשירית)\b/;
+const mathOpWordsPattern = /\b(כפול|חלק|חילק|חיבור|חיסור|חזקת|שורש|גדול מ|קטן מ|שווה ל)\b/;
+const questionWordsPattern = /\b(כמה|מה התשובה|פתור|חשב)\b/;
+const slashFractionPattern = /\d+\s*\/\s*\d+/; // צורה “3/4” או “  12/ 5 ”
+
+// הפונקציה עצמה
+ function isMathRelated(text: string): boolean {
+  // ננטרל קידוד אותיות מיוחדות ונמיר לרישיות לצורך בדיקות insensitive
+  const t = text.normalize("NFC");
+
+  // 1) ספרה מכל כתב (Unicode digit)
+  if (digitPattern.test(t)) return true;
+
+  // 2) סימני פעולה חשבונית
+  if (operatorPattern.test(t)) return true;
+
+
+  // 4) תבנית “X/Y”
+  if (slashFractionPattern.test(t)) return true;
+
+  // 5) מילות מספר במילים
+  if (numberWordsPattern.test(t)) return true;
+
+  // 6) מילות שבר
+  if (fractionWordsPattern.test(t)) return true;
+
+  // 7) מילות פעולה חישובית
+  if (mathOpWordsPattern.test(t)) return true;
+
+  // 8) מילות שאלה מתמטית
+  if (questionWordsPattern.test(t)) return true;
+
   return false;
 }
- const isMathQuestion = (text: string) =>
-  /\d/.test(text) ||                            // digits
-  /[+\-*/^]/.test(text) ||                      // operators
-  numberWordPattern.test(text) ||               // spelled-out numbers (your regex)
-  /\b(כמה|מה התשובה|פתור)\b/.test(text) ||     // math-related keywords
-  parseHebrewFraction(text) !== null || 
-  isHebrewDivision(text); // check for division phrases
+
+
+  const sendTranscript = async (input: string) => {
+    if (input === lastSentRef.current) return;
+    lastSentRef.current = input;
   
-  // detected fraction like "חמש שמיניות"
-  // Send to chat
-const sendTranscript = async (input: string) => {
-  if (input === lastSentRef.current) return;
-  lastSentRef.current = input;
-        
-  setMessages((m) => [...m, { sender: "user", text: input }]);
-  setLastUserMessage(input);
+    // 1) Append the user’s message
+    setMessages((m) => [...m, { sender: "user", text: input }]);
+    setLastUserMessage(input);
+  console.log("addQuestionLog is called");
+  console.log("isMathRelated: ", isMathRelated(input), "\nnewExp: ", newExp , "\noldExp: ", oldExp);
 
-  try {
-    // 1) Send only { question: input }
-    const resp = await axios.post(
-      `${socketServerUrl}/lessons/${lessonId}/chat`,
-      { question: input },
-      { headers: { Authorization: `Bearer ${user?.accessToken}` } }
-    );
-
-    // 2) The back end now returns:
-    //    resp.data.answer        → a plain Hebrew string
-    //    resp.data.mathQuestionsCount  → updated count
-    //    resp.data.isCorrect     → true/false
-    const aiRaw: string = resp.data.answer;
-    const isCorrectFromServer: boolean = resp.data.isCorrect;
-    const updatedMathCount: number = resp.data.mathQuestionsCount;
-
-    // 3) Strip any stray “*” so TTS won’t read “כוכבית”
-    const aiClean = aiRaw.replace(/\*/g, "");
-
-    // 4) Push the cleaned AI reply into messages & TTS
-    setMessages((m) => [...m, { sender: "bot", text: aiClean }]);
-    setBotSpeech(aiClean);
-
-    // 5) If the server says isCorrect===true, bump your local correct counter
-    if (isCorrectFromServer) {
-      setCorrectAnswersCount((prev) => {
-        const newCount = prev + 1;
-        if (newCount >= 15) {
-          setIsLessonComplete(true);
-          console.log("Lesson completed! 🎉");
-        }
-        return newCount;
-      });
+    if (newExp && isMathRelated(input) && oldExp != newExp) {
+      setQuestionCounter((prev) => prev + 1);
+      console.log("addQustionLog is working!!!!!!!");
+      const response = await axios.put(
+        `${socketServerUrl}/lessons/addQustionLog`,
+        { lessonId :lessonId, mathExp: newExp, text :input },
+      
+        { headers: { Authorization: `JWT ${user?.accessToken}` } }
+      );
     }
+    console.log("addAnswer is called");
+    console.log("oldExp: ", oldExp , "\nneed to be equal newExp: ", newExp , "\nisMathRelated: ", (isMathRelated(input) || /נכונה|נכון|לא נכון|לא נכונה/.test(input)) );
+   
+    if (oldExp === newExp && (isMathRelated(input) || /נכונה|נכון|לא נכון|לא נכונה/.test(input)) && oldExp !== "") {
+      console.log("addAnswer is working!!!!!!!!!");
+      setQuestionCounter((prev) => prev);
+      const response = await axios.put(
+        `${socketServerUrl}/lessons/addAnswer`,
+        { lessonId :lessonId,mathExp: newExp, text: input },
+        { headers: { Authorization: `JWT ${user?.accessToken}` } }
+      );
+    }
+    try {
+      const resp = await axios.post(
+        `${socketServerUrl}/lessons/${lessonId}/chat`,
+        { question: input },
+        { headers: { Authorization: `Bearer ${user?.accessToken}` } }
+      );
+   
+      
+      // 2) Extract fields from server response
+      const aiRaw: string = resp.data.answer;                  // full AI response (may include Markdown fences + undefined fields)
+      const isCorrectFromServer: boolean = resp.data.isCorrect;
+      console.log("AI raw response:", aiRaw);
+      console.log("isCorrectFromServer:", isCorrectFromServer);
+  
+      // 3) Find the JSON braces
+      const firstBrace = aiRaw.indexOf("{");
+      const lastBrace = aiRaw.lastIndexOf("}");
+      let onlyText: string;
+      let mathExpression: string | undefined;
+      let counter: number | undefined;
+  
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        // 4) Extract exactly from “{” to “}”
+        let jsonOnly = aiRaw.slice(firstBrace, lastBrace + 1);
+  
+        // 5) Remove any Markdown fences (```json … ```)
+        //    If it starts with “```”, drop that line.
+        if (jsonOnly.startsWith("```")) {
+          const firstLineEnd = jsonOnly.indexOf("\n");
+          if (firstLineEnd !== -1) {
+            jsonOnly = jsonOnly.slice(firstLineEnd + 1);
+          }
+        }
+        //    If it ends with “```” at the very end, strip it too.
+        if (jsonOnly.endsWith("```")) {
+          jsonOnly = jsonOnly.slice(0, -3).trim();
+        }
+  
+        // 6) Remove any `"mathexpression": undefined` or `"counter": undefined`, plus dangling commas
+        jsonOnly = jsonOnly
+          // remove `"mathexpression": undefined` (and optional comma)
+          .replace(/"mathexpression"\s*:\s*undefined\s*,?/, "")
+          // remove `"counter": undefined` (and optional comma)
+          .replace(/"counter"\s*:\s*undefined\s*,?/, "")
+          // remove any trailing comma before closing brace: `{ "text": "...", }` → `{ "text": "..." }`
+          .replace(/,\s*}/, "}");
+  
+        // 7) Now attempt to parse the cleaned JSON
+        try {
+          const parsed = JSON.parse(jsonOnly) as AIResponse;
+          console.log("Parsed AI response:", parsed);
+  
+          onlyText = parsed.text;
+          mathExpression = parsed.mathexpression;
+          counter = parsed.counter;
+          console.log("addBotResponse is called");
+          console.log("newExp: ",newExp , "\nisMathRelated(onlyText): ", isMathRelated(onlyText));
+          if(newExp && isMathRelated(onlyText)) {
+            console.log("addBotResponse is working!!!!!!!!!");
+            const response = await axios.put(
+              `${socketServerUrl}/lessons/addBotResponse`,
+              { lessonId :lessonId,mathExp: newExp, botResponse: onlyText },
+              { headers: { Authorization: `JWT ${user?.accessToken}` } }
+            ) }
 
-    // 6) If you want to show mathQuestionsCount somewhere in your UI, update it now:
-    //    e.g. setLocalMathCount(updatedMathCount);
+          if(mathExpression) {
+            setoldExp(newExp);
+            setnewExp(mathExpression);
+            console.log("set new mathExpression:", mathExpression);
+            console.log("set new counter:", counter);
+          }
+         
+          
 
-    // 7) Finally, speak the cleaned text
-    speak(aiClean);
-  } catch (err) {
-    console.error(err);
-  }
-};
-
-
-
+        } catch (e) {
+          console.error("Failed to parse cleaned JSON substring:", e);
+          // fallback: treat entire aiRaw as plain Hebrew feedback
+          onlyText = aiRaw;
+        }
+      } else {
+        // No valid “{…}” found → treat entire aiRaw as plain text
+        onlyText = aiRaw;
+      }
+  
+      // 8) Strip stray “*” so TTS won’t read “כוכבית”
+      const aiClean = onlyText.replace(/\*/g, "");
+      
+  
+      // 9) Push the bot’s cleaned text into messages (so it appears in chat)
+      setMessages((m) => [...m, { sender: "bot", text: aiClean }]);
+      setBotSpeech(aiClean);
+  
+      //check if the lesson is over
+     checkIfOver();
+  
+      // 11) Finally, speak only the cleaned “text” field.
+      //     (If you want to append “ מוכן לשאלה הזו?”, do it here.)
+      speak(aiClean);
+    } catch (err) {
+      console.error(err);
+    }
+  };
   const handleDrawingScan = async (canvas: HTMLCanvasElement) => {
     if (isSpeaking || isProcessing) return;
     setIsProcessing(true);
@@ -406,7 +491,6 @@ const sendTranscript = async (input: string) => {
       if (mathText) {
         setLastUserMessage(mathText);
         await sendTranscript(mathText);
-
       } else {
         console.warn("Tesseract: לא זוהה טקסט מתמטי");
       }
@@ -466,11 +550,16 @@ const sendTranscript = async (input: string) => {
 
   const handleAdjustVolume = () => {
     const next =
-      botVolume === 100 ? 60 : botVolume === 60 ? 30 : botVolume === 30 ? 0 : 100;
+      botVolume === 100
+        ? 60
+        : botVolume === 60
+        ? 30
+        : botVolume === 30
+        ? 0
+        : 100;
     setBotVolume(next);
     if (audioRef.current) audioRef.current.volume = next / 100;
   };
-
 
   const handleAdjustSpeed = () => {
     const speeds = [0.5, 1, 1.25, 1.5, 2];
@@ -516,8 +605,8 @@ const sendTranscript = async (input: string) => {
         <div className="w-full max-w-3xl mb-4">
           <ControlPanel
             progress={progressPercentage}
-            currentQuestion={correctAnswersCount + 1}
-            correctAnswers={correctAnswersCount}
+            currentQuestion={questionCounter}
+            correctAnswers={questionCounter}
             isLessonComplete={isLessonComplete}
             isVisible
             isPlaying={isSpeaking}
@@ -594,7 +683,6 @@ const sendTranscript = async (input: string) => {
       </div>
 
       {/* Recorder & Transcript Modal */}
-
       <RealTimeRecorder
         ref={recorderRef}
         micMuted={!listening}
