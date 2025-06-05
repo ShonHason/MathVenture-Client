@@ -84,7 +84,7 @@ const LoginPage: React.FC = () => {
       {/* Math screensaver background */}
       <MathScreensaver />
 
-      <div className="w-full max-w-sm bg-white rounded-2xl shadow-xl overflow-hidden z-10 relative">
+      <div className="w-full max-w-md  bg-white rounded-2xl shadow-xl overflow-hidden z-10 relative">
         <div className="p-4 space-y-4">
           <div className="flex flex-col items-center space-y-1">
             <div className="relative w-28 h-28">
@@ -295,6 +295,20 @@ const LoginPage: React.FC = () => {
                 <div className="space-y-1 rtl">
                   <label className="block text-sm font-heebo">מין</label>
                   <div className="flex flex-row-reverse justify-end space-x-4 space-x-reverse">
+                    <div className="flex items-center space-x-2 space-x-reverse mr-2">
+                      <input 
+                        type="radio" 
+                        id="female" 
+                        name="gender" 
+                        value="female" 
+                        className="h-4 w-4 text-purple-600" 
+                        checked={gender === "female"}
+                        onChange={() => setGender("female")}
+                      />
+                      <label htmlFor="female" className="font-heebo">
+                        נקבה
+                      </label>
+                    </div>
                     <div className="flex items-center space-x-2 space-x-reverse">
                       <input 
                         type="radio" 
@@ -307,20 +321,6 @@ const LoginPage: React.FC = () => {
                       />
                       <label htmlFor="male" className="font-heebo">
                         זכר
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2 space-x-reverse">
-                      <input 
-                        type="radio" 
-                        id="female" 
-                        name="gender" 
-                        value="female" 
-                        className="h-4 w-4 text-purple-600" 
-                        checked={gender === "female"}
-                        onChange={() => setGender("female")}
-                      />
-                      <label htmlFor="female" className="font-heebo">
-                        נקבה
                       </label>
                     </div>
                   </div>

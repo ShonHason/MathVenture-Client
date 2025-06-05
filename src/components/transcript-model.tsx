@@ -1,35 +1,31 @@
-"use client"
-
-import { X } from "lucide-react"
+import { X } from "lucide-react";
 
 interface Message {
-  sender: "bot" | "user"
-  text: string
+  sender: "bot" | "user";
+  text: string;
 }
 
 interface TranscriptModalProps {
-  messages: Message[]
-  onClose: () => void
+  messages: Message[];
+  onClose: () => void;
 }
 
 export default function TranscriptModal({ messages, onClose }: TranscriptModalProps) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col">
-        {/* Header */}
+      <div className="bg-white rounded-2xl w-full max-w-lg flex flex-col shadow-2xl relative">
         <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white p-4 flex items-center justify-between">
           <h2 className="text-xl font-bold">תמלול שיחה</h2>
           <button
-            className="bg-white bg-opacity-20 p-2 rounded-full hover:bg-opacity-30 transition-colors"
             onClick={onClose}
             aria-label="Close"
+            className="bg-white bg-opacity-20 p-2 rounded-full hover:bg-opacity-30 transition-colors"
           >
             <X className="h-5 w-5 text-white" />
           </button>
         </div>
 
-        {/* Messages */}
-        <div className="p-4 max-h-[60vh] overflow-y-auto">
+        <div className="p-4 overflow-y-auto h-72">
           <div className="flex flex-col gap-3">
             {messages.map((message, index) => (
               <div
@@ -37,7 +33,7 @@ export default function TranscriptModal({ messages, onClose }: TranscriptModalPr
                 className={`p-3 rounded-xl max-w-[85%] ${
                   message.sender === "bot"
                     ? "bg-blue-100 text-right self-start border-2 border-blue-200"
-                    : "bg-yellow-100 text-right self-end border-2 border-yellow-200"
+                    : "bg-yellow-100 text-left self-end border-2 border-yellow-200"
                 }`}
               >
                 <p className="text-gray-800">{message.text}</p>
@@ -46,7 +42,6 @@ export default function TranscriptModal({ messages, onClose }: TranscriptModalPr
           </div>
         </div>
 
-        {/* Footer */}
         <div className="p-4 bg-gray-50 border-t border-gray-200">
           <button
             onClick={onClose}
@@ -57,5 +52,5 @@ export default function TranscriptModal({ messages, onClose }: TranscriptModalPr
         </div>
       </div>
     </div>
-  )
+  );
 }
