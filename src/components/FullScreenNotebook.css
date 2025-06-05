@@ -1,0 +1,159 @@
+/* src/components/FullScreenNotebook.css */
+
+.fullscreen-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  z-index: 50;
+  display: flex;
+  flex-direction: column; /* Changed to column */
+  align-items: center; /* Center horizontally */
+  justify-content: flex-start; /* Align items to the top */
+}
+
+/* Style for the ControlPanel when it's directly inside fullscreen-overlay */
+/* This ensures it has a consistent width and spacing */
+.fullscreen-overlay > .w-full.max-w-3xl {
+  /* Target the ControlPanel's main div */
+  margin-bottom: 1rem; /* Add space below the control panel */
+  margin-top: 1rem; /* Add space above the control panel if needed */
+}
+
+.notebook-container {
+  background-color: white;
+  border-radius: 1rem;
+  width: 100%;
+  max-width: 80rem;
+  height: 85vh; /* This might need adjustment if the control panel takes up too much space */
+  display: flex;
+  flex-direction: column;
+  /* Ensure it takes remaining vertical space if needed, or adjust height */
+  flex-grow: 1; /* Allow it to grow and fill available space */
+}
+
+.notebook-header {
+  background: linear-gradient(to right, #3b82f6, #8b5cf6);
+  color: white;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top-left-radius: 1rem; /* Added for consistency */
+  border-top-right-radius: 1rem; /* Added for consistency */
+}
+
+.notebook-canvas-container {
+  flex: 1;
+  padding: 1.5rem;
+  margin: 1rem;
+  background-color: #eff6ff;
+  border-radius: 1rem;
+  border: 2px solid #bfdbfe;
+  overflow: hidden;
+  display: flex; /* To center the canvas inside */
+  justify-content: center;
+  align-items: center;
+}
+
+.notebook-canvas {
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  border-radius: 0.5rem;
+  background-color: #ffffff; /* Canvas background white */
+}
+
+.notebook-footer {
+  padding: 1rem;
+  background-color: #f9fafb;
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  border-bottom-left-radius: 1rem; /* Added for consistency */
+  border-bottom-right-radius: 1rem; /* Added for consistency */
+}
+
+.action-button {
+  background: linear-gradient(to right, #3b82f6, #8b5cf6);
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -2px rgba(0, 0, 0, 0.1); /* Added shadow */
+  transition: opacity 0.2s ease-in-out;
+}
+
+.action-button:hover {
+  opacity: 0.9;
+}
+/* .fullscreen-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.notebook-container {
+  background-color: white;
+  border-radius: 1rem;
+  width: 100%;
+  max-width: 80rem;
+  height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.notebook-header {
+  background: linear-gradient(to right, #3b82f6, #8b5cf6);
+  color: white;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notebook-canvas-container {
+  flex: 1;
+  padding: 1.5rem;
+  margin: 1rem;
+  background-color: #eff6ff;
+  border-radius: 1rem;
+  border: 2px solid #bfdbfe;
+  overflow: hidden;
+}
+
+.notebook-canvas {
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+  border-radius: 0.5rem;
+}
+
+.notebook-footer {
+  padding: 1rem;
+  background-color: #f9fafb;
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.action-button {
+  background: linear-gradient(to right, #3b82f6, #8b5cf6);
+  color: white;
+  padding: 0.75rem 2rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  cursor: pointer;
+} */

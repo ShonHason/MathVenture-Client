@@ -31,6 +31,7 @@ import LoginPage from "./pages/loginPage";
 import MathMiniGame from "./pages/MathMiniGame";
 import GameSelection from "./pages/GameSelection";
 import Quiz2 from "./pages/quiz2";
+import { ControlPanelProvider } from "./context/ControlPanelContext";
 const App: React.FC = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
 
@@ -41,48 +42,74 @@ const App: React.FC = () => {
           <ActionButtonsProvider>
             <AvatarProvider>
               <DrawingSettingsProvider>
-                <Router>
-                  <Routes>
-                    {/* redirect root to login */}
-                    <Route path="/" element={<Navigate to="/login" replace />} />
+                <ControlPanelProvider
+                  onReturnToMain={() =>
+                    (window.location.href = "/home/LearningBoard")
+                  }
+                >
+                  <Router>
+                    <Routes>
+                      {/* redirect root to login */}
+                      <Route
+                        path="/"
+                        element={<Navigate to="/login" replace />}
+                      />
 
-                    {/* authentication */}
-                    <Route path="/login" element={<LoginPage />} />
+                      {/* authentication */}
+                      <Route path="/login" element={<LoginPage />} />
 
-                    {/* home layout with sidebar */}
-                    <Route path="/home" element={<HomeLayout />}>
-                    <Route index element={<Navigate to="LearningBoard" replace />} />
-                    <Route path="LearningBoard" element={<LearningBoard />} />                     
-                     <Route path="myLessons" element={<MyLessons />} />
-                      <Route path="help" element={<HelpPage />} />
-                      <Route path="profile" element={<ProfilePage />} />
-                      <Route path="settings" element={<SettingsPage />} />
-                      <Route path="learning-board" element={<LearningBoard />} />
-                      <Route path="GameSelection" element= {<GameSelection />} />
-                      <Route path="math-minigame" element={<MathMiniGame />} />
+                      {/* home layout with sidebar */}
+                      <Route path="/home" element={<HomeLayout />}>
+                        <Route
+                          index
+                          element={<Navigate to="LearningBoard" replace />}
+                        />
+                        <Route
+                          path="LearningBoard"
+                          element={<LearningBoard />}
+                        />
+                        <Route path="myLessons" element={<MyLessons />} />
+                        <Route path="help" element={<HelpPage />} />
+                        <Route path="profile" element={<ProfilePage />} />
+                        <Route path="settings" element={<SettingsPage />} />
+                        <Route
+                          path="learning-board"
+                          element={<LearningBoard />}
+                        />
+                        <Route
+                          path="GameSelection"
+                          element={<GameSelection />}
+                        />
+                        <Route
+                          path="math-minigame"
+                          element={<MathMiniGame />}
+                        />
+                      </Route>
 
-                    </Route>
+                      {/* single lesson session (not wrapped in layout) */}
+                      <Route
+                        path="/start-lessons/:topicName"
+                        element={<LearningSession />}
+                      />
 
-                    {/* single lesson session (not wrapped in layout) */}
-                    <Route path="/start-lessons/:topicName" element={<LearningSession />} />
+                      {/* other top-level pages */}
+                      <Route path="/quiz" element={<Quiz2 />} />
+                      <Route path="/chat" element={<ChatPage />} />
+                      {/* 404 */}
+                      <Route path="*" element={<PageNotFound />} />
+                    </Routes>
 
-                    {/* other top-level pages */}
-                    <Route path="/quiz" element={<Quiz2 />} />
-                    <Route path="/chat" element={<ChatPage />} />
-                    {/* 404 */}
-                    <Route path="*" element={<PageNotFound />} />
-                  </Routes>
-
-                  <ToastContainer
-                    position="bottom-center"
-                    autoClose={3000}
-                    hideProgressBar
-                    newestOnTop={false}
-                    closeOnClick
-                    pauseOnHover
-                    draggable
-                  />
-                </Router>
+                    <ToastContainer
+                      position="bottom-center"
+                      autoClose={3000}
+                      hideProgressBar
+                      newestOnTop={false}
+                      closeOnClick
+                      pauseOnHover
+                      draggable
+                    />
+                  </Router>
+                </ControlPanelProvider>
               </DrawingSettingsProvider>
             </AvatarProvider>
           </ActionButtonsProvider>
