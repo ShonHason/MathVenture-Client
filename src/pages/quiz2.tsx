@@ -1,37 +1,38 @@
-"use client"
-
-import React, { useState, useEffect } from "react"
-import { useUser } from "../context/UserContext"
-import subjectsByGrade, { type SubjectsData } from "../components/SubjectByGrade"
-import allQuestions, { type QuestionItem } from "../components/QuestionBank"
-import "./quiz2.css"
+import React, { useState, useEffect } from "react";
+import { useUser } from "../context/UserContext";
+import subjectsByGrade, {
+  type SubjectsData,
+} from "../components/SubjectByGrade";
+import allQuestions, { type QuestionItem } from "../components/QuestionBank";
+import "./quiz2.css";
 import { endOfRegistration } from "../services/user_api";
-import { toast } from "react-toastify"
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { SubjectSelect } from "../components/SubjectSelect";
 
 interface QuizValues {
-  username?: string
-  grade?: string
-  dateOfBirth?: string
-  imageUrl?: string
-  currentSubjects?: string[]
-  parent_name?: string
-  parent_phone?: string
-  parent_phone_prefix?: string
-  parent_phone_suffix?: string
-  parent_email?: string
-  level?: string
-  [key: string]: any
+  username?: string;
+  grade?: string;
+  dateOfBirth?: string;
+  imageUrl?: string;
+  currentSubjects?: string[];
+  parent_name?: string;
+  parent_phone?: string;
+  parent_phone_prefix?: string;
+  parent_phone_suffix?: string;
+  parent_email?: string;
+  level?: string;
+  [key: string]: any;
 }
 
 export default function Quiz2() {
-  const { user, setUser } = useUser()
+  const { user, setUser } = useUser();
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(0)
-  const [level, setLevel] = useState<string | null>(null)
-  const [totalScore, setTotalScore] = useState(0)
-  const [questionPool, setQuestionPool] = useState<QuestionItem[][]>([])
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [currentStep, setCurrentStep] = useState(0);
+  const [level, setLevel] = useState<string | null>(null);
+  const [totalScore, setTotalScore] = useState(0);
+  const [questionPool, setQuestionPool] = useState<QuestionItem[][]>([]);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<QuizValues>({
     username: "",
@@ -44,7 +45,7 @@ export default function Quiz2() {
     parent_phone_suffix: "",
     parent_email: "",
     currentSubjects: [],
-  })
+  });
 
   // Load saved data on mount
   useEffect(() => {
@@ -58,202 +59,208 @@ export default function Quiz2() {
       parent_phone_suffix: localStorage.getItem("parent_phone_suffix") || "",
       parent_email: localStorage.getItem("parent_email") || "",
       imageUrl: localStorage.getItem("imageUrl") || "",
-    }
+    };
 
     // Split existing phone number if it exists
     if (savedData.parent_phone && !savedData.parent_phone_prefix) {
-      const phoneMatch = savedData.parent_phone.match(/^(05[0-8])(.*)/)
+      const phoneMatch = savedData.parent_phone.match(/^(05[0-8])(.*)/);
       if (phoneMatch) {
-        savedData.parent_phone_prefix = phoneMatch[1]
-        savedData.parent_phone_suffix = phoneMatch[2]
+        savedData.parent_phone_prefix = phoneMatch[1];
+        savedData.parent_phone_suffix = phoneMatch[2];
       }
     }
 
-    setFormData((prev) => ({ ...prev, ...savedData }))
+    setFormData((prev) => ({ ...prev, ...savedData }));
 
     if (savedData.imageUrl) {
-      setImagePreview(savedData.imageUrl)
+      setImagePreview(savedData.imageUrl);
     }
-  }, [])
+  }, []);
 
   // Update questions when grade/subjects change
   useEffect(() => {
-    if (!formData.grade) return
+    if (!formData.grade) return;
 
     const relevantQuestions = allQuestions.filter((question) => {
       const gradeInRange =
         (!question.minGrade || formData.grade! >= question.minGrade) &&
-        (!question.maxGrade || formData.grade! <= question.maxGrade)
+        (!question.maxGrade || formData.grade! <= question.maxGrade);
 
       if (!question.forSubjects || !formData.currentSubjects?.length) {
-        return gradeInRange
+        return gradeInRange;
       }
 
-      return gradeInRange && question.forSubjects.some((subject) => formData.currentSubjects!.includes(subject))
-    })
+      return (
+        gradeInRange &&
+        question.forSubjects.some((subject) =>
+          formData.currentSubjects!.includes(subject)
+        )
+      );
+    });
 
     // Group questions into sets of 3
-    const groupedQuestions: QuestionItem[][] = []
+    const groupedQuestions: QuestionItem[][] = [];
     for (let i = 0; i < relevantQuestions.length; i += 3) {
-      groupedQuestions.push(relevantQuestions.slice(i, i + 3))
+      groupedQuestions.push(relevantQuestions.slice(i, i + 3));
     }
 
-    setQuestionPool(groupedQuestions)
-  }, [formData.grade, formData.currentSubjects])
+    setQuestionPool(groupedQuestions);
+  }, [formData.grade, formData.currentSubjects]);
 
   const handleInputChange = (name: string, value: any) => {
     setFormData((prev) => {
-      const updated = { ...prev, [name]: value }
+      const updated = { ...prev, [name]: value };
       // Save to localStorage
       if (typeof Storage !== "undefined") {
-        localStorage.setItem(name, typeof value === "string" ? value : JSON.stringify(value))
+        localStorage.setItem(
+          name,
+          typeof value === "string" ? value : JSON.stringify(value)
+        );
       }
-      return updated
-    })
-  }
+      return updated;
+    });
+  };
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
+    const file = event.target.files?.[0];
+    if (!file) return;
 
     // Validate file type and size
     if (!file.type.startsWith("image/")) {
-      alert("אנא בחר קובץ תמונה בלבד")
-      return
+      alert("אנא בחר קובץ תמונה בלבד");
+      return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
-      alert("גודל התמונה חייב להיות קטן מ-2MB")
-      return
+      alert("גודל התמונה חייב להיות קטן מ-2MB");
+      return;
     }
 
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onload = (e) => {
-      const imageUrl = e.target?.result as string
-      setImagePreview(imageUrl)
-      handleInputChange("imageUrl", imageUrl)
-    }
-    reader.readAsDataURL(file)
-  }
+      const imageUrl = e.target?.result as string;
+      setImagePreview(imageUrl);
+      handleInputChange("imageUrl", imageUrl);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const validateCurrentStep = (): boolean => {
     if (currentStep === 0) {
       // Validate personal info - update the phone validation
       const required = [
-        "fullname",
         "grade",
         "dateOfBirth",
         "parent_name",
         "parent_phone_prefix",
         "parent_phone_suffix",
         "parent_email",
-      ]
-      return required.every((field) => formData[field as keyof QuizValues])
+      ];
+      return required.every((field) => formData[field as keyof QuizValues]);
     }
 
     // Validate quiz questions
-    const stepQuestions = questionPool[currentStep - 1]
-    return stepQuestions?.every((q) => formData[q.name as keyof QuizValues] !== undefined) || false
-  }
+    const stepQuestions = questionPool[currentStep - 1];
+    return (
+      stepQuestions?.every(
+        (q) => formData[q.name as keyof QuizValues] !== undefined
+      ) || false
+    );
+  };
 
   const handleNext = () => {
     if (!validateCurrentStep()) {
-      alert("אנא מלא את כל השדות הנדרשים")
-      return
+      alert("אנא מלא את כל השדות הנדרשים");
+      return;
     }
 
     // Calculate score for quiz steps
     if (currentStep > 0) {
-      const stepQuestions = questionPool[currentStep - 1]
+      const stepQuestions = questionPool[currentStep - 1];
       const stepScore = stepQuestions.reduce((sum, q) => {
-        return sum + (Number(formData[q.name as keyof QuizValues]) || 0)
-      }, 0)
-      setTotalScore((prev) => prev + stepScore)
+        return sum + (Number(formData[q.name as keyof QuizValues]) || 0);
+      }, 0);
+      setTotalScore((prev) => prev + stepScore);
     }
 
-    setCurrentStep((prev) => prev + 1)
-  }
+    setCurrentStep((prev) => prev + 1);
+  };
 
   const handleFinish = async () => {
     if (!validateCurrentStep()) {
-      alert("אנא מלא את כל השדות הנדרשים")
-      return
+      alert("אנא מלא את כל השדות הנדרשים");
+      return;
     }
 
     // Calculate final score
-    const finalStepQuestions = questionPool[currentStep - 1]
+    const finalStepQuestions = questionPool[currentStep - 1];
     const finalStepScore = finalStepQuestions.reduce((sum, q) => {
-      return sum + (Number(formData[q.name as keyof QuizValues]) || 0)
-    }, 0)
+      return sum + (Number(formData[q.name as keyof QuizValues]) || 0);
+    }, 0);
 
-    const finalScore = totalScore + finalStepScore
-    const totalQuestions = questionPool.reduce((acc, group) => acc + group.length, 0)
-    const avgScore = finalScore / (totalQuestions || 1)
+    const finalScore = totalScore + finalStepScore;
+    const totalQuestions = questionPool.reduce(
+      (acc, group) => acc + group.length,
+      0
+    );
+    const avgScore = finalScore / (totalQuestions || 1);
 
     // Determine level
-    let calculatedLevel = ""
-    let mappedRank = "1"
+    let calculatedLevel = "";
+    let mappedRank = "1";
 
     if (avgScore <= 2) {
-      calculatedLevel = "🪱 תולעת חכמה"
-      mappedRank = "1"
+      calculatedLevel = "🪱 תולעת חכמה";
+      mappedRank = "1";
     } else if (avgScore <= 3.5) {
-      calculatedLevel = "🐶 כלב מתמטי"
-      mappedRank = "2"
+      calculatedLevel = "🐶 כלב מתמטי";
+      mappedRank = "2";
     } else {
-      calculatedLevel = "🐯 נמר מספרים"
-      mappedRank = "3"
+      calculatedLevel = "🐯 נמר מספרים";
+      mappedRank = "3";
     }
 
-    setLevel(calculatedLevel)
+    setLevel(calculatedLevel);
 
     try {
-      // Here you would call your actual endOfRegistration function
       const userDataToSend = {
-        userId: user?._id,
-        fullname: formData.fullname,
-        parent_name: formData.parent_name,
-        parent_email: formData.parent_email,
-        parent_phone: formData.parent_phone,
-        grade: formData.grade,
-        dateOfBirth : formData.dateOfBirth,
+        userId: user?._id ?? "",
+        parent_name: formData.parent_name || "",
+        parent_email: formData.parent_email || "",
+        parent_phone: formData.parent_phone || "",
+        grade: formData.grade || "",
+        dateOfBirth: formData.dateOfBirth || "",
         rank: mappedRank,
         imageUrl: imagePreview || "",
-      }
+      };
 
       await endOfRegistration(userDataToSend);
-      console.log("Registration completed:", userDataToSend)
+      console.log("Registration completed:", userDataToSend);
 
-      // Update user context
-      setUser((prevUser) => ({
-        ...prevUser!,
-        ...userDataToSend,
-      }))
-      toast.success("ההרשמה הושלמה בהצלחה! עובר לדף הבית")
-      navigate("/home")
+      setUser((prevUser) =>
+        prevUser
+          ? {
+              ...prevUser,
+              ...userDataToSend,
+            }
+          : null
+      );
+      toast.success("ההרשמה הושלמה בהצלחה! עובר לדף הבית");
+      navigate("/home");
     } catch (error) {
-      console.error("Registration failed:", error)
-      alert("אירעה שגיאה בהשלמת ההרשמה")
+      console.error("Registration failed:", error);
+      alert("אירעה שגיאה בהשלמת ההרשמה");
     }
-  }
+  };
 
   const renderPersonalInfo = () => (
     <div className="step-content">
       <h2>בואו נכיר! 🌟</h2>
-      <p className="step-description">ספר לנו קצת על עצמך כדי שנוכל להכין עבורך שאלות מיוחדות</p>
+      <p className="step-description">
+        ספר לנו קצת על עצמך כדי שנוכל להכין עבורך שאלות מיוחדות
+      </p>
 
       <div className="form-grid">
-        <div className="form-group">
-          <label>מה השם המלא שלך?</label>
-          <input
-            type="text"
-            value={formData.full}
-            onChange={(e) => handleInputChange("fullname", e.target.value)}
-            placeholder="השם המלא שלך..."
-            className="fun-input"
-          />
-        </div>
-
         <div className="form-group">
           <label>באיזו כיתה אתה לומד? 📚</label>
           <select
@@ -283,32 +290,35 @@ export default function Quiz2() {
         {formData.grade && (
           <div className="form-group full-width">
             <label>איזה נושאים אתה לומד עכשיו? 🎯</label>
-            <div className="subjects-grid">
-              {subjectsByGrade[formData.grade as keyof SubjectsData]?.map((subject) => (
-                <label key={subject} className="subject-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={formData.currentSubjects?.includes(subject) || false}
-                    onChange={(e) => {
-                      const current = formData.currentSubjects || []
-                      const updated = e.target.checked ? [...current, subject] : current.filter((s) => s !== subject)
-                      handleInputChange("currentSubjects", updated)
-                    }}
-                  />
-                  <span>{subject}</span>
-                </label>
-              ))}
-            </div>
+            <SubjectSelect
+              subjects={
+                subjectsByGrade[formData.grade as keyof SubjectsData] || []
+              }
+              selectedSubjects={formData.currentSubjects || []}
+              onChange={(updated: any) =>
+                handleInputChange("currentSubjects", updated)
+              }
+            />
           </div>
         )}
 
         <div className="form-group">
           <label>תמונה שלך (אופציונלי) 📸</label>
           <div className="image-upload">
-            <input type="file" accept="image/*" onChange={handleImageUpload} id="image-upload" className="hidden" />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              id="image-upload"
+              className="hidden"
+            />
             <label htmlFor="image-upload" className="upload-button">
               {imagePreview ? (
-                <img src={imagePreview || "/placeholder.svg"} alt="Preview" className="image-preview" />
+                <img
+                  src={imagePreview || "/placeholder.svg"}
+                  alt="Preview"
+                  className="image-preview"
+                />
               ) : (
                 <div className="upload-placeholder">
                   <span>📷</span>
@@ -323,7 +333,7 @@ export default function Quiz2() {
           <h3>פרטי ההורים 👨‍👩‍👧‍👦</h3>
 
           <div className="form-group">
-            <label>שם ההורה</label>
+            <label>שם ההורה: </label>
             <input
               type="text"
               value={formData.parent_name}
@@ -334,14 +344,16 @@ export default function Quiz2() {
           </div>
 
           <div className="form-group">
-            <label>טלפון ההורה</label>
+            <label>טלפון ההורה:</label>
             <div className="phone-input-container">
               <select
                 value={formData.parent_phone_prefix || ""}
-                onChange={(e) => handleInputChange("parent_phone_prefix", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("parent_phone_prefix", e.target.value)
+                }
                 className="phone-prefix-select"
               >
-                <option value="">קידמת</option>
+                <option value="">קידומת</option>
                 <option value="050">050</option>
                 <option value="051">051</option>
                 <option value="052">052</option>
@@ -354,12 +366,13 @@ export default function Quiz2() {
                 type="tel"
                 value={formData.parent_phone_suffix || ""}
                 onChange={(e) => {
-                  // Only allow numbers and limit to 7 digits
-                  const value = e.target.value.replace(/\D/g, "").slice(0, 7)
-                  handleInputChange("parent_phone_suffix", value)
-                  // Combine prefix and suffix for the main parent_phone field
+                  const value = e.target.value.replace(/\D/g, "").slice(0, 7);
+                  handleInputChange("parent_phone_suffix", value);
                   if (formData.parent_phone_prefix && value) {
-                    handleInputChange("parent_phone", formData.parent_phone_prefix + value)
+                    handleInputChange(
+                      "parent_phone",
+                      formData.parent_phone_prefix + value
+                    );
                   }
                 }}
                 placeholder="1234567"
@@ -370,11 +383,13 @@ export default function Quiz2() {
           </div>
 
           <div className="form-group">
-            <label>אימייל ההורה</label>
+            <label>אימייל ההורה: </label>
             <input
               type="email"
               value={formData.parent_email}
-              onChange={(e) => handleInputChange("parent_email", e.target.value)}
+              onChange={(e) =>
+                handleInputChange("parent_email", e.target.value)
+              }
               placeholder="כתובת אימייל..."
               className="fun-input"
             />
@@ -382,13 +397,13 @@ export default function Quiz2() {
         </div>
       </div>
     </div>
-  )
+  );
 
   const renderQuestions = () => {
-    if (currentStep === 0) return renderPersonalInfo()
+    if (currentStep === 0) return renderPersonalInfo();
 
-    const stepQuestions = questionPool[currentStep - 1]
-    if (!stepQuestions) return null
+    const stepQuestions = questionPool[currentStep - 1];
+    if (!stepQuestions) return null;
 
     return (
       <div className="step-content">
@@ -403,19 +418,20 @@ export default function Quiz2() {
                 {React.cloneElement(
                   question.inputType as React.ReactElement,
                   {
-                    value: formData[question.name as keyof QuizValues] || "",
-                    onChange: (value: any) => {
-                      handleInputChange(question.name, value)
+                    value: formData[question.name as keyof QuizValues],
+                    onChange: (e: any) => {
+                      const value = e.target ? e.target.value : e;
+                      handleInputChange(question.name, value);
                     },
-                  } as any,
+                  } as any
                 )}
               </div>
             </div>
           ))}
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   const renderResult = () => (
     <div className="result-content">
@@ -424,14 +440,14 @@ export default function Quiz2() {
       <div className="level-display">{level}</div>
       <p>ההרשמה הושלמה בהצלחה!</p>
     </div>
-  )
+  );
 
-  const totalSteps = questionPool.length + 1
-  const isLastStep = currentStep === totalSteps - 1
-  const showResult = level !== null
+  const totalSteps = questionPool.length + 1;
+  const isLastStep = currentStep === totalSteps - 1;
+  const showResult = level !== null;
 
   if (showResult) {
-    return <div className="quiz-container">{renderResult()}</div>
+    return <div className="quiz-container">{renderResult()}</div>;
   }
 
   return (
@@ -439,7 +455,10 @@ export default function Quiz2() {
       <div className="quiz-header">
         <h1>המשך הרשמה 🚀</h1>
         <div className="progress-bar">
-          <div className="progress-fill" style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}></div>
+          <div
+            className="progress-fill"
+            style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
+          ></div>
         </div>
         <p className="step-counter">
           שלב {currentStep + 1} מתוך {totalSteps}
@@ -450,21 +469,35 @@ export default function Quiz2() {
 
       <div className="quiz-footer">
         {currentStep > 0 && (
-          <button type="button" onClick={() => setCurrentStep((prev) => prev - 1)} className="btn btn-secondary">
+          <button
+            type="button"
+            onClick={() => setCurrentStep((prev) => prev - 1)}
+            className="btn btn-secondary"
+          >
             ← חזור
           </button>
         )}
 
         {!isLastStep ? (
-          <button type="button" onClick={handleNext} className="btn btn-primary" disabled={!validateCurrentStep()}>
+          <button
+            type="button"
+            onClick={handleNext}
+            className="btn btn-primary"
+            disabled={!validateCurrentStep()}
+          >
             הבא →
           </button>
         ) : (
-          <button type="button" onClick={handleFinish} className="btn btn-success" disabled={!validateCurrentStep()}>
+          <button
+            type="button"
+            onClick={handleFinish}
+            className="btn btn-success"
+            disabled={!validateCurrentStep()}
+          >
             סיים! 🎯
           </button>
         )}
       </div>
     </div>
-  )
+  );
 }
