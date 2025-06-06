@@ -280,7 +280,7 @@ export default function MathMiniGame() {
   // RENDER MENU
   if (gameState === "menu") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 via-pink-600 to-red-600 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      <div className="min-h-screen  from-purple-600 via-pink-600 to-red-600 flex flex-col items-center justify-center p-6 relative overflow-hidden">
         {/* Back button */}
         <Button
           onClick={handleBackToSelection}

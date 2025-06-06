@@ -1,16 +1,23 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
 .help-page-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
   padding: 10px;
-  background-color: #f5f7ff;
   font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .help-page {
-  background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-  border-radius: 24px;
+  background: transparent;
+  border-radius: 0;
   padding: 30px;
   display: flex;
   flex-direction: column;
@@ -21,9 +28,9 @@
   color: #fff;
   gap: 25px;
   direction: rtl;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-  position: relative;
-  overflow: hidden;
+  box-shadow: none;
+  position: relative;   
+  overflow: visible;   
 }
 
 .help-header {
@@ -132,18 +139,21 @@
   overflow: hidden;
 }
 
+/* ========== שינויים למיקום הדמות ========== */
+
 .help-footer {
   width: 100%;
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 20px;
+  height: 0;          /* אין צורך בגובה קבוע, רק כדי לשמור מקום */
+  position: relative; /* מאפשר את ההצבה של .help-character באמצעות absolute */
 }
 
 .help-character {
+  position: absolute;
+  bottom: -40px;   /* מוריד אותה מעט כלפי מטה ביחס לתחתית ה־help-page */
+  right: -150px;   /* יזיז את הדמות 100px ימינה מחוץ לגבול ה־help-page */
   display: flex;
   align-items: flex-end;
   gap: 10px;
-  position: relative;
 }
 
 .character-image {
@@ -158,6 +168,8 @@
 
 .speech-bubble {
   position: relative;
+  bottom: 10px;   
+  right: 10px;  
   background: #ffde59;
   color: #333;
   border-radius: 16px;
@@ -180,7 +192,6 @@
   margin-right: -10px;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .help-page {
     padding: 20px;
@@ -196,7 +207,8 @@
   }
 
   .help-character {
-    justify-content: center;
+    bottom: -10px;
+    right: -60px;
   }
 
   .character-image {
@@ -205,6 +217,8 @@
   }
 
   .speech-bubble {
+    bottom: 15px;
+    right: -70px;
     max-width: 150px;
     font-size: 0.9rem;
   }
@@ -226,5 +240,10 @@
 
   .speech-bubble {
     display: none;
+  }
+
+  .help-character {
+    bottom: -30px;
+    right: -40px;
   }
 }
