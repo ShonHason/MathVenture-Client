@@ -1,37 +1,45 @@
-// src/components/PersonalInfo.tsx
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import "./PersonalInfo.css";
 import defaultProfileImg from "../images/profile.png";
 import { CameraOutlined, LockOutlined, EditOutlined } from "@ant-design/icons";
 import { updateUserProfile } from "../services/user_api";
 import { useUser } from "../context/UserContext";
 
-// כל הכיתות א–יב
-const gradeOptions = [
-  "א",
-  "ב",
-  "ג",
-  "ד",
-  "ה",
-  "ו",
-  "ז",
-  "ח",
-  "ט",
-];
-// קידומות ישראליות נפוצות
+const gradeOptions = ["א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט"];
+
 const prefixOptions = ["050", "051", "052", "053", "054", "055", "058"];
 
 const PersonalInfo: React.FC = () => {
   const { user, setUser } = useUser();
+  const avgScore = Number(user?.rank ?? 0);
+
+  const { calculatedLevel, mappedRank } = useMemo(() => {
+    let calculatedLevel = "";
+    let mappedRank = "1";
+
+    if (avgScore <= 2) {
+      calculatedLevel = "🪱 תולעת חכמה";
+      mappedRank = "1";
+    } else if (avgScore <= 3.5) {
+      calculatedLevel = "🐶 כלב מתמטי";
+      mappedRank = "2";
+    } else {
+      calculatedLevel = "🐯 נמר מספרים";
+      mappedRank = "3";
+    }
+
+    return { calculatedLevel, mappedRank };
+  }, [avgScore]);
   const [name, setName] = useState(user?.username || "");
   const [email] = useState(user?.email || "");
-  const [phonePrefix, setPhonePrefix] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phonePrefix, setPhonePrefix] = useState(
+    user?.parent_phone?.slice(0, 3) || ""
+  );
+  const [phoneNumber, setPhoneNumber] = useState(user?.parent_phone || "");
   const [className, setClassName] = useState(user?.grade || "");
   const [profileImage, setProfileImage] = useState<string>(
     user?.imageUrl || defaultProfileImg
   );
-  // אחרי השורות הקיימות
   const [parentName, setParentName] = useState(user?.parent_name || "");
   const [parentEmail, setParentEmail] = useState(user?.parent_email || "");
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -53,9 +61,7 @@ const PersonalInfo: React.FC = () => {
   // }, [user]);
   useEffect(() => {
     if (!user) return;
-
-    setName(user.username || "");
-    // setEmail(user.email || "");
+    setName(user.username || user.fullname || "");
     setClassName(user.grade || "");
     setProfileImage(user.imageUrl || defaultProfileImg);
     setParentName(user.parent_name || "");
@@ -87,25 +93,6 @@ const PersonalInfo: React.FC = () => {
     reader.readAsDataURL(file);
   };
 
-  // const onSave = async () => {
-  //   if (!user?._id) return;
-  //   const fullPhone = phonePrefix + phoneNumber;
-  //   try {
-  //     const updated = await updateUserProfile({
-  //       userId: user._id,
-  //       username: name,
-  //       email,
-  //       parent_phone: fullPhone,
-  //       grade: className,
-  //       imageUrl: profileImage,
-  //     });
-  //     setUser((prev) => ({ ...prev!, ...updated }));
-  //     alert("השינויים נשמרו בהצלחה!");
-  //   } catch (err) {
-  //     console.error(err);
-  //     alert("שגיאה בשמירת הפרטים");
-  //   }
-  // };
   const onSave = async () => {
     if (!user?._id) return;
     const fullPhone = phonePrefix + phoneNumber;
@@ -117,8 +104,16 @@ const PersonalInfo: React.FC = () => {
         parent_phone: fullPhone,
         grade: className,
         imageUrl: profileImage,
-        parent_name: parentName, // חדש
-        parent_email: parentEmail, // חדש
+        parent_name: parentName,
+        parent_email: parentEmail,
+      });
+      console.log("Sending profile update:", {
+        username: name,
+        email,
+        grade: className,
+        imageUrl: profileImage,
+        parent_name: parentName,
+        parent_email: parentEmail,
       });
       setUser((prev) => ({ ...prev!, ...updated }));
       alert("השינויים נשמרו בהצלחה!");
@@ -145,6 +140,11 @@ const PersonalInfo: React.FC = () => {
       />
 
       <div className="personal-info-form">
+        {/* <div className="field">
+          <label>רמת תלמיד</label>
+          <div className="level-display">{calculatedLevel}</div>
+        </div> */}
+
         <div className="field">
           <label>שם מלא</label>
           <input

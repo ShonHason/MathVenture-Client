@@ -11,6 +11,7 @@ import axios from "axios";
 export interface User {
   _id: string;
   username: string;
+  fullname: string;
   email: string;
   grade?: string;
   gender?: string;
@@ -22,10 +23,10 @@ export interface User {
   parent_email?: string;
   parent_name?: string;
   parent_phone?: string;
-    
+
   // **these three are missing**:
-  subjectsList: string[];    // define as non-null array
-  accessToken: string;       // or mark optional if it really can be undefined
+  subjectsList: string[]; // define as non-null array
+  accessToken: string; // or mark optional if it really can be undefined
   refreshToken: string;
 }
 interface UserContextType {

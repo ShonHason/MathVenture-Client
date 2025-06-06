@@ -1,5 +1,14 @@
 import React from "react";
-import { Form, Input, Button, Tabs, Typography, Space, Radio, message } from "antd";
+import {
+  Form,
+  Input,
+  Button,
+  Tabs,
+  Typography,
+  Space,
+  Radio,
+  message,
+} from "antd";
 
 import {
   GoogleOutlined,
@@ -38,7 +47,6 @@ export const LoginRegistration: React.FC = () => {
       const data = await user_api.loginUser({
         email: values.email,
         password: values.password,
-        
       });
       sessionStorage.setItem("accessToken", data.accessToken);
       sessionStorage.setItem("refreshToken", data.refreshToken);
@@ -46,6 +54,7 @@ export const LoginRegistration: React.FC = () => {
       setUser({
         ...data,
         subjectsList: data.subjectsList || [], // Ensure subjectsList is always defined
+        fullname: data.username || "",
       });
       console.log("User SubjectList:", data);
       message.success("Login successful!");
@@ -68,10 +77,10 @@ export const LoginRegistration: React.FC = () => {
         email: registrationData.email,
         password: registrationData.password,
         username: registrationData.username,
-        gender : registrationData.gender,
+        gender: registrationData.gender,
       };
 
-      const newuser =  await user_api.register(mappedData);
+      const newuser = await user_api.register(mappedData);
       setUser((prevUser) => ({
         ...prevUser!,
         ...newuser,
@@ -215,17 +224,17 @@ export const LoginRegistration: React.FC = () => {
                   >
                     <Input.Password placeholder="אשר את הסיסמא שלך" />
                   </Form.Item>
-                   <Form.Item
-    label="מין"
-    name="gender"
-    initialValue="female"
-    rules={[{ required: true, message: "אנא בחר/י מין" }]}
-  >
-    <Radio.Group>
-      <Radio value="female">נקבה</Radio>
-      <Radio value="male">זכר</Radio>
-    </Radio.Group>
-  </Form.Item>
+                  <Form.Item
+                    label="מין"
+                    name="gender"
+                    initialValue="female"
+                    rules={[{ required: true, message: "אנא בחר/י מין" }]}
+                  >
+                    <Radio.Group>
+                      <Radio value="female">נקבה</Radio>
+                      <Radio value="male">זכר</Radio>
+                    </Radio.Group>
+                  </Form.Item>
                   <Form.Item>
                     <Button type="primary" htmlType="submit" block>
                       הירשם
