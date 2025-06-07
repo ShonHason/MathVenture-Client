@@ -132,11 +132,16 @@ export async function checkOpenLesson(userId: string, subject: string) {
   });
   return response.data;
 }
-export async function finishLessonFunction(lessonId: string, user: User) {
-  console.log("Send Req to :" , `${baseUrl}/lessons/finish-lesson`);
+export async function finishLessonFunction(lessonId: string, user: User , subject: string) {
+  console.log("Send Req to :" , `${baseUrl}/lessons/analyze-lesson`);
+  const body = {
+    lessonId : lessonId,
+    parentEmail: user?.parent_email ,
+    subject : "סיכום שיעור בנושא " +   subject + "לכיתה " + user.grade, 
+  }
   const response = await axios.post(
-    `${baseUrl}/lessons/finish-lesson`,
-    { lessonId, user },
+    `${baseUrl}/lessons/analyze-lesson`,
+    { body },
     {
       headers: {
         Authorization: "jwt " + localStorage.getItem("accessToken"),

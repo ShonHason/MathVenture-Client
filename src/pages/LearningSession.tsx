@@ -138,7 +138,7 @@ function LearningSessionContent() {
     // הפונקציה הזו תופעל רק ברגע ש־isLessonComplete יהפוך ל־true
     if (isLessonComplete) {
       if (lessonId && user) {
-        finishLessonFunction(lessonId, user);
+        finishLessonFunction(lessonId, user , topic.subject);
       }
     }
   }, [isLessonComplete]);
