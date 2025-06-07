@@ -1,84 +1,74 @@
 /* Profile Page Styling */
-.profile-page-container {
+
+/* Main wrapper: centered and inheriting parent background */
+.profile-page {
   width: 100%;
   max-width: 960px;
-  margin: 0 auto;
-  background: #f4f4f4; /* Light background for the whole container */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
-}
-
-.profile-page-nav {
+  margin: 2rem auto;
+  background: inherit;     /* inherit whatever the page’s background is */
   display: flex;
-  background-color: #333; /* Dark background for contrast */
-  list-style: none;
+  flex-direction: column;
 }
 
-.profile-page-nav ul {
+/* Segmented tabs */
+.profile-tabs {
   display: flex;
-  width: 100%;
-  justify-content: space-evenly; /* Even spacing of nav items */
-  margin: 0;
-  padding: 0;
+  background: #ffffff;
+  border-radius: 9999px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
-
-.profile-page-nav li {
-  flex-grow: 1; /* Flex grow to fill available space */
+.profile-tabs .tab {
+  flex: 1;
   text-align: center;
-  padding: 12px;
-  color: white; /* White text color for readability */
+  padding: 0.75rem 1.5rem;
   cursor: pointer;
-  transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+  transition: background 0.2s, color 0.2s;
+  color: #4a5568;
+  font-weight: 500;
+}
+.profile-tabs .tab:hover {
+  background: #f0f0f0;
+}
+.profile-tabs .tab.active {
+  background: #8b5cf6;  /* active purple */
+  color: #ffffff;
 }
 
-.profile-page-nav li:hover {
-  background-color: #555; /* Slightly lighter on hover for interaction feedback */
+/* Content area: larger, padded, inheriting background */
+.profile-content {
+  background: inherit;
+  padding: 2rem;
+  margin-top: 1rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  min-height: 400px;    /* ensure it never collapses too small */
 }
 
-.profile-page-nav li.active {
-  background-color: #f39c12; /* Highlight color for the active tab */
-}
-
-.profile-content-area {
-  padding: 20px;
-  background-color: #fff; /* White background for the content for clean look */
-  border-top: 3px solid #f39c12; /* Continuation of active tab color */
-}
-
-/* Ensuring unique class names for active tabs */
-.profile-page-nav ul li.active {
-  background-color: #007bff; /* Blue background for active tab */
-  color: white; /* White text color */
-}
-.tab-content-container {
-  /* padding: 20px; */
-  background-color: #fff; /* White background for the content for clean look */
-  border-top: 3px solid #f39c12; /* Continuation of active tab color */
-}
+/* Personal-info form container */
 .personal-info-container {
   max-width: 600px;
   margin: 0 auto;
 }
 
+/* Form styling stays same */
 .personal-info-form {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
-
 .personal-info-form label {
   font-weight: bold;
 }
-
 .personal-info-form input {
   padding: 8px;
   border-radius: 4px;
   border: 1px solid #ccc;
 }
-
 .personal-info-form button {
   padding: 10px;
   margin-top: 10px;
-  background-color: #007bff;
+  background-color: #8b5cf6;
   color: white;
   border: none;
   border-radius: 6px;

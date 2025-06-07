@@ -32,6 +32,7 @@ import MathMiniGame from "./pages/MathMiniGame";
 import GameSelection from "./pages/GameSelection";
 import Quiz2 from "./pages/quiz2";
 import { ControlPanelProvider } from "./context/ControlPanelContext";
+import MyEmails from "./components/MyEmails";
 const App: React.FC = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
 

@@ -1,0 +1,192 @@
+/* EmailTable.css - Simplified and corrected styling */
+
+/* Full-page purple background */
+.email-page {
+    background: linear-gradient(135deg, #6b46c1, #9f7aea);
+    min-height: 100vh;
+    padding: 2rem 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    position: relative; /* enable children stacking */
+  }
+  
+  /* Card container with white border instead of pseudo-element */
+  .email-card {
+    background: #ffffff;
+    border: 16px solid #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 840px;
+    margin: 2rem 0;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+  }
+  
+  /* Header gradient and layout */
+  .email-header {
+    background: linear-gradient(90deg, #8b5cf6, #ec4899);
+    padding: 1.5rem 2rem;
+    color: white;
+  }
+  .email-header-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .email-header-icon {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 1rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .email-header-title {
+    font-size: 1.75rem;
+    margin: 0;
+  }
+  .email-header-subtitle {
+    margin: 0.25rem 0 0;
+    opacity: 0.85;
+  }
+  
+  /* Table container */
+  .email-table-container {
+    padding: 1rem 2rem 2rem;
+  }
+  
+  /* Basic table reset */
+  .email-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+  }
+  .email-table thead tr {
+    background: #faf5ff;
+  }
+  .email-table th,
+  .email-table td {
+    padding: 1rem;
+    text-align: left;
+  }
+  .email-table th {
+    color: #374151;
+    font-weight: 600;
+  }
+  .email-table tbody tr:nth-child(odd) {
+    background: #ffffff;
+  }
+  .email-table tbody tr:nth-child(even) {
+    background: #f9f9fb;
+  }
+  .email-table tbody tr:hover {
+    background: #f3e8ff;
+  }
+  
+  /* Recipient cell */
+  .recipient-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .recipient-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(90deg, #a855f7, #ec4899);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+  }
+  .recipient-email {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  /* Subject and message styling */
+  .subject-cell {
+    font-weight: 500;
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .message-cell {
+    color: #6b7280;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  /* Status badge styling */
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid;
+  }
+  .status-badge.delivered { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+  .status-badge.sent      { background: #dbeafe; color: #1e40af; border-color: #bfdbfe; }
+  .status-badge.failed    { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+  .status-badge.pending   { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+  
+  .status-icon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  /* Date cell */
+  .date-cell {
+    color: #6b7280;
+    font-size: 0.875rem;
+    white-space: nowrap;
+  }
+  
+  /* Footer styling */
+  .email-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: #faf5ff;
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+  
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+  }
+  .empty-state-content {
+    display: inline-block;
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 12px;
+  }
+  .empty-state-icon { width: 64px; height: 64px; color: #d1d5db; margin-bottom: 1rem; }
+  .empty-state-title { font-size: 1.25rem; margin-bottom: 0.5rem; color: #6b7280; }
+  .empty-state-text  { color: #9ca3af; }
+  
+  /* Responsive tweaks */
+  @media (max-width: 768px) {
+    .email-table-container { overflow-x: auto; }
+    .email-table { min-width: 600px; }
+  }
+  
+  @media (max-width: 480px) {
+    .email-header-content { flex-direction: column; text-align: center; }
+  }
+  
