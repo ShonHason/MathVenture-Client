@@ -19,9 +19,9 @@ import {
   ControlPanelProvider,
   useControlPanel,
 } from "../context/ControlPanelContext"; // Import provider and hook
+import PushToTalkButton from "../components/PushToTalkButton";
 
-const socketServerUrl =
-  process.env.SERVER_API_URL || "http://localhost:4000";
+const socketServerUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 
 type LocationState = {
   state: {
@@ -32,8 +32,8 @@ type LocationState = {
 
 interface AIResponse {
   text: string;
-  mathexpression?: string; 
-  counter?: number;       
+  mathexpression?: string;
+  counter?: number;
 }
 
 function LearningSessionContent() {
@@ -60,7 +60,7 @@ function LearningSessionContent() {
   //const [isSpeaking, setIsSpeaking] = useState(false); // This prop controls the indicator
   //const [controlsOpen, setControlsOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<"draw" | "keyboard">("draw");
- // const [botVolume, setBotVolume] = useState(100);
+  // const [botVolume, setBotVolume] = useState(100);
   //const [speechSpeed, setSpeechSpeed] = useState(1);
 
   const [resetKey, setResetKey] = useState(0);
@@ -68,7 +68,6 @@ function LearningSessionContent() {
   const [oldExp, setoldExp] = useState("");
   const [newExp, setnewExp] = useState("");
   const [questionCounter, setQuestionCounter] = useState(0);
-  
 
   // Yellow area: last user input
   const [lastUserMessage, setLastUserMessage] = useState<string>("");
@@ -78,49 +77,48 @@ function LearningSessionContent() {
   const lastTranscriptRef = useRef("");
   const lastSentRef = useRef("");
 
-
-   const {
-      isVisible,
-      setIsVisible,
-      isLessonComplete,
-      setIsLessonComplete,
-      progress,
-      setProgress,
-      currentQuestion,
-      setCurrentQuestion,
-      correctAnswers,
-      setCorrectAnswers,
-      isPlaying,
-      isMuted,
-      botVolume,
-      speechSpeed,
-      botSpeech,
-      setBotSpeech,
-      botStatus,
-      setBotStatus,
-      speak,
-      stopTTS,
-      onRepeatMessage,
-      onTogglePlayPause,
-      onToggleMute,
-      onAdjustVolume,
-      onAdjustSpeed,
-    } = useControlPanel();
-  
-
+  const {
+    isVisible,
+    setIsVisible,
+    isLessonComplete,
+    setIsLessonComplete,
+    progress,
+    setProgress,
+    currentQuestion,
+    setCurrentQuestion,
+    correctAnswers,
+    setCorrectAnswers,
+    isPlaying,
+    isMuted,
+    botVolume,
+    speechSpeed,
+    botSpeech,
+    setBotSpeech,
+    botStatus,
+    setBotStatus,
+    speak,
+    stopTTS,
+    onRepeatMessage,
+    onTogglePlayPause,
+    onToggleMute,
+    onAdjustVolume,
+    onAdjustSpeed,
+    isPushToTalkMode,
+    setPushToTalkMode,
+    isTalkingAllowed,
+    setIsTalkingAllowed,
+  } = useControlPanel();
 
   const checkIfOver = async () => {
-    
-    console.log("Checking if lesson is over for lessonId:",lessonId);    
+    console.log("Checking if lesson is over for lessonId:", lessonId);
     try {
-      
-     const { data } = await axios.get(
-  `${socketServerUrl}/lessons/isOver/${lessonId}`,
-  {
-    headers: { Authorization: `JWT ${user?.accessToken}` },
-  }
-);
-      setQuestionCounter(data.size)
+      const { data } = await axios.get(
+        `${socketServerUrl}/lessons/isOver/${lessonId}`,
+        {
+          headers: { Authorization: `JWT ${user?.accessToken}` },
+        }
+      );
+      setQuestionCounter(data.size);
       console.log("checkIfOver response:", data);
       console.log("isfinished:", isLessonComplete);
       if (data.isOver) {
@@ -138,11 +136,10 @@ function LearningSessionContent() {
     // הפונקציה הזו תופעל רק ברגע ש־isLessonComplete יהפוך ל־true
     if (isLessonComplete) {
       if (lessonId && user) {
-        finishLessonFunction(lessonId, user , topic.subject);
+        finishLessonFunction(lessonId, user, topic.subject);
       }
     }
   }, [isLessonComplete]);
-
 
   // --- Fetch existing conversation ---
   useEffect(() => {
@@ -166,8 +163,6 @@ function LearningSessionContent() {
         // Count correct answers from chat history
         //axios function to get corrcet count.. questionlog.length
         // Look for bot responses that indicate correct answers
-       
-        
       } catch (err) {
         console.error(err);
       } finally {
@@ -179,12 +174,7 @@ function LearningSessionContent() {
 
   // --- Intro message ---
   useEffect(() => {
-    if (
-      messagesLoaded &&
-      user?.username &&
-      topic.subject &&
-      !hasSpokenIntro
-    ) {
+    if (messagesLoaded && user?.username && topic.subject && !hasSpokenIntro) {
       const opening =
         messages.length > 0
           ? `שלום ${user.username}, שמח לראות שחזרת אליי! השיעור על ${topic.subject} ממשיך.`
@@ -215,17 +205,16 @@ function LearningSessionContent() {
         .then((r) => setLessonId(r.data.lessonId))
         .catch(console.error);
     }
-  }, [ lessonId, user, topic]);
+  }, [lessonId, user, topic]);
 
   useEffect(() => {
     if (!isLessonComplete) return;
 
-  //function that send all the lesson data to the server, that it get summary and than sent to email
-
-  }), [isLessonComplete, lessonId];
+    //function that send all the lesson data to the server, that it get summary and than sent to email
+  }),
+    [isLessonComplete, lessonId];
 
   // TTS with speed control
-  
 
   const handleReturnToMainActual = useCallback(() => {
     stopTTS(); // Stop Text-to-Speech (from context)
@@ -235,52 +224,94 @@ function LearningSessionContent() {
     navigate("/home");
   }, [stopTTS, navigate]);
 
-
   const handleTranscript = (t: string) => {
-    if (isMuted || isPlaying) return; 
+    if (isMuted || isPlaying || (isPushToTalkMode && !isTalkingAllowed)) {
+      console.log("Transcript ignored due to PTT/mute state:", {
+        isMuted,
+        isPlaying,
+        isPushToTalkMode,
+        isTalkingAllowed,
+      });
+      return;
+    }
+
     lastTranscriptRef.current = t;
     clearTimeout(silenceTimerRef.current!);
     silenceTimerRef.current = window.setTimeout(() => {
       const final = lastTranscriptRef.current.trim();
-      if (final) sendTranscript(final);
+      if (final) {
+        console.log("Sending transcript:", final);
+        sendTranscript(final);
+      }
       lastTranscriptRef.current = "";
     }, 2500);
   };
+  const handleTalkStart = useCallback(() => {
+    console.log("PTT: Button pressed - allowing talk");
+    setIsTalkingAllowed(true);
+  }, [setIsTalkingAllowed]);
 
+  const handleTalkEnd = useCallback(() => {
+    console.log("PTT: Button released - blocking talk");
+    setIsTalkingAllowed(false);
 
+    // Force process any pending transcript when button is released
+    if (lastTranscriptRef.current.trim()) {
+      const final = lastTranscriptRef.current.trim();
+      console.log("PTT: Processing final transcript on button release:", final);
+      sendTranscript(final);
+      lastTranscriptRef.current = "";
+      clearTimeout(silenceTimerRef.current!);
+    }
+  }, [setIsTalkingAllowed]);
+  const micMutedConditions = {
+    isMuted,
+    isLessonComplete,
+    isPlaying,
+    pttBlocked: isPushToTalkMode && !isTalkingAllowed,
+  };
 
+  const shouldMuteMic =
+    isMuted ||
+    isLessonComplete ||
+    isPlaying ||
+    (isPushToTalkMode && !isTalkingAllowed);
+  const digitPattern = /\d/;
+  const operatorPattern = /[+\-*/^%]/; // סימני חיבור, חיסור, כפל, חילוק, חזקה, אחוז
+  const numberWordsPattern =
+    /\b(אפס|אחד|שתיים|שלוש|ארבע|חמש|שש|שבע|שמונה|תשע|עשר|עשרים|שלושים|ארבעים|חמישים|שישים|שבעים|שמונים|תשעים|מאה|אלף|מיליון)\b/;
+  const fractionWordsPattern = /\b(חצי|רבע|שליש|שמינית|חמישית|עשירית)\b/;
+  const mathOpWordsPattern =
+    /\b(כפול|חלק|חילק|חיבור|חיסור|חזקת|שורש|גדול מ|קטן מ|שווה ל)\b/;
+  const questionWordsPattern = /\b(כמה|מה התשובה|פתור|חשב)\b/;
+  const slashFractionPattern = /\d+\s*\/\s*\d+/; // צורה “3/4” או “  12/ 5 ”
 
+  function isMathRelated(text: string): boolean {
+    const t = text.normalize("NFC");
 
-const digitPattern = /\d/; 
-const operatorPattern = /[+\-*/^%]/; // סימני חיבור, חיסור, כפל, חילוק, חזקה, אחוז
-const numberWordsPattern = /\b(אפס|אחד|שתיים|שלוש|ארבע|חמש|שש|שבע|שמונה|תשע|עשר|עשרים|שלושים|ארבעים|חמישים|שישים|שבעים|שמונים|תשעים|מאה|אלף|מיליון)\b/;
-const fractionWordsPattern = /\b(חצי|רבע|שליש|שמינית|חמישית|עשירית)\b/;
-const mathOpWordsPattern = /\b(כפול|חלק|חילק|חיבור|חיסור|חזקת|שורש|גדול מ|קטן מ|שווה ל)\b/;
-const questionWordsPattern = /\b(כמה|מה התשובה|פתור|חשב)\b/;
-const slashFractionPattern = /\d+\s*\/\s*\d+/; // צורה “3/4” או “  12/ 5 ”
+    if (digitPattern.test(t)) return true;
 
- function isMathRelated(text: string): boolean {
-  const t = text.normalize("NFC");
+    if (operatorPattern.test(t)) return true;
 
-  if (digitPattern.test(t)) return true;
+    if (slashFractionPattern.test(t)) return true;
 
-  if (operatorPattern.test(t)) return true;
+    if (numberWordsPattern.test(t)) return true;
 
-  if (slashFractionPattern.test(t)) return true;
+    if (fractionWordsPattern.test(t)) return true;
 
-  if (numberWordsPattern.test(t)) return true;
+    if (mathOpWordsPattern.test(t)) return true;
 
-  if (fractionWordsPattern.test(t)) return true;
+    if (questionWordsPattern.test(t)) return true;
 
-  if (mathOpWordsPattern.test(t)) return true;
-
-  if (questionWordsPattern.test(t)) return true;
-
-  return false;
-}
-
+    return false;
+  }
 
   const sendTranscript = async (input: string) => {
+    if (isPushToTalkMode && !isTalkingAllowed) {
+      console.warn("Transcript blocked by PTT mode - user not pressing button");
+      return;
+    }
+
     if (input === lastSentRef.current || !input.trim()) {
       console.warn(
         "Skipping sendTranscript: empty input, duplicate, or no lessonId.",
@@ -290,34 +321,52 @@ const slashFractionPattern = /\d+\s*\/\s*\d+/; // צורה “3/4” או “  1
     }
 
     lastSentRef.current = input;
-  
+
     // 1) Append the user’s message
     setMessages((m) => [...m, { sender: "user", text: input }]);
-    setBotStatus("חושב..."); 
+    setBotStatus("חושב...");
 
     setLastUserMessage(input);
-  console.log("addQuestionLog is called");
-  console.log("isMathRelated: ", isMathRelated(input), "\nnewExp: ", newExp , "\noldExp: ", oldExp);
+    console.log("addQuestionLog is called");
+    console.log(
+      "isMathRelated: ",
+      isMathRelated(input),
+      "\nnewExp: ",
+      newExp,
+      "\noldExp: ",
+      oldExp
+    );
 
     if (newExp && isMathRelated(input) && oldExp != newExp) {
       setQuestionCounter((prev) => prev + 1);
       console.log("addQustionLog is working!!!!!!!");
       const response = await axios.put(
         `${socketServerUrl}/lessons/addQustionLog`,
-        { lessonId :lessonId, mathExp: newExp, text :input },
-      
+        { lessonId: lessonId, mathExp: newExp, text: input },
+
         { headers: { Authorization: `JWT ${user?.accessToken}` } }
       );
     }
     console.log("addAnswer is called");
-    console.log("oldExp: ", oldExp , "\nneed to be equal newExp: ", newExp , "\nisMathRelated: ", (isMathRelated(input) || /נכונה|נכון|לא נכון|לא נכונה/.test(input)) );
-   
-    if (oldExp === newExp && (isMathRelated(input) || /נכונה|נכון|לא נכון|לא נכונה/.test(input)) && oldExp !== "") {
+    console.log(
+      "oldExp: ",
+      oldExp,
+      "\nneed to be equal newExp: ",
+      newExp,
+      "\nisMathRelated: ",
+      isMathRelated(input) || /נכונה|נכון|לא נכון|לא נכונה/.test(input)
+    );
+
+    if (
+      oldExp === newExp &&
+      (isMathRelated(input) || /נכונה|נכון|לא נכון|לא נכונה/.test(input)) &&
+      oldExp !== ""
+    ) {
       console.log("addAnswer is working!!!!!!!!!");
       setQuestionCounter((prev) => prev);
       const response = await axios.put(
         `${socketServerUrl}/lessons/addAnswer`,
-        { lessonId :lessonId,mathExp: newExp, text: input },
+        { lessonId: lessonId, mathExp: newExp, text: input },
         { headers: { Authorization: `JWT ${user?.accessToken}` } }
       );
     }
@@ -327,25 +376,24 @@ const slashFractionPattern = /\d+\s*\/\s*\d+/; // צורה “3/4” או “  1
         { question: input },
         { headers: { Authorization: `JWT ${user?.accessToken}` } }
       );
-   
-      
+
       // 2) Extract fields from server response
-      const aiRaw: string = resp.data.answer;                  // full AI response (may include Markdown fences + undefined fields)
+      const aiRaw: string = resp.data.answer; // full AI response (may include Markdown fences + undefined fields)
       const isCorrectFromServer: boolean = resp.data.isCorrect;
       console.log("AI raw response:", aiRaw);
       console.log("isCorrectFromServer:", isCorrectFromServer);
-  
+
       // 3) Find the JSON braces
       const firstBrace = aiRaw.indexOf("{");
       const lastBrace = aiRaw.lastIndexOf("}");
       let onlyText: string;
       let mathExpression: string | undefined;
       let counter: number | undefined;
-  
+
       if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
         // 4) Extract exactly from “{” to “}”
         let jsonOnly = aiRaw.slice(firstBrace, lastBrace + 1);
-  
+
         // 5) Remove any Markdown fences (```json … ```)
         //    If it starts with “```”, drop that line.
         if (jsonOnly.startsWith("```")) {
@@ -358,7 +406,7 @@ const slashFractionPattern = /\d+\s*\/\s*\d+/; // צורה “3/4” או “  1
         if (jsonOnly.endsWith("```")) {
           jsonOnly = jsonOnly.slice(0, -3).trim();
         }
-  
+
         // 6) Remove any `"mathexpression": undefined` or `"counter": undefined`, plus dangling commas
         jsonOnly = jsonOnly
           // remove `"mathexpression": undefined` (and optional comma)
@@ -367,34 +415,37 @@ const slashFractionPattern = /\d+\s*\/\s*\d+/; // צורה “3/4” או “  1
           .replace(/"counter"\s*:\s*undefined\s*,?/, "")
           // remove any trailing comma before closing brace: `{ "text": "...", }` → `{ "text": "..." }`
           .replace(/,\s*}/, "}");
-  
+
         // 7) Now attempt to parse the cleaned JSON
         try {
           const parsed = JSON.parse(jsonOnly) as AIResponse;
           console.log("Parsed AI response:", parsed);
-  
+
           onlyText = parsed.text;
           mathExpression = parsed.mathexpression;
           counter = parsed.counter;
           console.log("addBotResponse is called");
-          console.log("newExp: ",newExp , "\nisMathRelated(onlyText): ", isMathRelated(onlyText));
-          if(newExp && isMathRelated(onlyText)) {
+          console.log(
+            "newExp: ",
+            newExp,
+            "\nisMathRelated(onlyText): ",
+            isMathRelated(onlyText)
+          );
+          if (newExp && isMathRelated(onlyText)) {
             console.log("addBotResponse is working!!!!!!!!!");
             const response = await axios.put(
               `${socketServerUrl}/lessons/addBotResponse`,
-              { lessonId :lessonId,mathExp: newExp, botResponse: onlyText },
+              { lessonId: lessonId, mathExp: newExp, botResponse: onlyText },
               { headers: { Authorization: `JWT ${user?.accessToken}` } }
-            ) }
+            );
+          }
 
-          if(mathExpression) {
+          if (mathExpression) {
             setoldExp(newExp);
             setnewExp(mathExpression);
             console.log("set new mathExpression:", mathExpression);
             console.log("set new counter:", counter);
           }
-         
-          
-
         } catch (e) {
           console.error("Failed to parse cleaned JSON substring:", e);
           // fallback: treat entire aiRaw as plain Hebrew feedback
@@ -404,18 +455,17 @@ const slashFractionPattern = /\d+\s*\/\s*\d+/; // צורה “3/4” או “  1
         // No valid “{…}” found → treat entire aiRaw as plain text
         onlyText = aiRaw;
       }
-  
+
       // 8) Strip stray “*” so TTS won’t read “כוכבית”
       const aiClean = onlyText.replace(/\*/g, "");
-      
-  
+
       // 9) Push the bot’s cleaned text into messages (so it appears in chat)
       setMessages((m) => [...m, { sender: "bot", text: aiClean }]);
       setBotSpeech(aiClean);
-  
+
       //check if the lesson is over
-     checkIfOver();
-  
+      checkIfOver();
+
       // 11) Finally, speak only the cleaned “text” field.
       //     (If you want to append “ מוכן לשאלה הזו?”, do it here.)
       speak(aiClean);
@@ -425,17 +475,17 @@ const slashFractionPattern = /\d+\s*\/\s*\d+/; // צורה “3/4” או “  1
   };
   const handleDrawingScan = async (canvas: HTMLCanvasElement) => {
     try {
-         const mathText = await scanMathFromCanvas(canvas);
-         if (mathText) {
-           sendTranscript(mathText);
-         } else {
-           console.warn("Tesseract: לא זוהה טקסט מתמטי");
-         }
-       } catch (err) {
-         console.error("Math OCR failed:", err);
-       } finally {
-         setResetKey((k) => k + 1); // Reset drawing panel
-       }
+      const mathText = await scanMathFromCanvas(canvas);
+      if (mathText) {
+        sendTranscript(mathText);
+      } else {
+        console.warn("Tesseract: לא זוהה טקסט מתמטי");
+      }
+    } catch (err) {
+      console.error("Math OCR failed:", err);
+    } finally {
+      setResetKey((k) => k + 1); // Reset drawing panel
+    }
   };
 
   const handleKeyboardScan = async (displayedText: string) => {
@@ -443,9 +493,6 @@ const slashFractionPattern = /\d+\s*\/\s*\d+/; // צורה “3/4” או “  1
     sendTranscript(displayedText);
     setResetKey((k) => k + 1); // Reset keyboard panel;
   };
-
-
-
 
   return (
     <div className="learning-session-container">
@@ -479,7 +526,11 @@ const slashFractionPattern = /\d+\s*\/\s*\d+/; // צורה “3/4” או “  1
         onAdjustSpeed={onAdjustSpeed}
         onToggleMute={onToggleMute}
         onReturnToMain={handleReturnToMainActual} // Pass the actual handler
-        onRepeatMessage={onRepeatMessage}
+        isPushToTalkMode={isPushToTalkMode}
+        onTogglePushToTalk={setPushToTalkMode}
+        onRepeatMessage={function (): void {
+          throw new Error("Function not implemented.");
+        }}
       />
 
       <div className="main-content-panels">
@@ -495,9 +546,7 @@ const slashFractionPattern = /\d+\s*\/\s*\d+/; // צורה “3/4” או “  1
           <Avatar />
           <div className="bot-speech-display">{botSpeech}</div>{" "}
           {/* From context */}
-          <div className="user-message-display">
-          {lastUserMessage}
-          </div>
+          <div className="user-message-display">{lastUserMessage}</div>
           <button
             onClick={() => setIsTranscriptOpen(true)}
             className="show-transcript-button"
@@ -541,10 +590,17 @@ const slashFractionPattern = /\d+\s*\/\s*\d+/; // צורה “3/4” או “  1
           )}
         </div>
       </div>
-
+      {isPushToTalkMode && (
+        <PushToTalkButton
+          onTalkStart={handleTalkStart}
+          onTalkEnd={handleTalkEnd}
+          isRecording={isTalkingAllowed}
+          disabled={isLessonComplete}
+        />
+      )}
       <RealTimeRecorder
         ref={recorderRef}
-        micMuted={isMuted || isLessonComplete || isPlaying} // Use isMuted and isPlaying from context
+        micMuted={shouldMuteMic}
         onTranscript={handleTranscript}
       />
       {isTranscriptOpen && (
@@ -555,7 +611,7 @@ const slashFractionPattern = /\d+\s*\/\s*\d+/; // צורה “3/4” או “  1
       )}
     </div>
   );
-} 
+}
 export default function LearningSession() {
   const navigate = useNavigate();
   const recorderRef = useRef<any>(null); // Still need this ref for the recorder

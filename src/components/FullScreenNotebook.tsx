@@ -67,6 +67,10 @@ export default function FullScreenNotebook({
         onToggleMute={onToggleMute}
         onReturnToMain={onReturnToMain}
         onRepeatMessage={onRepeatMessage}
+        isPushToTalkMode={false}
+        onTogglePushToTalk={function (mode: boolean): void {
+          throw new Error("Function not implemented.");
+        }}
       />
 
       <div className="notebook-container">
