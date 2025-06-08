@@ -264,12 +264,6 @@ function LearningSessionContent() {
       clearTimeout(silenceTimerRef.current!);
     }
   }, [setIsTalkingAllowed]);
-  const micMutedConditions = {
-    isMuted,
-    isLessonComplete,
-    isPlaying,
-    pttBlocked: isPushToTalkMode && !isTalkingAllowed,
-  };
 
   const shouldMuteMic =
     isMuted ||
@@ -546,7 +540,12 @@ function LearningSessionContent() {
           <Avatar />
           <div className="bot-speech-display">{botSpeech}</div>{" "}
           {/* From context */}
-          <div className="user-message-display">{lastUserMessage}</div>
+          <div className="user-message-display">
+            <span className="username">
+              {user?.username ? `${user.username}:` : "את/ה:"}
+            </span>
+            "{lastUserMessage}"
+          </div>
           <button
             onClick={() => setIsTranscriptOpen(true)}
             className="show-transcript-button"

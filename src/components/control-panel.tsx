@@ -195,25 +195,7 @@ export default function ControlPanel({
               <X className="text-red-600 h-5 w-5" />
             </button>
           </div>
-          <button
-            onClick={() => onTogglePushToTalk(!isPushToTalkMode)}
-            title={
-              isPushToTalkMode
-                ? "לחץ כדי לכבות מצב לחיצה לדיבור"
-                : "לחץ כדי להפעיל מצב לחיצה לדיבור"
-            }
-            className={`w-12 h-12 bg-white rounded-full flex items-center justify-center border-4 shadow-md transition-colors ${
-              isPushToTalkMode
-                ? "border-pink-200 hover:bg-pink-50"
-                : "border-gray-200 hover:bg-gray-50"
-            }`}
-          >
-            {isPushToTalkMode ? (
-              <Mic className="text-pink-600 h-5 w-5" />
-            ) : (
-              <MicOff className="text-gray-600 h-5 w-5" />
-            )}
-          </button>
+          <button title="מצב לחיצה לדיבור מופעל"></button>
         </motion.div>
       )}
     </AnimatePresence>
