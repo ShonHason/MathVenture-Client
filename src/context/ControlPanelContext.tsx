@@ -42,7 +42,10 @@ interface ControlPanelContextType {
   onReturnToMain: () => void;
   onAdjustVolume: () => void;
   onAdjustSpeed: () => void;
-  // onReturnToMain is now expected to be provided as a prop to the Provider
+  isPushToTalkMode: boolean;
+  setPushToTalkMode: (mode: boolean) => void;
+  isTalkingAllowed: boolean;
+  setIsTalkingAllowed: (allowed: boolean) => void;
 }
 
 const ControlPanelContext = createContext<ControlPanelContextType | undefined>(
@@ -65,6 +68,26 @@ export const ControlPanelProvider: React.FC<{
   const [botSpeech, setBotSpeech] = useState("");
   const [botStatus, setBotStatus] = useState("עצור");
 
+  // Push-to-talk state - this only affects user recording, NOT bot speech
+  const [isPushToTalkMode, setPushToTalkModeState] = useState(true);
+  const [isTalkingAllowed, setIsTalkingAllowedState] = useState(false);
+
+  const setPushToTalkMode = useCallback((mode: boolean) => {
+    console.log("PTT mode changed:", mode);
+    setPushToTalkModeState(mode);
+    if (!mode) {
+      // When disabling PTT, allow talking immediately
+      setIsTalkingAllowedState(true);
+    } else {
+      // When enabling PTT, block talking until button is pressed
+      setIsTalkingAllowedState(false);
+    }
+  }, []);
+
+  const setIsTalkingAllowed = useCallback((allowed: boolean) => {
+    console.log("PTT talking allowed changed:", allowed);
+    setIsTalkingAllowedState(allowed);
+  }, []);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const speak = useCallback(
@@ -80,6 +103,7 @@ export const ControlPanelProvider: React.FC<{
         setIsPlaying(true);
         setIsMuted(true);
         setBotStatus("...מדבר");
+        setBotSpeech(text);
         const res = await axios.post(
           `${socketServerUrl}/api/tts`,
           { text, lang: "he-IL", speed: speechSpeed },
@@ -112,7 +136,15 @@ export const ControlPanelProvider: React.FC<{
         setBotStatus("עצור");
       }
     },
-    [isPlaying, botVolume, speechSpeed, setIsPlaying, setIsMuted, setBotStatus]
+    [
+      isPlaying,
+      botVolume,
+      speechSpeed,
+      setIsPlaying,
+      setIsMuted,
+      setBotStatus,
+      setBotSpeech,
+    ]
   );
 
   const stopTTS = useCallback(() => {
@@ -243,6 +275,10 @@ export const ControlPanelProvider: React.FC<{
         onReturnToMain,
         onAdjustVolume,
         onAdjustSpeed,
+        isPushToTalkMode,
+        setPushToTalkMode,
+        isTalkingAllowed,
+        setIsTalkingAllowed,
       }}
     >
       {children}

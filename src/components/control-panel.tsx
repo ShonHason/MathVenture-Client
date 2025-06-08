@@ -32,6 +32,8 @@ interface ControlPanelProps {
   onToggleMute: () => void;
   onReturnToMain: () => void;
   onRepeatMessage: () => void;
+  isPushToTalkMode: boolean;
+  onTogglePushToTalk: (mode: boolean) => void;
 }
 
 export default function ControlPanel({
@@ -50,6 +52,8 @@ export default function ControlPanel({
   onToggleMute,
   onReturnToMain,
   onRepeatMessage,
+  isPushToTalkMode,
+  onTogglePushToTalk,
 }: ControlPanelProps) {
   const { user } = useUser();
 
@@ -111,7 +115,7 @@ export default function ControlPanel({
                   >
                     {isLessonComplete
                       ? "🎉 השיעור הושלם!"
-                      : `${currentQuestion+1} שאלה מספר`}
+                      : `${currentQuestion + 1} שאלה מספר`}
                   </span>
                 </div>
               </div>
@@ -191,6 +195,7 @@ export default function ControlPanel({
               <X className="text-red-600 h-5 w-5" />
             </button>
           </div>
+          <button title="מצב לחיצה לדיבור מופעל"></button>
         </motion.div>
       )}
     </AnimatePresence>

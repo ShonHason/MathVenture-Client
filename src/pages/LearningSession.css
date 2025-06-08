@@ -218,3 +218,14 @@
   color: #047857; /* text-green-700 */
   padding: 1rem; /* p-4 */
 }
+.username {
+  font-weight: bold;
+  background: linear-gradient(to right, #3b82f6, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-left: 4px;
+}
+.user-message-display {
+  margin-bottom: 10px !important;
+  display: block; /* or flex / inline-block if needed */
+}
