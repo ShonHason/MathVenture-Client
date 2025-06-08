@@ -17,7 +17,6 @@ import {
   ChevronRight,
   ChevronLeft,
 } from "lucide-react"
-import "./MyLessons.css"
 
 // The LoaderVideo import from your original code
 const LoaderVideo = process.env.PUBLIC_URL + "/Loader.mp4"
@@ -37,9 +36,9 @@ const statusLabels: Record<Lesson["progress"], string> = {
 }
 
 const statusIcons: Record<string, React.ReactNode> = {
-  NOT_STARTED: <PlayCircle className="icon" />,
-  IN_PROGRESS: <BookOpen className="icon" />,
-  COMPLETED: <CheckCircle className="icon" />,
+  NOT_STARTED: <PlayCircle className="w-5 h-5" />,
+  IN_PROGRESS: <BookOpen className="w-5 h-5" />,
+  COMPLETED: <CheckCircle className="w-5 h-5" />,
 }
 
 const statusColors: Record<string, string> = {
@@ -50,12 +49,12 @@ const statusColors: Record<string, string> = {
 
 // Simple Badge component to replace the missing import
 const Badge = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => {
-  return <span className={`badge ${className}`}>{children}</span>
+  return <span className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${className}`}>{children}</span>
 }
 
 // Simple Card component
 const Card = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => {
-  return <div className={`card ${className}`}>{children}</div>
+  return <div className={`bg-white rounded-xl shadow-lg overflow-hidden ${className}`}>{children}</div>
 }
 
 // Simple Button component
@@ -72,26 +71,54 @@ const Button = ({
   onClick?: () => void
   variant?: "default" | "outline"
 }) => {
-  const baseClass = variant === "outline" ? "button-outline" : "button"
+  const baseClass = variant === "outline" 
+    ? "border-2 bg-transparent rounded-full px-4 py-2 flex items-center justify-center transition-colors duration-200"
+    : "text-white rounded-full px-4 py-2 flex items-center justify-center transition-colors duration-200";
+  
   return (
-    <button className={`${baseClass} ${className}`} disabled={disabled} onClick={onClick}>
+    <button 
+      className={`${baseClass} ${className} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`} 
+      disabled={disabled} 
+      onClick={onClick}
+    >
       {children}
     </button>
   )
 }
 
-// Simple confetti function that doesn't require external libraries
+// Improved confetti function with more kid-friendly animation
 const triggerConfetti = () => {
   const confettiContainer = document.createElement("div")
-  confettiContainer.className = "confetti-container"
+  confettiContainer.className = "fixed inset-0 z-50 pointer-events-none overflow-hidden"
   document.body.appendChild(confettiContainer)
 
+  // Create more shapes for a more playful effect
+  const shapes = ['circle', 'square', 'triangle']
+  
   for (let i = 0; i < 100; i++) {
     const confetti = document.createElement("div")
-    confetti.className = "confetti"
+    confetti.className = "absolute animate-fall"
+    
+    const shape = shapes[Math.floor(Math.random() * shapes.length)]
+    const size = Math.random() * 15 + 8
+    
     confetti.style.left = Math.random() * 100 + "vw"
+    confetti.style.width = size + "px"
+    confetti.style.height = size + "px"
     confetti.style.animationDuration = Math.random() * 3 + 2 + "s"
     confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`
+    
+    if (shape === 'circle') {
+      confetti.style.borderRadius = "50%"
+    } else if (shape === 'triangle') {
+      confetti.style.width = "0"
+      confetti.style.height = "0"
+      confetti.style.backgroundColor = "transparent"
+      confetti.style.borderLeft = size/2 + "px solid transparent"
+      confetti.style.borderRight = size/2 + "px solid transparent"
+      confetti.style.borderBottom = size + "px solid " + `hsl(${Math.random() * 360}, 100%, 50%)`
+    }
+    
     confettiContainer.appendChild(confetti)
   }
 
@@ -234,134 +261,207 @@ export const MyLessons: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="loader-container">
-        <div className="loader-icon">
-          <Loader2 className="spinner" />
-          <div className="star-decoration">
-            <Star className="star" />
+      <div className="flex items-center justify-center min-h-screen ">
+        <div className="text-center">
+          <div className="relative inline-block">
+            <Loader2 className="w-16 h-16 text-purple-600 animate-spin" />
+            <div className="absolute top-0 right-0">
+              <Star className="w-6 h-6 text-yellow-400 animate-bounce" />
+            </div>
           </div>
+          <p className="mt-4 text-xl font-medium text-purple-700">טוען שיעורים...</p>
         </div>
-        <p className="loader-text">טוען שיעורים...</p>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="error-container">
-        <AlertCircle className="error-icon" />
-        <p className="error-text">{error}</p>
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-50 to-purple-50">
+        <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md text-center">
+          <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <p className="text-xl font-medium text-red-700">{error}</p>
+        </div>
       </div>
     )
   }
 
   if (lessons.length === 0) {
     return (
-      <div className="empty-container">
-        <div className="empty-icon-container">
-          <BookOpen className="empty-icon" />
-          <div className="star-decoration">
-            <Star className="star" />
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-50 to-purple-50">
+        <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md text-center">
+          <div className="relative inline-block bg-blue-100 p-6 rounded-full mb-4">
+            <BookOpen className="w-16 h-16 text-blue-600" />
+            <div className="absolute top-0 right-0">
+              <Star className="w-6 h-6 text-yellow-400 animate-bounce" />
+            </div>
           </div>
-        </div>
-        <p className="empty-title">אין שיעורים פעילים כרגע</p>
-        <p className="empty-subtitle">כשיהיו לך שיעורים חדשים, הם יופיעו כאן</p>
-        <div className="empty-action">
-          <Button className="home-button" onClick={() => navigate("/dashboard")}>
+          <p className="text-2xl font-bold text-gray-800 mb-2">אין שיעורים פעילים כרגע</p>
+          <p className="text-lg text-gray-600 mb-6">כשיהיו לך שיעורים חדשים, הם יופיעו כאן</p>
+          <button 
+            className="bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-full px-6 py-3"
+            onClick={() => navigate("/dashboard")}
+          >
             חזרה לדף הבית
-          </Button>
+          </button>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="lessons-container" dir="rtl">
-      <div className="title-container">
-        <div className="title-wrapper">
-          <h2 className="lessons-title">
-            השיעורים שלי
-            <span className="title-star">
-              <Star className="star-icon" />
-            </span>
-          </h2>
-          <div className="title-underline"></div>
-        </div>
-      </div>
-
-      <div className="lessons-grid">
-        {currentLessons.map((lesson) => (
-          <Card
-            key={lesson._id}
-            className={`lesson-card ${animatedItems.has(lesson._id) ? "card-animated" : "card-hidden"}`}
-          >
-            <div className={`card-header ${lesson.progress.toLowerCase()}`}>
-              {lesson.progress === "COMPLETED" && (
-                <div className="completion-badge">
-                  <Star className="badge-star" />
-                </div>
-              )}
-              <h3 className="lesson-title">{lesson.subject}</h3>
-              <div className="lesson-meta">
-                <Badge className="date-badge">{formatDate(lesson.startTime)}</Badge>
-                <Badge className={`status-badge ${statusColors[lesson.progress]}`}>
-                  {statusLabels[lesson.progress]}
-                </Badge>
-              </div>
-            </div>
-
-            <div className="card-content">
-              <div className="lesson-id" title={lesson._id}>
-                מזהה: {lesson._id}
-              </div>
-
-              <div className="lesson-actions">
-                <Button
-                  className={`status-button ${statusColors[lesson.progress]}`}
-                  disabled={lesson.progress === "COMPLETED"}
-                  onClick={() => handleStatusClick(lesson)}
-                >
-                  {statusIcons[lesson.progress]}
-                  {statusLabels[lesson.progress]}
-                </Button>
-
-                <div className="action-buttons">
-                  <Button variant="outline" className="report-button" onClick={() => handleReport(lesson)}>
-                    <FileText className="button-icon" />
-                    הפק דו"ח
-                  </Button>
-
-                  <Button variant="outline" className="delete-button" onClick={() => handleDelete(lesson._id)}>
-                    <Trash2 className="button-icon" />
-                    מחק
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="pagination">
-          <button onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1} className="pagination-button">
-            <ChevronRight className="pagination-icon" />
-          </button>
-
-          <div className="pagination-info">
-            עמוד {currentPage} מתוך {totalPages}
+    <div className="min-h-screen py-8 px-4" dir="rtl">
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center mb-10">
+          <div className="inline-block">
+            <h2 className="text-3xl font-bold text-purple-800 inline-flex items-center">
+              השיעורים שלי
+              <span className="ml-2">
+                <Star className="w-8 h-8 text-yellow-400 animate-pulse" />
+              </span>
+            </h2>
+            <div className="h-2 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full mt-2"></div>
           </div>
-
-          <button
-            onClick={() => paginate(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="pagination-button"
-          >
-            <ChevronLeft className="pagination-icon" />
-          </button>
         </div>
-      )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {currentLessons.map((lesson) => (
+            <Card
+              key={lesson._id}
+              className={`transform transition-all duration-500 hover:scale-105 ${
+                animatedItems.has(lesson._id) ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
+              }`}
+            >
+              <div className={`p-4 relative ${
+                lesson.progress === "COMPLETED" 
+                  ? "bg-gradient-to-r from-green-400 to-green-500" 
+                  : lesson.progress === "IN_PROGRESS"
+                    ? "bg-gradient-to-r from-yellow-300 to-yellow-400"
+                    : "bg-gradient-to-r from-blue-400 to-blue-500"
+              }`}>
+                {lesson.progress === "COMPLETED" && (
+                  <div className="absolute top-2 right-2 bg-yellow-300 rounded-full p-1">
+                    <Star className="w-5 h-5 text-yellow-600" />
+                  </div>
+                )}
+                <h3 className="text-xl font-bold text-white">{lesson.subject}</h3>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <Badge className="bg-white/20 text-white">{formatDate(lesson.startTime)}</Badge>
+                  <Badge className="bg-white/30 text-white">
+                    {statusLabels[lesson.progress]}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="p-4">
+                <div className="text-xs text-gray-500 mb-4 truncate" title={lesson._id}>
+                  מזהה: {lesson._id}
+                </div>
+
+                <div className="space-y-4">
+                  <Button
+                    className={`w-full ${
+                      lesson.progress === "NOT_STARTED" 
+                        ? "bg-blue-500 hover:bg-blue-600" 
+                        : lesson.progress === "IN_PROGRESS"
+                          ? "bg-yellow-500 hover:bg-yellow-600"
+                          : "bg-green-500 hover:bg-green-600"
+                    }`}
+                    disabled={lesson.progress === "COMPLETED"}
+                    onClick={() => handleStatusClick(lesson)}
+                  >
+                    <span className={`w-5 h-5 mr-2 ${lesson.progress === "COMPLETED" ? "text-green-200" : "text-white"}`}>
+                      {lesson.progress === "NOT_STARTED" 
+                        ? <PlayCircle className="w-5 h-5" />
+                        : lesson.progress === "IN_PROGRESS"
+                          ? <BookOpen className="w-5 h-5" />
+                          : <CheckCircle className="w-5 h-5" />
+                      }
+                    </span>
+                    {statusLabels[lesson.progress]}
+                  </Button>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button 
+                      variant="outline" 
+                      className="border-blue-500 text-blue-600 hover:bg-blue-50" 
+                      onClick={() => handleReport(lesson)}
+                    >
+                      <FileText className="w-4 h-4 mr-2" />
+                      הפק דו"ח
+                    </Button>
+
+                    <Button 
+                      variant="outline" 
+                      className="border-red-500 text-red-600 hover:bg-red-50" 
+                      onClick={() => handleDelete(lesson._id)}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      מחק
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center mt-8 space-x-4 space-x-reverse">
+            <button 
+              onClick={() => paginate(currentPage - 1)} 
+              disabled={currentPage === 1} 
+              className="p-2 rounded-full bg-white shadow-md disabled:opacity-50 transition-colors hover:bg-gray-100"
+            >
+              <ChevronRight className="w-6 h-6 text-purple-700" />
+            </button>
+
+            <div className="bg-white px-4 py-2 rounded-full shadow-md text-purple-800 font-medium">
+              עמוד {currentPage} מתוך {totalPages}
+            </div>
+
+            <button 
+              onClick={() => paginate(currentPage + 1)} 
+              disabled={currentPage === totalPages} 
+              className="p-2 rounded-full bg-white shadow-md disabled:opacity-50 transition-colors hover:bg-gray-100"
+            >
+              <ChevronLeft className="w-6 h-6 text-purple-700" />
+            </button>
+          </div>
+        )}
+      </div>
+      
+      <style>{`
+        @keyframes fall {
+          0% { 
+            transform: translateY(-10vh) rotate(0deg);
+            opacity: 1;
+          }
+          85% {
+            opacity: 1;
+          }
+          100% { 
+            transform: translateY(100vh) rotate(360deg);
+            opacity: 0;
+          }
+        }
+        .animate-fall {
+          animation: fall 4s ease-in-out forwards;
+        }
+        
+        /* Add some simple animations for Tailwind to use */
+        @keyframes bounce-slow {
+          0%, 100% {
+            transform: translateY(-25%);
+            animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+          }
+          50% {
+            transform: translateY(0);
+            animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+          }
+        }
+      `}</style>
     </div>
   )
 }
