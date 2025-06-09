@@ -105,7 +105,9 @@ export default function ControlPanel({
                       ? "bg-gradient-to-r from-green-400 to-emerald-500"
                       : "bg-gradient-to-r from-green-400 to-blue-500"
                   }`}
-                  style={{ width: `${progress}%` }}
+                  style={{
+                    width: `${((currentQuestion || 0) / 15) * 100}%`,
+                  }}
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <span
@@ -115,7 +117,9 @@ export default function ControlPanel({
                   >
                     {isLessonComplete
                       ? "🎉 השיעור הושלם!"
-                      : `${currentQuestion + 1} שאלה מספר`}
+                      : currentQuestion === 0 || currentQuestion === undefined
+                      ? "החלק הראשון"
+                      : `${currentQuestion}/15`}
                   </span>
                 </div>
               </div>
@@ -128,7 +132,9 @@ export default function ControlPanel({
               >
                 {isLessonComplete
                   ? "כל הכבוד! סיימת את השיעור"
-                  : `שאלה באה: ${currentQuestion + 2}`}
+                  : currentQuestion === 0 || currentQuestion === undefined
+                  ? "השאלה הבאה: 1"
+                  : `השאלה הבאה: ${currentQuestion + 1}`}
               </div>
             </div>
           </div>

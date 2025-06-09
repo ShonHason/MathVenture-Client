@@ -136,7 +136,7 @@ export async function finishLessonFunction(lessonId: string, user: User , subjec
   console.log("Send Req to :" , `${baseUrl}/lessons/analyze-lesson`);
   const body = {
     lessonId : lessonId,
-    parentEmail: user?.parent_email ,
+    user: user ,
     subject : "סיכום שיעור בנושא " +   subject + "לכיתה " + user.grade, 
   }
   const response = await axios.post(

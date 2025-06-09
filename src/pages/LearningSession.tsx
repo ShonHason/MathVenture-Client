@@ -10,9 +10,9 @@ import TranscriptModel from "../components/transcript-model";
 import ControlPanel from "../components/control-panel";
 //import ToggleControlButton from "../components/ ToggleControlButton";
 import RealTimeRecorder from "../components/RealTimeRecorder";
-import SpeakingIndicator from "../components/SpeakingIndicator"; // Import SpeakingIndicator
+import SimpleSpeakingIndicator from "../components/SimpleSpeakingIndicator"; // Import SimpleSpeakingIndicator
 import { useUser } from "../context/UserContext";
-import { scanMathFromCanvas } from "../services/tesseractOcrService";
+import { scanMathServer } from "../services/OcrService";
 import { finishLessonFunction } from "../services/lessons_api";
 import "./LearningSession.css"; // Import your CSS styles
 import {
@@ -32,7 +32,6 @@ type LocationState = {
 
 interface AIResponse {
   text: string;
-  mathexpression?: string;
   counter?: number;
 }
 
@@ -53,20 +52,9 @@ function LearningSessionContent() {
   >([]);
   const [messagesLoaded, setMessagesLoaded] = useState(false);
   const [hasSpokenIntro, setHasSpokenIntro] = useState(false);
-  //const [botSpeech, setBotSpeech] = useState("");
-  //const [botStatus, setBotStatus] = useState("עצור");
   const [isTranscriptOpen, setIsTranscriptOpen] = useState(false);
-  //const [listening, setListening] = useState(false);
-  //const [isSpeaking, setIsSpeaking] = useState(false); // This prop controls the indicator
-  //const [controlsOpen, setControlsOpen] = useState(true);
   const [activeTab, setActiveTab] = useState<"draw" | "keyboard">("draw");
-  // const [botVolume, setBotVolume] = useState(100);
-  //const [speechSpeed, setSpeechSpeed] = useState(1);
-
   const [resetKey, setResetKey] = useState(0);
-
-  const [oldExp, setoldExp] = useState("");
-  const [newExp, setnewExp] = useState("");
   const [questionCounter, setQuestionCounter] = useState(0);
 
   // Yellow area: last user input
@@ -109,37 +97,17 @@ function LearningSessionContent() {
     setIsTalkingAllowed,
   } = useControlPanel();
 
-  const checkIfOver = async () => {
-    console.log("Checking if lesson is over for lessonId:", lessonId);
-    try {
-      const { data } = await axios.get(
-        `${socketServerUrl}/lessons/isOver/${lessonId}`,
-        {
-          headers: { Authorization: `JWT ${user?.accessToken}` },
-        }
-      );
-      setQuestionCounter(data.size);
-      console.log("checkIfOver response:", data);
-      console.log("isfinished:", isLessonComplete);
-      if (data.isOver) {
-        setIsLessonComplete(true);
-      }
-    } catch (err) {
-      console.error("Error checking isOver:", err);
-    }
-  };
-  useEffect(() => {
-    checkIfOver();
-  }, []);
+ 
 
   useEffect(() => {
-    // הפונקציה הזו תופעל רק ברגע ש־isLessonComplete יהפוך ל־true
-    if (isLessonComplete) {
-      if (lessonId && user) {
-        finishLessonFunction(lessonId, user, topic.subject);
+    if (isLessonComplete && !isPlaying) {
+        if (lessonId && user) {
+          console.log("Lesson complete, calling finishLessonFunction");
+          finishLessonFunction(lessonId, user, topic.subject);
+        }
       }
-    }
-  }, [isLessonComplete]);
+    
+  }, [isLessonComplete, isPlaying]);
 
   // --- Fetch existing conversation ---
   useEffect(() => {
@@ -200,20 +168,14 @@ function LearningSessionContent() {
         .post(
           `${socketServerUrl}/lessons/start`,
           { userId: user._id, subject: topic.subject },
-          { headers: { Authorization: `Bearer ${user?.accessToken}` } }
+          { headers: { Authorization: `JWT ${user?.accessToken}` } }
         )
         .then((r) => setLessonId(r.data.lessonId))
         .catch(console.error);
     }
   }, [lessonId, user, topic]);
 
-  useEffect(() => {
-    if (!isLessonComplete) return;
-
-    //function that send all the lesson data to the server, that it get summary and than sent to email
-  }),
-    [isLessonComplete, lessonId];
-
+  
   // TTS with speed control
 
   const handleReturnToMainActual = useCallback(() => {
@@ -270,42 +232,15 @@ function LearningSessionContent() {
     isLessonComplete ||
     isPlaying ||
     (isPushToTalkMode && !isTalkingAllowed);
-  const digitPattern = /\d/;
-  const operatorPattern = /[+\-*/^%]/; // סימני חיבור, חיסור, כפל, חילוק, חזקה, אחוז
-  const numberWordsPattern =
-    /\b(אפס|אחד|שתיים|שלוש|ארבע|חמש|שש|שבע|שמונה|תשע|עשר|עשרים|שלושים|ארבעים|חמישים|שישים|שבעים|שמונים|תשעים|מאה|אלף|מיליון)\b/;
-  const fractionWordsPattern = /\b(חצי|רבע|שליש|שמינית|חמישית|עשירית)\b/;
-  const mathOpWordsPattern =
-    /\b(כפול|חלק|חילק|חיבור|חיסור|חזקת|שורש|גדול מ|קטן מ|שווה ל)\b/;
-  const questionWordsPattern = /\b(כמה|מה התשובה|פתור|חשב)\b/;
-  const slashFractionPattern = /\d+\s*\/\s*\d+/; // צורה “3/4” או “  12/ 5 ”
 
-  function isMathRelated(text: string): boolean {
-    const t = text.normalize("NFC");
-
-    if (digitPattern.test(t)) return true;
-
-    if (operatorPattern.test(t)) return true;
-
-    if (slashFractionPattern.test(t)) return true;
-
-    if (numberWordsPattern.test(t)) return true;
-
-    if (fractionWordsPattern.test(t)) return true;
-
-    if (mathOpWordsPattern.test(t)) return true;
-
-    if (questionWordsPattern.test(t)) return true;
-
-    return false;
-  }
 
   const sendTranscript = async (input: string) => {
+
     if (isPushToTalkMode && !isTalkingAllowed) {
       console.warn("Transcript blocked by PTT mode - user not pressing button");
       return;
     }
-
+    console.log("Number Of Questions:", questionCounter);
     if (input === lastSentRef.current || !input.trim()) {
       console.warn(
         "Skipping sendTranscript: empty input, duplicate, or no lessonId.",
@@ -316,55 +251,14 @@ function LearningSessionContent() {
 
     lastSentRef.current = input;
 
-    // 1) Append the user’s message
+    // 1) Append the user's message
     setMessages((m) => [...m, { sender: "user", text: input }]);
     setBotStatus("חושב...");
 
     setLastUserMessage(input);
-    console.log("addQuestionLog is called");
-    console.log(
-      "isMathRelated: ",
-      isMathRelated(input),
-      "\nnewExp: ",
-      newExp,
-      "\noldExp: ",
-      oldExp
-    );
 
-    if (newExp && isMathRelated(input) && oldExp != newExp) {
-      setQuestionCounter((prev) => prev + 1);
-      console.log("addQustionLog is working!!!!!!!");
-      const response = await axios.put(
-        `${socketServerUrl}/lessons/addQustionLog`,
-        { lessonId: lessonId, mathExp: newExp, text: input },
-
-        { headers: { Authorization: `JWT ${user?.accessToken}` } }
-      );
-    }
-    console.log("addAnswer is called");
-    console.log(
-      "oldExp: ",
-      oldExp,
-      "\nneed to be equal newExp: ",
-      newExp,
-      "\nisMathRelated: ",
-      isMathRelated(input) || /נכונה|נכון|לא נכון|לא נכונה/.test(input)
-    );
-
-    if (
-      oldExp === newExp &&
-      (isMathRelated(input) || /נכונה|נכון|לא נכון|לא נכונה/.test(input)) &&
-      oldExp !== ""
-    ) {
-      console.log("addAnswer is working!!!!!!!!!");
-      setQuestionCounter((prev) => prev);
-      const response = await axios.put(
-        `${socketServerUrl}/lessons/addAnswer`,
-        { lessonId: lessonId, mathExp: newExp, text: input },
-        { headers: { Authorization: `JWT ${user?.accessToken}` } }
-      );
-    }
     try {
+      console.log("Sending user input to server:", input);
       const resp = await axios.post(
         `${socketServerUrl}/lessons/${lessonId}/chat`,
         { question: input },
@@ -373,38 +267,33 @@ function LearningSessionContent() {
 
       // 2) Extract fields from server response
       const aiRaw: string = resp.data.answer; // full AI response (may include Markdown fences + undefined fields)
-      const isCorrectFromServer: boolean = resp.data.isCorrect;
       console.log("AI raw response:", aiRaw);
-      console.log("isCorrectFromServer:", isCorrectFromServer);
 
       // 3) Find the JSON braces
       const firstBrace = aiRaw.indexOf("{");
       const lastBrace = aiRaw.lastIndexOf("}");
       let onlyText: string;
-      let mathExpression: string | undefined;
       let counter: number | undefined;
 
       if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-        // 4) Extract exactly from “{” to “}”
+        // 4) Extract exactly from "{…}"
         let jsonOnly = aiRaw.slice(firstBrace, lastBrace + 1);
 
         // 5) Remove any Markdown fences (```json … ```)
-        //    If it starts with “```”, drop that line.
+        //    If it starts with "```", drop that line.
         if (jsonOnly.startsWith("```")) {
           const firstLineEnd = jsonOnly.indexOf("\n");
           if (firstLineEnd !== -1) {
             jsonOnly = jsonOnly.slice(firstLineEnd + 1);
           }
         }
-        //    If it ends with “```” at the very end, strip it too.
+        //    If it ends with "```" at the very end, strip it too.
         if (jsonOnly.endsWith("```")) {
           jsonOnly = jsonOnly.slice(0, -3).trim();
         }
 
-        // 6) Remove any `"mathexpression": undefined` or `"counter": undefined`, plus dangling commas
+        // 6) Remove any `"counter": undefined`, plus dangling commas
         jsonOnly = jsonOnly
-          // remove `"mathexpression": undefined` (and optional comma)
-          .replace(/"mathexpression"\s*:\s*undefined\s*,?/, "")
           // remove `"counter": undefined` (and optional comma)
           .replace(/"counter"\s*:\s*undefined\s*,?/, "")
           // remove any trailing comma before closing brace: `{ "text": "...", }` → `{ "text": "..." }`
@@ -416,67 +305,178 @@ function LearningSessionContent() {
           console.log("Parsed AI response:", parsed);
 
           onlyText = parsed.text;
-          mathExpression = parsed.mathexpression;
           counter = parsed.counter;
-          console.log("addBotResponse is called");
-          console.log(
-            "newExp: ",
-            newExp,
-            "\nisMathRelated(onlyText): ",
-            isMathRelated(onlyText)
-          );
-          if (newExp && isMathRelated(onlyText)) {
-            console.log("addBotResponse is working!!!!!!!!!");
-            const response = await axios.put(
-              `${socketServerUrl}/lessons/addBotResponse`,
-              { lessonId: lessonId, mathExp: newExp, botResponse: onlyText },
-              { headers: { Authorization: `JWT ${user?.accessToken}` } }
-            );
+          if (counter !== undefined) {
+            setQuestionCounter(counter);
+            console.log("Counter updated:", counter);
           }
-
-          if (mathExpression) {
-            setoldExp(newExp);
-            setnewExp(mathExpression);
-            console.log("set new mathExpression:", mathExpression);
-            console.log("set new counter:", counter);
-          }
-        } catch (e) {
+          
+       } catch (e) {
           console.error("Failed to parse cleaned JSON substring:", e);
           // fallback: treat entire aiRaw as plain Hebrew feedback
           onlyText = aiRaw;
         }
       } else {
-        // No valid “{…}” found → treat entire aiRaw as plain text
+        // No valid "{…}" found → treat entire aiRaw as plain text
         onlyText = aiRaw;
       }
 
-      // 8) Strip stray “*” so TTS won’t read “כוכבית”
+      // 8) Strip stray "*" so TTS won't read "כוכבית"
       const aiClean = onlyText.replace(/\*/g, "");
 
-      // 9) Push the bot’s cleaned text into messages (so it appears in chat)
+      // 9) Push the bot's cleaned text into messages (so it appears in chat)
       setMessages((m) => [...m, { sender: "bot", text: aiClean }]);
       setBotSpeech(aiClean);
+      
+      // Normalize text by removing vowel marks (ניקוד) for more reliable matching
+      const normalizedText = aiClean.normalize('NFD').replace(/[\u0591-\u05C7]/g, '');
+      
+      // Check if the lesson is complete using normalized text
+      if (
+        normalizedText.includes("השיעור נגמר") || 
+        normalizedText.includes("נתראה בשיעור הבא") ||
+        normalizedText.includes("השעור נגמר") ||
+        aiClean.includes("הַשִּׁעוּר נִגְמַר")  // Keep this specific match as backup
+      ) {
+        setIsLessonComplete(true);
+        console.log("Lesson marked as complete");
+      }
 
-      //check if the lesson is over
-      checkIfOver();
-
-      // 11) Finally, speak only the cleaned “text” field.
-      //     (If you want to append “ מוכן לשאלה הזו?”, do it here.)
+      // 11) Finally, speak only the cleaned "text" field.
+      //     (If you want to append " מוכן לשאלה הזו?", do it here.)
       speak(aiClean);
     } catch (err) {
       console.error(err);
     }
   };
+
+  // Add this new function that bypasses the PTT check
+  const sendInputDirectly = async (input: string) => {
+    console.log("Number Of Questions:", questionCounter);
+    if (input === lastSentRef.current || !input.trim()) {
+      console.warn(
+        "Skipping input: empty input, duplicate, or no lessonId.",
+        { input, lastSentRef: lastSentRef.current, lessonId }
+      );
+      return;
+    }
+
+    lastSentRef.current = input;
+
+    // 1) Append the user's message
+    setMessages((m) => [...m, { sender: "user", text: input }]);
+    setBotStatus("חושב...");
+
+    setLastUserMessage(input);
+
+    try {
+      console.log("Sending user input to server:", input);
+      const resp = await axios.post(
+        `${socketServerUrl}/lessons/${lessonId}/chat`,
+        { question: input },
+        { headers: { Authorization: `JWT ${user?.accessToken}` } }
+      );
+
+      // 2) Extract fields from server response
+      const aiRaw: string = resp.data.answer;
+      console.log("AI raw response:", aiRaw);
+
+      // 3) Find the JSON braces
+      const firstBrace = aiRaw.indexOf("{");
+      const lastBrace = aiRaw.lastIndexOf("}");
+      let onlyText: string;
+      let counter: number | undefined;
+
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        // 4) Extract exactly from "{…}"
+        let jsonOnly = aiRaw.slice(firstBrace, lastBrace + 1);
+
+        // 5) Remove any Markdown fences (```json … ```)
+        //    If it starts with "```", drop that line.
+        if (jsonOnly.startsWith("```")) {
+          const firstLineEnd = jsonOnly.indexOf("\n");
+          if (firstLineEnd !== -1) {
+            jsonOnly = jsonOnly.slice(firstLineEnd + 1);
+          }
+        }
+        //    If it ends with "```" at the very end, strip it too.
+        if (jsonOnly.endsWith("```")) {
+          jsonOnly = jsonOnly.slice(0, -3).trim();
+        }
+
+        // 6) Remove any `"counter": undefined`, plus dangling commas
+        jsonOnly = jsonOnly
+          // remove `"counter": undefined` (and optional comma)
+          .replace(/"counter"\s*:\s*undefined\s*,?/, "")
+          // remove any trailing comma before closing brace: `{ "text": "...", }` → `{ "text": "..." }`
+          .replace(/,\s*}/, "}");
+
+        // 7) Now attempt to parse the cleaned JSON
+        try {
+          const parsed = JSON.parse(jsonOnly) as AIResponse;
+          console.log("Parsed AI response:", parsed);
+
+          onlyText = parsed.text;
+          counter = parsed.counter;
+          if (counter !== undefined) {
+            setQuestionCounter(counter);
+            console.log("Counter updated:", counter);
+          }
+          
+       } catch (e) {
+          console.error("Failed to parse cleaned JSON substring:", e);
+          // fallback: treat entire aiRaw as plain Hebrew feedback
+          onlyText = aiRaw;
+        }
+      } else {
+        // No valid "{…}" found → treat entire aiRaw as plain text
+        onlyText = aiRaw;
+      }
+
+      // 8) Strip stray "*" so TTS won't read "כוכבית"
+      const aiClean = onlyText.replace(/\*/g, "");
+
+      // 9) Push the bot's cleaned text into messages (so it appears in chat)
+      setMessages((m) => [...m, { sender: "bot", text: aiClean }]);
+      setBotSpeech(aiClean);
+      
+      // Normalize text by removing vowel marks (ניקוד) for more reliable matching
+      const normalizedText = aiClean.normalize('NFD').replace(/[\u0591-\u05C7]/g, '');
+      
+      // Check if the lesson is complete using normalized text
+      if (
+        normalizedText.includes("השיעור נגמר") || 
+        normalizedText.includes("נתראה בשיעור הבא") ||
+        normalizedText.includes("השעור נגמר") ||
+        aiClean.includes("הַשִּׁעוּר נִגְמַר")  // Keep this specific match as backup
+      ) {
+        setIsLessonComplete(true);
+        console.log("Lesson marked as complete");
+      }
+
+      // 11) Finally, speak only the cleaned "text" field.
+      //     (If you want to append " מוכן לשאלה הזו?", do it here.)
+      speak(aiClean);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const handleDrawingScan = async (canvas: HTMLCanvasElement) => {
     try {
-      const mathText = await scanMathFromCanvas(canvas);
+      setBotStatus("סורק את הציור...");
+      const mathText = await scanMathServer(canvas);
+      console.log("Scanned math text:", mathText);
       if (mathText) {
-        sendTranscript(mathText);
+        // Use sendInputDirectly instead of sendTranscript to bypass PTT check
+        sendInputDirectly(mathText);
       } else {
-        console.warn("Tesseract: לא זוהה טקסט מתמטי");
-      }
+        console.warn("Tesseract: No math text recognized from drawing.");
+        setBotStatus("לא זוהה טקסט מתמטי");
+      } 
     } catch (err) {
       console.error("Math OCR failed:", err);
+      setBotStatus("שגיאה בסריקה");
     } finally {
       setResetKey((k) => k + 1); // Reset drawing panel
     }
@@ -484,7 +484,8 @@ function LearningSessionContent() {
 
   const handleKeyboardScan = async (displayedText: string) => {
     if (!displayedText) return;
-    sendTranscript(displayedText);
+    // Use sendInputDirectly instead of sendTranscript to bypass PTT check
+    sendInputDirectly(displayedText);
     setResetKey((k) => k + 1); // Reset keyboard panel;
   };
 
@@ -507,7 +508,7 @@ function LearningSessionContent() {
       {/* Pass all context values as props to ControlPanel */}
       <ControlPanel
         progress={progress}
-        currentQuestion={currentQuestion}
+        currentQuestion={questionCounter}
         correctAnswers={correctAnswers}
         isLessonComplete={isLessonComplete}
         isVisible={isVisible}
@@ -530,11 +531,8 @@ function LearningSessionContent() {
       <div className="main-content-panels">
         <div className="bot-status-panel">
           <div className="bot-status-display">
-            <SpeakingIndicator
-              isSpeaking={isPlaying}
-              audioElement={currentAudioElement}
-            />
             {botStatus}
+            <SimpleSpeakingIndicator isSpeaking={isPlaying} />
           </div>{" "}
           {/* From context */}
           <Avatar />
@@ -547,10 +545,14 @@ function LearningSessionContent() {
             "{lastUserMessage}"
           </div>
           <button
-            onClick={() => setIsTranscriptOpen(true)}
-            className="show-transcript-button"
-          >
-            הצג תמלול שיחה
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent event bubbling
+                console.log("show-transcript clicked");
+                setIsTranscriptOpen(true);
+              }}
+              className="show-transcript-button"
+            >
+              הצג תמלול שיחה
           </button>
         </div>
         <div className="input-panel">
