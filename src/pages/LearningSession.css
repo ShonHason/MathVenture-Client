@@ -30,6 +30,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
 .loading-container {
@@ -84,6 +85,7 @@
   gap: 1.5rem; /* gap-6 */
   flex-direction: column;
   margin-bottom: 1rem;
+  position: relative;
 }
 
 @media (min-width: 768px) {
@@ -103,6 +105,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+  z-index: 5;
 }
 
 .bot-status-display {
@@ -156,6 +160,16 @@
     0 2px 4px -2px rgba(0, 0, 0, 0.1); /* shadow-md */
   cursor: pointer;
   transition: background-color 0.2s ease-in-out;
+  position: relative;
+  z-index: 10;
+  margin-top: 10px;
+  padding: 8px 16px;
+  border-radius: 4px;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  font-weight: bold;
+  pointer-events: auto; /* Force pointer events to work */
 }
 
 .show-transcript-button:hover {
@@ -228,4 +242,6 @@
 .user-message-display {
   margin-bottom: 10px !important;
   display: block; /* or flex / inline-block if needed */
+  position: relative;
+  z-index: 5;
 }

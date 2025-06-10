@@ -134,14 +134,15 @@ export async function checkOpenLesson(userId: string, subject: string) {
 }
 export async function finishLessonFunction(lessonId: string, user: User , subject: string) {
   console.log("Send Req to :" , `${baseUrl}/lessons/analyze-lesson`);
+  const subjectText = "סיכום שיעור בנושא " + subject + " לכיתה " + user?.grade;
   const body = {
     lessonId : lessonId,
-    parentEmail: user?.parent_email ,
-    subject : "סיכום שיעור בנושא " +   subject + "לכיתה " + user.grade, 
+    user: user, 
+    subject : subjectText,
   }
   const response = await axios.post(
     `${baseUrl}/lessons/analyze-lesson`,
-    { body },
+     body ,
     {
       headers: {
         Authorization: "jwt " + localStorage.getItem("accessToken"),

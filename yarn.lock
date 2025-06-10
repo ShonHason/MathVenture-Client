@@ -3399,6 +3399,11 @@
     postcss "^8.4.41"
     tailwindcss "4.1.7"
 
+"@tesseract.js-data/equ@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@tesseract.js-data/equ/-/equ-1.0.0.tgz#6ae410bb2adcb52f81f2d0146a7ed0e45c81a7bb"
+  integrity sha512-A49aItTNcBWXFIjZLnu5Idze/GLvOE5o5zSjgGMswe0eHZIDsCstg4KPabFBiPNnaOqGG3II/vIWnjpc/0LbAQ==
+
 "@tootallnate/once@1":
   version "1.1.2"
   resolved "https://registry.npmjs.org/@tootallnate/once/-/once-1.1.2.tgz"
