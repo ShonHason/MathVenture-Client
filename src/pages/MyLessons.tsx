@@ -300,7 +300,7 @@ export const MyLessons: React.FC = () => {
           <p className="text-lg text-gray-600 mb-6">כשיהיו לך שיעורים חדשים, הם יופיעו כאן</p>
           <button 
             className="bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-full px-6 py-3"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/home/LearningBoard")}
           >
             חזרה לדף הבית
           </button>
