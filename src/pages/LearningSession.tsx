@@ -327,6 +327,7 @@ function LearningSessionContent() {
       // 9) Push the bot's cleaned text into messages (so it appears in chat)
       setMessages((m) => [...m, { sender: "bot", text: aiClean }]);
       setBotSpeech(aiClean);
+      handleAIQuestionNumber(aiClean);
       
       // Normalize text by removing vowel marks (ניקוד) for more reliable matching
       const normalizedText = aiClean.normalize('NFD').replace(/[\u0591-\u05C7]/g, '');
@@ -439,6 +440,7 @@ function LearningSessionContent() {
       // 9) Push the bot's cleaned text into messages (so it appears in chat)
       setMessages((m) => [...m, { sender: "bot", text: aiClean }]);
       setBotSpeech(aiClean);
+      handleAIQuestionNumber(aiClean);
       
       // Normalize text by removing vowel marks (ניקוד) for more reliable matching
       const normalizedText = aiClean.normalize('NFD').replace(/[\u0591-\u05C7]/g, '');
@@ -459,6 +461,23 @@ function LearningSessionContent() {
       speak(aiClean);
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleAIQuestionNumber = (text: string) => {
+    // Check if this is a numbered question from part 2
+    const hebrewQuestionMatch = text.match(/שְׁאֵלָה מִסְפָּר (\d+) מִתּוֹךְ 15/);
+    
+    if (hebrewQuestionMatch && hebrewQuestionMatch[1]) {
+      // We found a Hebrew question number pattern
+      const questionNum = parseInt(hebrewQuestionMatch[1]);
+      // For part 2, add 15 to the question number
+      const newCounter = questionNum + 15;
+      console.log(`Detected part 2 question #${questionNum}, setting counter to ${newCounter}`);
+      setCurrentQuestion(newCounter);
+      
+      // Also update in ControlPanelContext
+      setQuestionCounter(newCounter);
     }
   };
 

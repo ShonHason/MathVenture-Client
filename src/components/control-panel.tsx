@@ -106,7 +106,12 @@ export default function ControlPanel({
                       : "bg-gradient-to-r from-green-400 to-blue-500"
                   }`}
                   style={{
-                    width: `${((currentQuestion || 0) / 15) * 100}%`,
+                    width: `${Math.min(
+                      ((currentQuestion > 15
+                        ? currentQuestion - 15
+                        : currentQuestion || 0) / 15) * 100,
+                      100
+                    )}%`,
                   }}
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -117,9 +122,19 @@ export default function ControlPanel({
                   >
                     {isLessonComplete
                       ? "🎉 השיעור הושלם!"
-                      : currentQuestion === 0 || currentQuestion === undefined
+                      : (currentQuestion === 0 || currentQuestion === undefined) &&
+                        !(window.location.href.includes("part=2") ||
+                          sessionStorage.getItem("inPartTwo") === "true")
                       ? "החלק הראשון"
-                      : `${currentQuestion}/15`}
+                      : currentQuestion > 15 ||
+                        window.location.href.includes("part=2") ||
+                        sessionStorage.getItem("inPartTwo") === "true"
+                      ? `חלק 2: ${
+                          (currentQuestion > 15
+                            ? currentQuestion - 15
+                            : currentQuestion) || 3
+                        }/15`
+                      : `חלק 1: ${currentQuestion}/15`}
                   </span>
                 </div>
               </div>
@@ -134,6 +149,8 @@ export default function ControlPanel({
                   ? "כל הכבוד! סיימת את השיעור"
                   : currentQuestion === 0 || currentQuestion === undefined
                   ? "השאלה הבאה: 1"
+                  : currentQuestion > 15
+                  ? `חלק 2, שאלה הבאה: ${(currentQuestion - 15) + 1}`
                   : `השאלה הבאה: ${currentQuestion + 1}`}
               </div>
             </div>
