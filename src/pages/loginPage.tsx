@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { message } from "antd"; // Keep this for notifications
+import { message } from "antd"; // Keep for non-critical notifications
 import MathScreensaver from "../components/math-screensaver";
 import user_api from "../services/user_api";
 import { useUser } from "../context/UserContext";
+import Alert from "../components/Alert"; // Import the Alert component
 
 const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -18,6 +19,19 @@ const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [gender, setGender] = useState<"male" | "female">("female");
+
+  // Alert state
+  const [alert, setAlert] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "error" as "error" | "success",
+  });
+
+  // Close alert handler
+  const handleCloseAlert = () => {
+    setAlert((prev) => ({ ...prev, isOpen: false }));
+  };
 
   // Handle direct navigation to registration tab
   useEffect(() => {
@@ -35,6 +49,8 @@ const LoginPage: React.FC = () => {
         email,
         password,
       });
+
+      // Store user data and tokens
       sessionStorage.setItem("accessToken", data.accessToken);
       sessionStorage.setItem("refreshToken", data.refreshToken);
       setUser({
@@ -43,12 +59,34 @@ const LoginPage: React.FC = () => {
         fullname: data.username || "",
       });
       sessionStorage.setItem("user", JSON.stringify(data));
-      message.success("Login successful!");
-      console.log("User data:", data);
-      navigate("/home");
-    } catch (error) {
+
+      // Show success alert instead of message.success
+      setAlert({
+        isOpen: true,
+        title: "התחברות הצליחה",
+        message: `ברוך הבא, ${data.username || "משתמש"}!`,
+        type: "success",
+      });
+
+      // Navigate after a short delay to show the success message
+      setTimeout(() => {
+        navigate("/home");
+      }, 1500);
+    } catch (error: any) {
       console.error("Login failed:", error);
-      message.error("Login failed");
+
+      // Error handling remains the same
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "כתובת אימייל או סיסמה שגויים";
+
+      setAlert({
+        isOpen: true,
+        title: "אימייל או סיסמה שגויים",
+        message: errorMessage,
+        type: "error",
+      });
     }
   };
 
@@ -82,6 +120,15 @@ const LoginPage: React.FC = () => {
 
   return (
     <main className="min-h-screen bg-purple-50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      {/* Add Alert component */}
+      <Alert
+        isOpen={alert.isOpen}
+        onClose={handleCloseAlert}
+        title={alert.title}
+        message={alert.message}
+        type={alert.type}
+      />
+
       {/* Math screensaver background */}
       <MathScreensaver />
 
