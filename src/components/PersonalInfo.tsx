@@ -145,7 +145,7 @@ const PersonalInfo: React.FC = () => {
               />
             </div>
             <div className="group">
-              <label className="block text-xs font-medium mb-1 text-right text-indigo-700">📧 אימייל</label>
+              <label className="block text-xs font-medium mb-1 text-right text-indigo-700">📧 מייל</label>
               <div className="flex flex-row-reverse items-center border border-indigo-100 rounded-md p-2 bg-indigo-50">
                 <input 
                   type="email" 
@@ -173,7 +173,7 @@ const PersonalInfo: React.FC = () => {
                 </select>
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center px-2 text-indigo-500">
                   <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 111.414 1.414l-4 4a1 1 01-1.414 0l-4-4a1 1 010-1.414z" clipRule="evenodd"></path>
+                    <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 011.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 0 1 0-1.414z" clipRule="evenodd"></path>
                   </svg>
                 </div>
               </div>
@@ -237,7 +237,7 @@ const PersonalInfo: React.FC = () => {
                   </select>
                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center px-2 text-purple-500">
                     <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 111.414 1.414l-4 4a1 1 01-1.414 0l-4-4a1 1 010-1.414z" clipRule="evenodd"></path>
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 011.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 0 1 0-1.414z" clipRule="evenodd"></path>
                     </svg>
                   </div>
                 </div>

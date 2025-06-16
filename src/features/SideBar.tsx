@@ -47,7 +47,7 @@ const SideBar: React.FC = () => {
           {/* User information below profile */}
           <div className="text-center">
             <h3 className="font-bold text-indigo-800">{user?.username}</h3>
-            <p className="text-sm text-indigo-600">כיתה {user?.grade}</p>
+            <p className="text-sm text-indigo-600">כיתה {user?.grade}'</p>
           </div>
         </div>
       </div>

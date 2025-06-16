@@ -74,11 +74,11 @@ const LoginPage: React.FC = () => {
 
     const loadGoogle = () => {
       // Get client ID from environment variables - only use the client ID here, not the secret
-      const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID!;
+      const clientId = '701882154878-mlv6p9nkd48h4diooka9bukau03jet20.apps.googleusercontent.com'
       console.log("Google Client ID:", clientId);
       
       // Check if client ID exists and is properly formatted
-      if (!clientId || clientId === "undefined" || clientId === "null") {
+      if (!clientId ) {
         console.error("Google Client ID is missing or invalid:", clientId);
         
         // Create a server-side OAuth button instead since client-side isn't configured
@@ -112,7 +112,7 @@ const LoginPage: React.FC = () => {
         }
 
         window.google.accounts.id.initialize({
-          client_id: clientId,
+          client_id: '701882154878-mlv6p9nkd48h4diooka9bukau03jet20.apps.googleusercontent.com',
           callback: handleGoogleCallback,
           context: 'signin',
           auto_select: false,
@@ -123,7 +123,6 @@ const LoginPage: React.FC = () => {
         });
         
         // Log successful initialization
-        console.log("Google Sign-In initialized with client ID:", clientId);
         
         window.google.accounts.id.renderButton(
           googleButtonContainer,
