@@ -5,6 +5,7 @@ import MathScreensaver from "../components/math-screensaver";
 import user_api from "../services/user_api";
 import { useUser } from "../context/UserContext";
 import { googleSignIn } from "../services/user_api";
+import Alert from "../components/Alert"; // Import the Alert component
 
 declare global {
   interface Window {
@@ -26,6 +27,7 @@ declare global {
   }
 }
 
+
 const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -44,6 +46,19 @@ const LoginPage: React.FC = () => {
   const [username, setUsername] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [gender, setGender] = useState<"male" | "female">("female");
+
+  // Alert state
+  const [alert, setAlert] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    type: "error" as "error" | "success",
+  });
+
+  // Close alert handler
+  const handleCloseAlert = () => {
+    setAlert((prev) => ({ ...prev, isOpen: false }));
+  };
 
   // Handle direct navigation to registration tab
   useEffect(() => {
@@ -232,50 +247,66 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoginLoading(true); // Set loading state when login starts
-    try {
-      console.log("Login Attempt:", { email, password });
-      const data = await user_api.loginUser({
-        email,
-        password,
-      });
-      
-      // Create enhanced user object with consistent structure
-      const enhancedUserData = {
-        ...data,
-        subjectsList: data.subjectsList || [],
-        fullname: data.username || "",
-        imageUrl: data.imageUrl || "",
-        grade: data.grade || "",
-      };
-      
-      // Use localStorage instead of sessionStorage for consistency with Google login
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
-      localStorage.setItem("userId", data._id);
-      
-      if (data.imageUrl) {
-        localStorage.setItem("imageUrl", data.imageUrl);
-      }
-      
-      // Store complete user data in localStorage
-      localStorage.setItem("user", JSON.stringify(enhancedUserData));
-      
-      // Update user context
-      setUser(enhancedUserData);
-      
-      message.success("Login successful!");
-      console.log("User data:", enhancedUserData);
-      navigate("/home");
-    } catch (error) {
-      console.error("Login failed:", error);
-      message.error("Login failed");
-    } finally {
-      setIsLoginLoading(false); // Clear loading state regardless of outcome
+ const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsLoginLoading(true);
+
+  try {
+    console.log("Login Attempt:", { email, password });
+    const data = await user_api.loginUser({ email, password });
+
+    // — shonFrontBranch storage & context —
+    const enhancedUserData = {
+      ...data,
+      subjectsList: data.subjectsList || [],
+      fullname: data.username || "",
+      imageUrl: data.imageUrl || "",
+      grade: data.grade || "",
+    };
+
+    localStorage.setItem("accessToken", data.accessToken);
+    localStorage.setItem("refreshToken", data.refreshToken);
+    localStorage.setItem("userId", data._id);
+    if (data.imageUrl) {
+      localStorage.setItem("imageUrl", data.imageUrl);
     }
-  };
+    localStorage.setItem("user", JSON.stringify(enhancedUserData));
+
+    setUser(enhancedUserData);
+    // ——————————————————————————
+
+    // — main branch alert & delayed navigate —
+    setAlert({
+      isOpen: true,
+      title: "התחברות הצליחה",
+      message: `ברוך הבא, ${data.username || "משתמש"}!`,
+      type: "success",
+    });
+
+    setTimeout(() => {
+      navigate("/home");
+    }, 1500);
+    // ——————————————————————————————
+
+  } catch (error: any) {
+    console.error("Login failed:", error);
+
+    const errorMessage =
+      error.response?.data?.message ||
+      error.message ||
+      "כתובת אימייל או סיסמה שגויים";
+
+    setAlert({
+      isOpen: true,
+      title: "אימייל או סיסמה שגויים",
+      message: errorMessage,
+      type: "error",
+    });
+  } finally {
+    setIsLoginLoading(false);
+  }
+};
+
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -310,6 +341,15 @@ const LoginPage: React.FC = () => {
 
   return (
     <main className="min-h-screen bg-purple-50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      {/* Add Alert component */}
+      <Alert
+        isOpen={alert.isOpen}
+        onClose={handleCloseAlert}
+        title={alert.title}
+        message={alert.message}
+        type={alert.type}
+      />
+
       {/* Math screensaver background */}
       <MathScreensaver />
 
