@@ -95,7 +95,6 @@ export const endOfRegistration = async (userData: {
     }
   );
 
-  // מחזירים את האובייקט המעודכן לשימוש ב־Context
   return {
     _id: response.data._id,
     username: response.data.username,
@@ -118,7 +117,7 @@ export const register = async (userData: {
   password: string;
   username: string;
 }) => {
-  const response = await axios.post(`${baseUrl}/user/register`, userData);
+  const response = await axios.post(`${baseUrl}/auth/register`, userData);
   console.log("Registration response:", response.data);
   return {
     _id: response.data._id,
@@ -239,6 +238,15 @@ export const removeSubject = async (userId: string, subject: string) => {
       },
     }
   );
+  return response.data;
+};
+
+
+export const googleSignIn = async (credential: string) => {
+  const response = await axios.post(`${baseUrl}/auth/google-signin`, {
+    token: credential,
+  });
+
   return response.data;
 };
 
