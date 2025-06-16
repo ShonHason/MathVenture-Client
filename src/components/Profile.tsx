@@ -9,7 +9,6 @@ function Profile() {
   const name = user?.username || "תלמיד/ה";
   const grade = user?.grade ? `כיתה ${user.grade}׳` : "";
   const profileImage = user?.imageUrl || defaultProfileImg;
-  console.log("Profile image URL:", profileImage);
 
   return (
     <div className="profile-container">
@@ -21,5 +20,5 @@ function Profile() {
     </div>
   );
 }
-  
+
 export default Profile;
