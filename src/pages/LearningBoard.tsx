@@ -20,18 +20,7 @@ export default function LearningBoard() {
     id: index + 1,
     name: subject,
     description: `בואו ללמוד איתי על ${subject}`,
-    color: [
-      "green",
-      "blue",
-      "purple",
-      "yellow",
-      "pink",
-      "orange",
-      "cyan",
-      "red",
-      "emerald",
-      "violet",
-    ][index % 10],
+    color: ["white"][index % 10],
     icon: ["🚀", "📝", "🔢", "🎨", "🐶", "🌟", "🎵", "📚", "🧩", "🔬"][
       index % 10
     ],
@@ -100,12 +89,12 @@ export default function LearningBoard() {
 
   return (
     <div className="fun-container">
-      <div className="clouds">
+      {/* <div className="clouds">
         <div className="cloud cloud-1"></div>
         <div className="cloud cloud-2"></div>
         <div className="cloud cloud-3"></div>
         <div className="cloud cloud-4"></div>
-      </div>
+      </div> */}
 
       <header className="fun-header">
         <h1>Learning Adventure</h1>

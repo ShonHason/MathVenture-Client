@@ -16,7 +16,7 @@
   overflow: hidden;
 
   padding-top: 2cm;
-  margin-top: -2cm; 
+  margin-top: -2cm;
 }
 
 .clouds {
@@ -134,7 +134,7 @@
 }
 
 .fun-header {
-  margin-top: 0.5rem; 
+  margin-top: 0.5rem;
   margin-bottom: 0.5rem;
   text-align: center;
   animation: bounce 1s ease infinite alternate;
@@ -152,24 +152,24 @@
 .fun-header h1 {
   font-size: 2.5rem;
   font-weight: bold;
-  color: var(--fun-primary);
+  color: rgb(255, 255, 255);
   text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
   margin: 0; /* אין מרווח בנוסף ל־padding-top כי הורדנו אותו */
 }
 
 .fun-header p {
   font-size: 1.1rem;
-  color: var(--fun-text);
-  margin: 0.2rem 0; 
+  color: rgb(255, 255, 255);
+  margin: 0.2rem 0;
 }
 
 .fun-content {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem; 
+  gap: 0.5rem;
   flex-grow: 1;
   position: relative;
-  padding-top: 1rem; 
+  padding-top: 1rem;
 }
 
 .game-container {
@@ -178,7 +178,7 @@
   align-items: center;
   justify-content: center;
   flex-grow: 1;
-  gap: 0.5rem; 
+  gap: 0.5rem;
 }
 
 .navigation-controls {
@@ -192,10 +192,10 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background-color: var(--fun-secondary);
+  background-color: var(--button-bg);
   border: none;
   border-radius: var(--fun-border-radius);
-  padding: 0.4rem 0.8rem; 
+  padding: 0.4rem 0.8rem;
   font-weight: 600;
   font-size: 0.85rem;
   color: white;
@@ -219,8 +219,7 @@
 }
 
 .start-button {
-  background-color: var(--fun-primary);
-  border: none;
+  background-color: var(--start-game-btn);
   border-radius: var(--fun-border-radius);
   padding: 0.4rem 1rem; /* מצמצם מעט */
   font-weight: 600;

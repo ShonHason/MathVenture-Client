@@ -1,455 +1,36 @@
-/* Base styles */
-.lessons-container {
-  padding: 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-/* Title styles */
-.title-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 2rem;
-}
-
-.title-wrapper {
-  position: relative;
-  display: inline-block;
-}
-
-.lessons-title {
-  font-size: 1.875rem;
-  font-weight: 700;
-  text-align: center;
-  color: #7e22ce; /* purple-700 */
-  position: relative;
-  z-index: 10;
-}
-
-.title-star {
-  position: absolute;
-  top: -0.75rem;
-  right: -1rem;
-  animation: bounce 2s infinite;
-}
-
-.star-icon {
-  height: 1.5rem;
-  width: 1.5rem;
-  color: #facc15; /* yellow-400 */
-  fill: #facc15;
-}
-
-.title-underline {
-  position: absolute;
-  bottom: -0.75rem;
-  left: 0;
-  right: 0;
-  height: 0.75rem;
-  background-color: #fde047; /* yellow-300 */
-  border-radius: 9999px;
-  z-index: 0;
-}
-
-/* Grid layout */
-.lessons-grid {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 1.5rem;
-}
-
-@media (min-width: 768px) {
-  .lessons-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .lessons-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-/* Card styles */
-.card {
-  border-radius: 0.5rem;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-  border: 2px solid #f3e8ff; /* purple-100 */
-}
-
-.lesson-card {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-.card-hidden {
-  transform: translateY(2rem);
-  opacity: 0;
-}
-
-.card-animated {
-  animation: slideUp 0.5s ease forwards;
-}
-
-.lesson-card:hover {
-  transform: scale(1.02);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  border-color: #d8b4fe; /* purple-300 */
-}
-
-.card-header {
-  background: linear-gradient(to right, #8b5cf6, #3b82f6); /* purple-500 to blue-500 */
-  padding: 1rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.card-header.completed {
-  background: linear-gradient(to right, #10b981, #059669); /* green-500 to green-600 */
-}
-
-.card-header.in_progress {
-  background: linear-gradient(to right, #f59e0b, #d97706); /* amber-500 to amber-600 */
-}
-
-.card-header.not_started {
-  background: linear-gradient(to right, #3b82f6, #2563eb); /* blue-500 to blue-600 */
-}
-
-.completion-badge {
-  position: absolute;
-  top: -1.5rem;
-  right: -1.5rem;
-  width: 4rem;
-  height: 4rem;
-  background-color: #22c55e; /* green-500 */
-  transform: rotate(45deg);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-bottom: 0.25rem;
-}
-
-.badge-star {
-  height: 1rem;
-  width: 1rem;
-  color: white;
-  fill: white;
-  transform: rotate(-45deg);
-}
-
-.lesson-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: white;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.lesson-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 0.25rem;
-}
-
-/* Badge styles */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 9999px;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-}
-
-.date-badge {
-  background-color: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: none;
-}
-
-.status-badge {
-  color: white;
-}
-
-.status-not-started {
-  background-color: #3b82f6; /* blue-500 */
-}
-
-.status-in-progress {
-  background-color: #f59e0b; /* amber-500 */
-}
-
-.status-completed {
-  background-color: #22c55e; /* green-500 */
-}
-
-.card-content {
-  padding: 1rem;
-}
-
-.lesson-id {
-  font-size: 0.75rem;
-  color: #6b7280; /* gray-500 */
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-bottom: 0.5rem;
-}
-
-.lesson-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-/* Button styles */
-.button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.375rem;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.2s;
-  border: none;
-  cursor: pointer;
-}
-
-.button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.button-outline {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.375rem;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  transition: all 0.2s;
-  background-color: transparent;
-  cursor: pointer;
-}
-
-.button:active,
-.button-outline:active {
-  transform: scale(0.95);
-}
-
-.status-button {
-  width: 100%;
-  gap: 0.5rem;
-  font-weight: 700;
-  color: white;
-}
-
-.action-buttons {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
-}
-
-.report-button {
-  border: 1px solid #f59e0b; /* amber-500 */
-  color: #d97706; /* amber-600 */
-}
-
-.report-button:hover {
-  background-color: #fffbeb; /* amber-50 */
-}
-
-.delete-button {
-  border: 1px solid #ef4444; /* red-500 */
-  color: #dc2626; /* red-600 */
-}
-
-.delete-button:hover {
-  background-color: #fef2f2; /* red-50 */
-}
-
-.button-icon,
-.icon {
-  height: 1rem;
-  width: 1rem;
-  margin-right: 0.5rem;
-}
-
-/* Loading, error, and empty states */
-.loader-container,
-.error-container,
-.empty-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 300px;
-  padding: 2rem;
-  text-align: center;
-}
-
-.loader-icon {
-  position: relative;
-}
-
-.spinner {
-  height: 3rem;
-  width: 3rem;
-  color: #8b5cf6; /* purple-500 */
-  animation: spin 1s linear infinite;
-}
-
-.star-decoration {
-  position: absolute;
-  top: -0.25rem;
-  right: -0.25rem;
-}
-
-.star {
-  height: 1.25rem;
-  width: 1.25rem;
-  color: #facc15; /* yellow-400 */
-  animation: bounce 2s infinite;
-}
-
-.loader-text {
-  margin-top: 1rem;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #7e22ce; /* purple-700 */
-}
-
-.error-icon {
-  height: 4rem;
-  width: 4rem;
-  color: #ef4444; /* red-500 */
-  margin-bottom: 1rem;
-  animation: pulse 2s infinite;
-}
-
-.error-text {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #dc2626; /* red-600 */
-}
-
-.empty-container {
-  background-color: #fffbeb; /* yellow-50 */
-  border-radius: 0.75rem;
-  border: 2px dashed #fde047; /* yellow-300 */
-}
-
-.empty-icon-container {
-  position: relative;
-  margin-bottom: 1rem;
-}
-
-.empty-icon {
-  height: 4rem;
-  width: 4rem;
-  color: #f59e0b; /* yellow-500 */
-}
-
-.empty-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #b45309; /* yellow-700 */
-}
-
-.empty-subtitle {
-  color: #6b7280; /* gray-600 */
-  margin-top: 0.5rem;
-}
-
-.empty-action {
-  margin-top: 1.5rem;
-}
-
-.home-button {
-  background-color: #8b5cf6; /* purple-500 */
-  color: white;
-  font-weight: 700;
-}
-
-.home-button:hover {
-  background-color: #7c3aed; /* purple-600 */
-}
-
-/* Pagination */
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-top: 2rem;
-  gap: 1rem;
-}
-
-.pagination-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 9999px;
-  border: 1px solid #e5e7eb; /* gray-200 */
-  background-color: white;
-  color: #4b5563; /* gray-600 */
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.pagination-button:hover:not(:disabled) {
-  background-color: #f3f4f6; /* gray-100 */
-  color: #1f2937; /* gray-800 */
-}
-
-.pagination-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.pagination-icon {
-  height: 1.25rem;
-  width: 1.25rem;
-}
-
-.pagination-info {
-  font-size: 0.875rem;
-  color: #4b5563; /* gray-600 */
-}
-
-/* Animations */
-@keyframes slideUp {
-  from {
-    transform: translateY(2rem);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
+/* MyLessons.css */
+
+/* --- Confetti Animation --- */
+@keyframes fall {
+  0% {
+    transform: translateY(-10vh) rotate(0deg);
     opacity: 1;
   }
-}
-
-@keyframes bounce {
-  0%,
+  85% {
+    opacity: 1;
+  }
   100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-25%);
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
   }
 }
 
+.confetti-container {
+  position: fixed;
+  inset: 0; /* top:0; right:0; bottom:0; left:0; */
+  z-index: 50;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.confetti-piece {
+  position: absolute;
+  animation-name: fall;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: forwards;
+}
+
+/* --- General Animations (moved from inline style) --- */
 @keyframes spin {
   from {
     transform: rotate(0deg);
@@ -458,8 +39,26 @@
     transform: rotate(360deg);
   }
 }
+.animate-spin-custom {
+  animation: spin 1s linear infinite;
+}
 
-@keyframes pulse {
+@keyframes bounce-custom {
+  0%,
+  100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+.animate-bounce-custom {
+  animation: bounce-custom 1s infinite;
+}
+
+@keyframes pulse-custom {
   0%,
   100% {
     opacity: 1;
@@ -468,34 +67,498 @@
     opacity: 0.5;
   }
 }
-
-/* Confetti animation */
-.confetti-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 9999;
+.animate-pulse-custom {
+  animation: pulse-custom 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-.confetti {
-  position: absolute;
-  top: -10px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  animation: confetti-fall linear forwards;
+/* --- Base Layout --- */
+.my-lessons-container {
+  min-height: 100vh; /* min-h-screen */
+  padding: 2rem 1rem; /* py-8 px-4 */
+  direction: rtl; /* dir="rtl" */
 }
 
-@keyframes confetti-fall {
-  0% {
-    transform: translateY(0) rotate(0deg);
-    opacity: 1;
+.my-lessons-wrapper {
+  max-width: 80rem; /* max-w-7xl */
+  margin-left: auto; /* mx-auto */
+  margin-right: auto; /* mx-auto */
+}
+
+/* --- Header --- */
+.my-lessons-header {
+  text-align: center; /* text-center */
+  margin-bottom: 2.5rem; /* mb-10 */
+}
+
+.my-lessons-header h2 {
+  font-size: 1.875rem; /* text-3xl */
+  font-weight: 700; /* font-bold */
+  color: white; /* text-purple-800 */
+  display: inline-flex; /* inline-flex */
+  align-items: center; /* items-center */
+}
+
+.my-lessons-header .star-icon-title {
+  margin-left: 0.5rem; /* ml-2 */
+}
+
+.my-lessons-header .underline-div {
+  height: 0.5rem; /* h-2 */
+  background-image: linear-gradient(
+    to right,
+    #c084fc,
+    #ec4899
+  ); /* bg-gradient-to-r from-purple-400 to-pink-500 */
+  border-radius: 9999px; /* rounded-full */
+  margin-top: 0.5rem; /* mt-2 */
+}
+
+/* --- Lesson Grid --- */
+.lessons-grid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr)); /* grid-cols-1 */
+  gap: 1.5rem; /* gap-6 */
+}
+
+@media (min-width: 768px) {
+  /* md:grid-cols-2 */
+  .lessons-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  100% {
-    transform: translateY(100vh) rotate(720deg);
-    opacity: 0;
+}
+
+@media (min-width: 1024px) {
+  /* lg:grid-cols-3 */
+  .lessons-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+
+/* --- Card Component Styles --- */
+.lesson-card {
+  background-color: white; /* bg-white */
+  border-radius: 0.75rem; /* rounded-xl */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+  overflow: hidden; /* overflow-hidden */
+  transform: translateY(32px); /* translate-y-8 */
+  opacity: 0; /* opacity-0 */
+  transition-property: transform, opacity; /* transition-all */
+  transition-duration: 500ms; /* duration-500 */
+}
+
+.lesson-card:hover {
+  transform: scale(1.05); /* hover:scale-105 */
+}
+
+.lesson-card.animated {
+  transform: translateY(0); /* translate-y-0 */
+  opacity: 1; /* opacity-100 */
+}
+
+/* Card Header (colored section) */
+.lesson-card-header {
+  padding: 1rem; /* p-4 */
+  position: relative; /* relative */
+}
+
+/* Card Header Backgrounds based on progress */
+.lesson-card-header.status-completed {
+  background-image: linear-gradient(
+    to right,
+    #4ade80,
+    #22c55e
+  ); /* from-green-400 to-green-500 */
+}
+.lesson-card-header.status-in-progress {
+  /* background-image: linear-gradient(
+    to right,
+    #facc15,
+    #eab308
+  ); from-yellow-300 to-yellow-400 */
+  background-color: var(--page-bg);
+}
+.lesson-card-header.status-not-started {
+  /* background-image: linear-gradient(
+    to right,
+    #60a5fa,
+    #3b82f6
+  ); from-blue-400 to-blue-500 */
+  background-color: var(--button-bg);
+}
+
+/* Star icon on completed lesson cards */
+.lesson-card-header .completed-star-icon {
+  position: absolute; /* absolute */
+  top: 0.5rem; /* top-2 */
+  right: 0.5rem; /* right-2 */
+  background-color: #facc15; /* bg-yellow-300 */
+  border-radius: 9999px; /* rounded-full */
+  padding: 0.25rem; /* p-1 */
+}
+
+.lesson-card-header .completed-star-icon svg {
+  width: 1.25rem; /* w-5 */
+  height: 1.25rem; /* h-5 */
+  color: #ca8a04; /* text-yellow-600 */
+}
+
+.lesson-card-header h3 {
+  font-size: 1.25rem; /* text-xl */
+  font-weight: 700; /* font-bold */
+  color: white; /* text-white */
+}
+
+/* Badges Container */
+.lesson-card-badges {
+  display: flex;
+  flex-wrap: wrap; /* flex-wrap */
+  gap: 0.5rem; /* gap-2 */
+  margin-top: 0.5rem; /* mt-2 */
+}
+
+/* --- Badge Component Styles --- */
+.badge {
+  display: inline-flex; /* inline-flex */
+  padding: 0.125rem 0.625rem; /* px-2.5 py-0.5 */
+  border-radius: 9999px; /* rounded-full */
+  font-size: 0.75rem; /* text-xs */
+  font-weight: 500; /* font-medium */
+}
+
+.badge.white-alpha-20 {
+  background-color: rgba(255, 255, 255, 0.2); /* bg-white/20 */
+  color: white; /* text-white */
+}
+
+.badge.white-alpha-30 {
+  background-color: rgba(255, 255, 255, 0.3); /* bg-white/30 */
+  color: white; /* text-white */
+}
+
+/* Card Body */
+.lesson-card-body {
+  padding: 1rem; /* p-4 */
+}
+
+.lesson-card-body .lesson-id {
+  font-size: 0.75rem; /* text-xs */
+  color: #6b7280; /* text-gray-500 */
+  margin-bottom: 1rem; /* mb-4 */
+  overflow: hidden; /* truncate */
+  text-overflow: ellipsis; /* truncate */
+  white-space: nowrap; /* truncate */
+}
+
+/* Buttons Container */
+.lesson-card-buttons-section {
+  margin-top: 1rem; /* space-y-4 */
+}
+.lesson-card-buttons-section > div + div {
+  margin-top: 1rem;
+}
+
+/* --- Button Component Styles --- */
+.custom-button {
+  color: white; /* text-white */
+  border-radius: 9999px; /* rounded-full */
+  padding: 0.5rem 1rem; /* px-4 py-2 */
+  display: flex;
+  align-items: center; /* items-center */
+  justify-content: center; /* justify-center */
+  transition-property: background-color; /* transition-colors */
+  transition-duration: 200ms; /* duration-200 */
+  cursor: pointer;
+  border: none; /* Remove default button border */
+  font-size: 1rem; /* Default text-base from button definition */
+}
+
+.custom-button.disabled {
+  opacity: 0.5; /* opacity-50 */
+  cursor: not-allowed; /* cursor-not-allowed */
+}
+
+.custom-button.variant-default {
+  /* No specific default background, handled by conditional classes */
+}
+
+.custom-button.variant-outline {
+  border-width: 2px; /* border-2 */
+  background-color: transparent; /* bg-transparent */
+}
+
+/* Conditional button backgrounds for main action */
+.custom-button.bg-blue-500-hover-600 {
+  background-color: var(--button-bg); /* bg-blue-500 */
+}
+.custom-button.bg-blue-500-hover-600:hover {
+  /* background-color: #2563eb; hover:bg-blue-600 */
+  transform: scale(1.05);
+  transition: 0.3s;
+}
+
+.custom-button.bg-yellow-500-hover-600 {
+  background-color: var(--page-bg); /* bg-yellow-500 */
+}
+.custom-button.bg-yellow-500-hover-600:hover {
+  /* background-color: #ca8a04; hover:bg-yellow-600 */
+  transform: scale(1.05);
+  transition: 0.3s; /* hover:scale-105 */
+}
+
+.custom-button.bg-green-500-hover-600 {
+  background-color: #22c55e; /* bg-green-500 */
+}
+.custom-button.bg-green-500-hover-600:hover {
+  background-color: #16a34a; /* hover:bg-green-600 */
+}
+
+/* Specific button icon sizing */
+.custom-button .button-icon-large {
+  width: 1.25rem; /* w-5 */
+  height: 1.25rem; /* h-5 */
+  margin-right: 0.5rem; /* mr-2 */
+}
+
+.custom-button .button-icon-small {
+  width: 1rem; /* w-4 */
+  height: 1rem; /* h-4 */
+  margin-right: 0.5rem; /* mr-2 */
+}
+
+/* Specific text colors for completed button icon */
+.custom-button .text-green-200 {
+  color: #bbf7d0; /* text-green-200 */
+}
+.custom-button .text-white {
+  color: white;
+}
+
+/* Grid for report/delete buttons */
+.lesson-card-sub-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* grid-cols-2 */
+  gap: 0.75rem; /* gap-3 */
+}
+
+/* Outline Button Specific Styles */
+.custom-button.border-blue-500-text-blue-600-hover-bg-blue-50 {
+  border-color: #3b82f6; /* border-blue-500 */
+  /* color: #2563eb; text-blue-600 */
+  color: black;
+}
+.custom-button.border-blue-500-text-blue-600-hover-bg-blue-50:hover {
+  background-color: #eff6ff; /* hover:bg-blue-50 */
+}
+
+.custom-button.border-red-500-text-red-600-hover-bg-red-50 {
+  border-color: #ef4444; /* border-red-500 */
+  color: #dc2626; /* text-red-600 */
+}
+.custom-button.border-red-500-text-red-600-hover-bg-red-50:hover {
+  background-color: #fef2f2; /* hover:bg-red-50 */
+}
+
+/* --- Loading State --- */
+.loading-state-container {
+  display: flex;
+  align-items: center; /* items-center */
+  justify-content: center; /* justify-center */
+  min-height: 100vh; /* min-h-screen */
+  text-align: center; /* text-center */
+}
+
+.loading-state-spinner-wrapper {
+  position: relative; /* relative */
+  display: inline-block; /* inline-block */
+}
+
+.loading-state-spinner {
+  width: 4rem; /* w-16 */
+  height: 4rem; /* h-16 */
+  color: #a855f7; /* text-purple-600 */
+  /* Animation class handled by JS, but defined here for clarity */
+}
+
+.loading-state-star-overlay {
+  position: absolute; /* absolute */
+  top: 0; /* top-0 */
+  right: 0; /* right-0 */
+}
+
+.loading-state-star-overlay svg {
+  width: 1.5rem; /* w-6 */
+  height: 1.5rem; /* h-6 */
+  color: #facc15; /* text-yellow-400 */
+  /* Animation class handled by JS */
+}
+
+.loading-state-text {
+  margin-top: 1rem; /* mt-4 */
+  font-size: 1.25rem; /* text-xl */
+  font-weight: 500; /* font-medium */
+  color: #9333ea; /* text-purple-700 */
+}
+
+/* --- Error State --- */
+.error-state-container {
+  display: flex;
+  align-items: center; /* items-center */
+  justify-content: center; /* justify-center */
+  min-height: 100vh; /* min-h-screen */
+  background-image: linear-gradient(
+    to right,
+    #eff6ff,
+    #f3e8ff
+  ); /* bg-gradient-to-r from-blue-50 to-purple-50 */
+}
+
+.error-state-box {
+  background-color: white; /* bg-white */
+  padding: 2rem; /* p-8 */
+  border-radius: 1rem; /* rounded-2xl */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+  max-width: 28rem; /* max-w-md */
+  text-align: center; /* text-center */
+}
+
+.error-state-box svg {
+  width: 4rem; /* w-16 */
+  height: 4rem; /* h-16 */
+  color: #ef4444; /* text-red-500 */
+  margin-left: auto; /* mx-auto */
+  margin-right: auto; /* mx-auto */
+  margin-bottom: 1rem; /* mb-4 */
+}
+
+.error-state-box p {
+  font-size: 1.25rem; /* text-xl */
+  font-weight: 500; /* font-medium */
+  color: #b91c1c; /* text-red-700 */
+}
+
+/* --- No Lessons State --- */
+.no-lessons-state-container {
+  display: flex;
+  align-items: center; /* items-center */
+  justify-content: center; /* justify-center */
+  min-height: 100vh; /* min-h-screen */
+  background-image: linear-gradient(
+    to right,
+    #eff6ff,
+    #f3e8ff
+  ); /* bg-gradient-to-r from-blue-50 to-purple-50 */
+}
+
+.no-lessons-state-box {
+  background-color: white; /* bg-white */
+  padding: 2rem; /* p-8 */
+  border-radius: 1rem; /* rounded-2xl */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+  max-width: 28rem; /* max-w-md */
+  text-align: center; /* text-center */
+}
+
+.no-lessons-state-icon-wrapper {
+  position: relative; /* relative */
+  display: inline-block; /* inline-block */
+  background-color: #dbeafe; /* bg-blue-100 */
+  padding: 1.5rem; /* p-6 */
+  border-radius: 9999px; /* rounded-full */
+  margin-bottom: 1rem; /* mb-4 */
+}
+
+.no-lessons-state-icon-wrapper svg {
+  width: 4rem; /* w-16 */
+  height: 4rem; /* h-16 */
+  color: #2563eb; /* text-blue-600 */
+}
+
+.no-lessons-state-icon-wrapper .star-overlay {
+  position: absolute; /* absolute */
+  top: 0; /* top-0 */
+  right: 0; /* right-0 */
+}
+
+.no-lessons-state-icon-wrapper .star-overlay svg {
+  width: 1.5rem; /* w-6 */
+  height: 1.5rem; /* h-6 */
+  color: #facc15; /* text-yellow-400 */
+  /* Animation class handled by JS */
+}
+
+.no-lessons-state-box h2 {
+  font-size: 1.5rem; /* text-2xl */
+  font-weight: 700; /* font-bold */
+  color: #2d3748; /* text-gray-800 */
+  margin-bottom: 0.5rem; /* mb-2 */
+}
+
+.no-lessons-state-box p {
+  font-size: 1.125rem; /* text-lg */
+  color: #4a5568; /* text-gray-600 */
+  margin-bottom: 1.5rem; /* mb-6 */
+}
+
+.no-lessons-state-box button {
+  background-color: #a855f7; /* bg-purple-600 */
+  color: white; /* text-white */
+  font-weight: 500; /* font-medium */
+  border-radius: 9999px; /* rounded-full */
+  padding: 0.75rem 1.5rem; /* px-6 py-3 */
+  transition-property: background-color; /* transition-colors */
+  transition-duration: 200ms; /* duration-200 */
+  border: none;
+  cursor: pointer;
+}
+
+.no-lessons-state-box button:hover {
+  background-color: #9333ea; /* hover:bg-purple-700 */
+}
+
+/* --- Pagination --- */
+.pagination-container {
+  display: flex;
+  justify-content: center; /* justify-center */
+  align-items: center; /* items-center */
+  margin-top: 2rem; /* mt-8 */
+  gap: 1rem; /* space-x-4, space-x-reverse is not directly applicable as gap handles it */
+}
+
+.pagination-button {
+  padding: 0.5rem; /* p-2 */
+  border-radius: 9999px; /* rounded-full */
+  background-color: white; /* bg-white */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -2px rgba(0, 0, 0, 0.06); /* shadow-md */
+  transition-property: background-color; /* transition-colors */
+  cursor: pointer;
+  border: none;
+}
+
+.pagination-button:disabled {
+  opacity: 0.5; /* disabled:opacity-50 */
+  cursor: not-allowed;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #f3f4f6; /* hover:bg-gray-100 */
+}
+
+.pagination-button svg {
+  width: 1.5rem; /* w-6 */
+  height: 1.5rem; /* h-6 */
+  color: #9333ea; /* text-purple-700 */
+}
+
+.pagination-info {
+  background-color: white; /* bg-white */
+  padding: 0.5rem 1rem; /* px-4 py-2 */
+  border-radius: 9999px; /* rounded-full */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -2px rgba(0, 0, 0, 0.06); /* shadow-md */
+  color: #6d28d9; /* text-purple-800 */
+  font-weight: 500; /* font-medium */
 }

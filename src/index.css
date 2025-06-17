@@ -33,6 +33,8 @@
   --main-bg: linear-gradient(135deg, #667eea 0%, #764ba2 60%);
   --myprofile-bg1: linear-gradient(to right, #4c1ff1, #a75dfc);
   --myprofile-bg2: linear-gradient(to left, #4c1ff1, #a75dfc);
+  --start-game-btn: rgb(186, 103, 241);
+  /* --lesson-card: ; */
 }
 [data-theme="dark"] {
   --page-bg: #1e1e1e;
@@ -44,6 +46,7 @@
   --main-bg: linear-gradient(135deg, #1e1e1e 0%, #333333 60%);
   --myprofile-bg1: linear-gradient(to right, #363131, grey);
   --myprofile-bg2: linear-gradient(to left, #363131, grey);
+  --start-game-btn: rgb(48, 48, 48);
 }
 
 body {

@@ -184,7 +184,7 @@ export default function GameBoard({
             <path
               d={svgPath}
               fill="none"
-              stroke="#FFD166"
+              stroke="#ffffff"
               strokeWidth="6"
               strokeLinecap="round"
               strokeDasharray="0"
