@@ -6,10 +6,10 @@ import { useUser } from "../context/UserContext";
 function Profile() {
   const { user } = useUser();
 
-  const name = user?.username || "תלמיד/ה";
+  const name = user?.username || " ";
+
   const grade = user?.grade ? `כיתה ${user.grade}׳` : "";
   const profileImage = user?.imageUrl || defaultProfileImg;
-
   return (
     <div className="profile-container">
       <img src={profileImage} alt="profile" className="profile-picture" />

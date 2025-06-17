@@ -72,12 +72,12 @@ const Button = ({
   variant?: "default" | "outline"
 }) => {
   const baseClass = variant === "outline" 
-    ? "border-2 bg-transparent rounded-full px-4 py-2 flex items-center justify-center transition-colors duration-200"
-    : "text-white rounded-full px-4 py-2 flex items-center justify-center transition-colors duration-200";
+    ? "border-2 bg-transparent rounded-full px-4 py-2.5 flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-md"
+    : "text-white rounded-full px-4 py-2.5 flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-md transform hover:-translate-y-0.5";
   
   return (
     <button 
-      className={`${baseClass} ${className} ${disabled ? "opacity-50 cursor-not-allowed" : ""}`} 
+      className={`${baseClass} ${className} ${disabled ? "opacity-60 cursor-not-allowed transform-none hover:shadow-sm" : ""}`} 
       disabled={disabled} 
       onClick={onClick}
     >
@@ -339,12 +339,14 @@ export const MyLessons: React.FC = () => {
                     ? "bg-gradient-to-r from-yellow-300 to-yellow-400"
                     : "bg-gradient-to-r from-blue-400 to-blue-500"
               }`}>
-                {lesson.progress === "COMPLETED" && (
-                  <div className="absolute top-2 right-2 bg-yellow-300 rounded-full p-1">
-                    <Star className="w-5 h-5 text-yellow-600" />
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-white">{lesson.subject}</h3>
+                  <div className="w-9 h-9 flex items-center justify-center">
+                    {lesson.progress === "COMPLETED" && (
+                      <CheckCircle className="w-9 h-9 text-white" />
+                    )}
                   </div>
-                )}
-                <h3 className="text-xl font-bold text-white">{lesson.subject}</h3>
+                </div>
                 <div className="flex flex-wrap gap-2 mt-2">
                   <Badge className="bg-white/20 text-white">{formatDate(lesson.startTime)}</Badge>
                   <Badge className="bg-white/30 text-white">
@@ -355,51 +357,49 @@ export const MyLessons: React.FC = () => {
 
               <div className="p-4">
                 <div className="text-xs text-gray-500 mb-4 truncate" title={lesson._id}>
-                  מזהה: {lesson._id}
+                
                 </div>
 
                 <div className="space-y-4">
-                  <Button
-                    className={`w-full ${
-                      lesson.progress === "NOT_STARTED" 
-                        ? "bg-blue-500 hover:bg-blue-600" 
-                        : lesson.progress === "IN_PROGRESS"
-                          ? "bg-yellow-500 hover:bg-yellow-600"
-                          : "bg-green-500 hover:bg-green-600"
-                    }`}
-                    disabled={lesson.progress === "COMPLETED"}
-                    onClick={() => handleStatusClick(lesson)}
+                  {/* Primary action button - shows Start/Continue or Report based on progress */}
+                  {lesson.progress !== "COMPLETED" ? (
+                    <Button
+                      className={`w-full font-medium text-white ${
+                        lesson.progress === "NOT_STARTED" 
+                          ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700" 
+                          : "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600"
+                      }`}
+                      onClick={() => handleStatusClick(lesson)}
+                    >
+                      <span className="w-5 h-5 mr-2 text-white">
+                        {lesson.progress === "NOT_STARTED" 
+                          ? <PlayCircle className="w-5 h-5" />
+                          : <BookOpen className="w-5 h-5" />
+                        }
+                      </span>
+                      {statusLabels[lesson.progress]}
+                    </Button>
+                  ) : (
+                    <Button
+                      className="w-full text-white bg-gradient-to-r from-blue-400 to-blue-500 opacity-40 cursor-not-allowed"
+                      disabled={true}
+                    >
+                      <span className="w-5 h-5 mr-2 text-white">
+                        <FileText className="w-5 h-5" />
+                      </span>
+                      <span className="text-xs">סיכום שיעור נשלח למייל</span>
+                    </Button>
+                  )}
+
+                  {/* Delete button - always shows */}
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-red-400 text-red-500 hover:bg-red-50 rounded-full px-7 py-3 flex items-center justify-center gap-3 transition-all duration-200 hover:border-red-500" 
+                    onClick={() => handleDelete(lesson._id)}
                   >
-                    <span className={`w-5 h-5 mr-2 ${lesson.progress === "COMPLETED" ? "text-green-200" : "text-white"}`}>
-                      {lesson.progress === "NOT_STARTED" 
-                        ? <PlayCircle className="w-5 h-5" />
-                        : lesson.progress === "IN_PROGRESS"
-                          ? <BookOpen className="w-5 h-5" />
-                          : <CheckCircle className="w-5 h-5" />
-                      }
-                    </span>
-                    {statusLabels[lesson.progress]}
+                    <Trash2 className="w-6 h-6" />
+                    <span className="font-medium text-base">מחק</span>
                   </Button>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button 
-                      variant="outline" 
-                      className="border-blue-500 text-blue-600 hover:bg-blue-50" 
-                      onClick={() => handleReport(lesson)}
-                    >
-                      <FileText className="w-4 h-4 mr-2" />
-                      הפק דו"ח
-                    </Button>
-
-                    <Button 
-                      variant="outline" 
-                      className="border-red-500 text-red-600 hover:bg-red-50" 
-                      onClick={() => handleDelete(lesson._id)}
-                    >
-                      <Trash2 className="w-4 h-4 mr-2" />
-                      מחק
-                    </Button>
-                  </div>
                 </div>
               </div>
             </Card>
@@ -412,19 +412,19 @@ export const MyLessons: React.FC = () => {
             <button 
               onClick={() => paginate(currentPage - 1)} 
               disabled={currentPage === 1} 
-              className="p-2 rounded-full bg-white shadow-md disabled:opacity-50 transition-colors hover:bg-gray-100"
+              className="p-2.5 rounded-full bg-white shadow-md disabled:opacity-50 transition-all duration-300 hover:bg-purple-50 hover:shadow-lg transform hover:-translate-y-0.5 disabled:transform-none disabled:hover:shadow-md"
             >
               <ChevronRight className="w-6 h-6 text-purple-700" />
             </button>
 
-            <div className="bg-white px-4 py-2 rounded-full shadow-md text-purple-800 font-medium">
+            <div className="bg-white px-5 py-2.5 rounded-full shadow-md text-purple-800 font-medium">
               עמוד {currentPage} מתוך {totalPages}
             </div>
 
             <button 
               onClick={() => paginate(currentPage + 1)} 
               disabled={currentPage === totalPages} 
-              className="p-2 rounded-full bg-white shadow-md disabled:opacity-50 transition-colors hover:bg-gray-100"
+              className="p-2.5 rounded-full bg-white shadow-md disabled:opacity-50 transition-all duration-300 hover:bg-purple-50 hover:shadow-lg transform hover:-translate-y-0.5 disabled:transform-none disabled:hover:shadow-md"
             >
               <ChevronLeft className="w-6 h-6 text-purple-700" />
             </button>

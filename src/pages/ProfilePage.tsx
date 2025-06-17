@@ -55,15 +55,7 @@ const ProfilePage: React.FC = () => {
           </div>
         )}
         {activeTab === "emails" && user?._id && <MyEmails userId={user._id} />}
-        {activeTab === "delete-account" && (
-          <div className="text-center">
-            <h2 className="text-red-600 text-xl mb-2">⚠️ מחיקת חשבון</h2>
-            <p className="text-red-800 text-sm mb-4">
-              האם אתה בטוח שברצונך למחוק את החשבון? פעולה זו לא ניתנת לביטול ותאבד את כל הנתונים שלך.
-            </p>
-            <DeleteAccount />
-          </div>
-        )}
+        {activeTab === "delete-account" && <DeleteAccount />}
       </div>
     </div>
   )

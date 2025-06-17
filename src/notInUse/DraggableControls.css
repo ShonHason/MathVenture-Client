@@ -1,7 +1,0 @@
-.audio-controls-wrapper {
-  position: relative;
-}
-
-.audio-controls-wrapper:hover .grab-icon {
-  opacity: 1;
-}

@@ -139,7 +139,7 @@ export const register = async (userData: {
   password: string;
   username: string;
 }) => {
-  const response = await axios.post(`${baseUrl}/auth/register`, userData);
+  const response = await axios.post(`${baseUrl}/user/register`, userData);
   console.log("Registration response:", response.data);
   return {
     _id: response.data._id,
