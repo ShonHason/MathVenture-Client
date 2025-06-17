@@ -25,7 +25,6 @@ export interface User {
   parent_phone?: string;
 
   // **these three are missing**:
-  subjectsList: string[]; // define as non-null array
   accessToken: string; // or mark optional if it really can be undefined
   refreshToken: string;
 }
@@ -92,6 +91,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   return (
     <UserContext.Provider value={{ user, setUser }}>
       {children}
+      
     </UserContext.Provider>
   );
 };

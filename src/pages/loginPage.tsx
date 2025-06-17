@@ -45,7 +45,6 @@ const LoginPage: React.FC = () => {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [gender, setGender] = useState<"male" | "female">("female");
 
   // Alert state
   const [alert, setAlert] = useState({
@@ -320,7 +319,6 @@ const LoginPage: React.FC = () => {
         username,
         email,
         password,
-        gender,
       };
       console.log("Registration Attempt:", registrationData);
       const newuser = await user_api.register(registrationData);
@@ -366,29 +364,29 @@ const LoginPage: React.FC = () => {
         </div>
       )}
 
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden z-10 relative">
-        <div className="p-4 space-y-4">
-          <div className="flex flex-col items-center space-y-1">
-            <div className="relative w-28 h-28">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden z-10 relative max-h-[90vh] flex flex-col">
+        <div className="p-3 space-y-2 overflow-y-auto">
+          <div className="flex flex-col items-center space-y-0">
+            <div className="relative w-20 h-20">
               <img
                 src="/logo.png"
                 alt="MathVenture Mascot"
                 className="object-contain w-full h-full"
               />
             </div>
-            <h1 className="text-2xl font-bold text-center text-purple-700">
+            <h1 className="text-xl font-bold text-center text-purple-700">
               MATHVENTURE
             </h1>
-            <p className="text-sm font-medium text-center text-purple-600">
+            <p className="text-xs font-medium text-center text-purple-600">
               EXPLORE MATH
             </p>
           </div>
 
-          <div className="text-center space-y-1 rtl">
-            <h2 className="text-lg font-bold text-gray-800 font-heebo">
+          <div className="text-center space-y-0 rtl">
+            <h2 className="text-base font-bold text-gray-800 font-heebo">
               ברוכים הבאים למאטוונצ׳ר!
             </h2>
-            <p className="text-sm text-gray-600 font-heebo">
+            <p className="text-xs text-gray-600 font-heebo">
               בחרו אחת מן האופציות הבאות:
             </p>
           </div>
@@ -396,7 +394,7 @@ const LoginPage: React.FC = () => {
           <div className="w-full">
             <div className="grid w-full grid-cols-2">
               <button
-                className={`text-sm font-heebo py-2 ${
+                className={`text-sm font-heebo py-1.5 ${
                   activeTab === "login"
                     ? "bg-white border-b-2 border-purple-600 text-purple-700"
                     : "bg-gray-100 text-gray-600"
@@ -406,7 +404,7 @@ const LoginPage: React.FC = () => {
                 התחברות
               </button>
               <button
-                className={`text-sm font-heebo py-2 ${
+                className={`text-sm font-heebo py-1.5 ${
                   activeTab === "register"
                     ? "bg-white border-b-2 border-purple-600 text-purple-700"
                     : "bg-gray-100 text-gray-600"
@@ -418,9 +416,9 @@ const LoginPage: React.FC = () => {
             </div>
 
             {activeTab === "login" ? (
-              <form onSubmit={handleLogin} className="space-y-3 mt-3">
-                <div className="space-y-1 rtl">
-                  <label htmlFor="email" className="block text-sm font-heebo">
+              <form onSubmit={handleLogin} className="space-y-2 mt-2">
+                <div className="space-y-0.5 rtl">
+                  <label htmlFor="email" className="block text-xs font-heebo">
                     אימייל
                   </label>
                   <input
@@ -428,17 +426,17 @@ const LoginPage: React.FC = () => {
                     type="email"
                     autoComplete="username"
                     placeholder="הכנס אימייל"
-                    className="h-10 text-sm w-full rounded-md border border-gray-300 px-3 py-2"
+                    className="h-9 text-sm w-full rounded-md border border-gray-300 px-3 py-1"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
 
-                <div className="space-y-1 rtl">
+                <div className="space-y-0.5 rtl">
                   <label
                     htmlFor="password"
-                    className="block text-sm font-heebo"
+                    className="block text-xs font-heebo"
                   >
                     סיסמא
                   </label>
@@ -448,7 +446,7 @@ const LoginPage: React.FC = () => {
                       type={showPassword ? "text" : "password"}
                       autoComplete="current-password"
                       placeholder="הכנס סיסמא"
-                      className="h-10 text-sm w-full rounded-md border border-gray-300 px-3 py-2 pr-10"
+                      className="h-9 text-sm w-full rounded-md border border-gray-300 px-3 py-1 pr-10"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -501,7 +499,7 @@ const LoginPage: React.FC = () => {
 
                 <button
                   type="submit"
-                  className="w-full h-10 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-md font-heebo flex items-center justify-center"
+                  className="w-full h-9 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-md font-heebo flex items-center justify-center"
                   disabled={isLoginLoading} // Disable button when loading
                 >
                   {isLoginLoading ? <Spin size="small" className="mr-2" /> : null}
@@ -520,28 +518,28 @@ const LoginPage: React.FC = () => {
                 </p>
               </form>
             ) : (
-              <form onSubmit={handleRegister} className="space-y-3 mt-3">
-                <div className="space-y-1 rtl">
+              <form onSubmit={handleRegister} className="space-y-2 mt-2">
+                <div className="space-y-0.5 rtl">
                   <label
                     htmlFor="username"
-                    className="block text-sm font-heebo"
+                    className="block text-xs font-heebo"
                   >
                     שם התלמיד
                   </label>
                   <input
                     id="username"
                     placeholder="שם התלמיד"
-                    className="h-10 text-sm w-full rounded-md border border-gray-300 px-3 py-2"
+                    className="h-8 text-sm w-full rounded-md border border-gray-300 px-3 py-1"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
                   />
                 </div>
 
-                <div className="space-y-1 rtl">
+                <div className="space-y-0.5 rtl">
                   <label
                     htmlFor="register-email"
-                    className="block text-sm font-heebo"
+                    className="block text-xs font-heebo"
                   >
                     אימייל
                   </label>
@@ -549,17 +547,17 @@ const LoginPage: React.FC = () => {
                     id="register-email"
                     type="email"
                     placeholder="אנא הכנס את האימייל שלך!"
-                    className="h-10 text-sm w-full rounded-md border border-gray-300 px-3 py-2"
+                    className="h-8 text-sm w-full rounded-md border border-gray-300 px-3 py-1"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                   />
                 </div>
 
-                <div className="space-y-1 rtl">
+                <div className="space-y-0.5 rtl">
                   <label
                     htmlFor="register-password"
-                    className="block text-sm font-heebo"
+                    className="block text-xs font-heebo"
                   >
                     סיסמא
                   </label>
@@ -568,7 +566,7 @@ const LoginPage: React.FC = () => {
                       id="register-password"
                       type={showPassword ? "text" : "password"}
                       placeholder="צור סיסמא"
-                      className="h-10 text-sm w-full rounded-md border border-gray-300 px-3 py-2 pr-10"
+                      className="h-8 text-sm w-full rounded-md border border-gray-300 px-3 py-1 pr-10"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
@@ -619,10 +617,10 @@ const LoginPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="space-y-1 rtl">
+                <div className="space-y-0.5 rtl">
                   <label
                     htmlFor="confirm-password"
-                    className="block text-sm font-heebo"
+                    className="block text-xs font-heebo"
                   >
                     אשר סיסמה
                   </label>
@@ -631,7 +629,7 @@ const LoginPage: React.FC = () => {
                       id="confirm-password"
                       type={showConfirmPassword ? "text" : "password"}
                       placeholder="אשר את הסיסמא שלך"
-                      className="h-10 text-sm w-full rounded-md border border-gray-300 px-3 py-2 pr-10"
+                      className="h-8 text-sm w-full rounded-md border border-gray-300 px-3 py-1 pr-10"
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       required
@@ -684,43 +682,9 @@ const LoginPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="space-y-1 rtl">
-                  <label className="block text-sm font-heebo">מין</label>
-                  <div className="flex flex-row-reverse justify-end space-x-4 space-x-reverse">
-                    <div className="flex items-center space-x-2 space-x-reverse mr-2">
-                      <input
-                        type="radio"
-                        id="female"
-                        name="gender"
-                        value="female"
-                        className="h-4 w-4 text-purple-600"
-                        checked={gender === "female"}
-                        onChange={() => setGender("female")}
-                      />
-                      <label htmlFor="female" className="font-heebo">
-                        נקבה
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2 space-x-reverse">
-                      <input
-                        type="radio"
-                        id="male"
-                        name="gender"
-                        value="male"
-                        className="h-4 w-4 text-purple-600"
-                        checked={gender === "male"}
-                        onChange={() => setGender("male")}
-                      />
-                      <label htmlFor="male" className="font-heebo">
-                        זכר
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
                 <button
                   type="submit"
-                  className="w-full h-10 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-md font-heebo flex items-center justify-center"
+                  className="w-full h-8 text-sm bg-purple-600 hover:bg-purple-700 text-white rounded-md font-heebo flex items-center justify-center"
                   disabled={isRegisterLoading} // Disable button when loading
                 >
                   {isRegisterLoading ? <Spin size="small" className="mr-2" /> : null}
@@ -741,19 +705,19 @@ const LoginPage: React.FC = () => {
             )}
           </div>
 
-          <div className="pt-2">
+          <div className="pt-1">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <span className="w-full border-t border-gray-300"></span>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500 font-heebo">
+                <span className="px-2 bg-white text-gray-500 font-heebo text-xs">
                   או
                 </span>
               </div>
             </div>
 
-            <div className="mt-3">
+            <div className="mt-2">
               <div id="google-signin-button" className="w-full flex justify-center">
                 {/* Google Sign-In button will be rendered here by the Google API */}
                 {isGoogleLoading && <Spin size="small" className="mt-2" />}

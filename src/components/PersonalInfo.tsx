@@ -167,7 +167,7 @@ const PersonalInfo: React.FC = () => {
                   <option value="">בחר כיתה</option>
                   {gradeOptions.map((g) => (
                     <option key={g} value={g}>
-                      כיתה {g}
+                      כיתה {g}'
                     </option>
                   ))}
                 </select>
