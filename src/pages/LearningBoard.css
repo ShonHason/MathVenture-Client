@@ -1,3 +1,4 @@
+/* LearningBoard.css */
 :root {
   --fun-bg: #f0f9ff;
   --fun-primary: #ff6b6b;
@@ -5,18 +6,31 @@
   --fun-accent: #ffbe0b;
   --fun-text: #2d3748;
   --fun-border-radius: 20px;
+
+  /* Assuming these are defined elsewhere or will be added */
+  --button-bg: #8e44ad; /* Example value for nav-button */
+  --start-game-btn: #27ae60; /* Example value for start-button */
 }
 
 .fun-container {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  overflow: hidden;
-  height: 100vh;
-  overflow: hidden;
+  /* Instead of justify-content: space-between, let content flow */
+  /* Remove height: 100vh; if you want it to expand beyond viewport height */
+  /* If you want the *entire page* to scroll with this styling, apply it to body/html or a wrapper */
+  min-height: 100vh; /* Ensure it takes at least full viewport height */
 
+  /* Make it scrollable and hide the scrollbar */
+  overflow-y: scroll; /* Allows vertical scrolling */
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
   padding-top: 2cm;
-  margin-top: -2cm;
+  margin-top: -2cm; /* This will make content appear above the viewport if not handled carefully */
+}
+
+/* Hide scrollbar for Webkit browsers (Chrome, Safari, Edge) */
+.fun-container::-webkit-scrollbar {
+  display: none; /* Hide the scrollbar entirely */
 }
 
 .clouds {
@@ -25,7 +39,7 @@
   left: 0;
   right: 0;
   height: 100%;
-  overflow: hidden;
+  overflow: hidden; /* Keep overflow hidden for the clouds themselves */
   z-index: -1;
 }
 
