@@ -12,19 +12,6 @@
 }
 
 :root {
-  --font-base: "Heebo", sans-serif;
-  /* --page-bg: rgb(133, 5, 133); */
-  --page-bg: #281cd8;
-  /* --page-bg: #21c4da; */
-  /* --page-bg: #1e13c0; */
-  /* --page-bg: #106ebe; */
-  --button-bg: #0ffcbf;
-  /* --button-bg: #130ffc; */
-  --text-color: #ffffff;
-  --sidebar-color: #ffffff;
-  --border-color: #ccefff;
-}
-:root {
   --page-bg: #4b0082; /* Indigo */
   --button-bg: #9370db; /* Medium Purple */
   --text-color: #ffffff; /* White */
