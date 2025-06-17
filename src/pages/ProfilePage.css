@@ -1,0 +1,147 @@
+/* ProfilePage.css */
+
+/* Main Container */
+.profile-page-container {
+  width: 100%; /* w-full */
+  max-width: 1024px; /* max-w-screen-lg */
+  margin-left: auto; /* mx-auto */
+  margin-right: auto; /* mx-auto */
+  padding: 1rem; /* p-4 */
+  /* *** IMPORTANT CHANGE: Made the component taller by reducing the subtracted height *** */
+  height: calc(100vh - 80px); /* Previously 120px, now 80px */
+  display: flex;
+  flex-direction: column; /* flex flex-col */
+  position: relative; /* relative */
+  overflow: visible; /* overflow-visible */
+}
+
+/* Tabs Container */
+.profile-tabs-container {
+  position: absolute; /* absolute */
+  top: 40px; /* top-10 (40px) - using px directly for precision */
+  left: 50%; /* left-1/2 */
+  transform: translateX(-50%); /* transform -translate-x-1/2 */
+  display: flex; /* flex */
+  gap: 1rem; /* gap-4 (16px) */
+  z-index: 10; /* z-10 */
+  max-width: 100%; /* Ensure it doesn't overflow parent if buttons are wide */
+  padding: 0 1rem; /* Add some padding to prevent buttons from touching screen edges on small viewports */
+  box-sizing: border-box; /* Include padding in width calculation */
+}
+
+/* Tab Button Base Styles */
+.profile-tab-button {
+  padding: 0.75rem 1.5rem; /* px-6 py-3 */
+  border-radius: 1rem; /* rounded-2xl */
+  font-weight: 700; /* font-bold */
+  font-size: 1rem; /* text-base */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+  transition-property: all; /* transition-all */
+  transition-duration: 300ms; /* duration-300 */
+  cursor: pointer;
+  border-width: 2px; /* border-2 */
+  border-style: solid;
+  /* Default inactive styles */
+  /* background-image: linear-gradient(
+    to right,
+    #e0f2fe,
+    #f3e8ff
+  ); bg-gradient-to-r from-blue-100 to-purple-100 */
+  background-color: var(--button-bg);
+  /* color: #000000; text-purple-800 */
+  border-color: transparent; /* border-transparent */
+  white-space: nowrap; /* Prevent text from wrapping inside the button */
+  flex-shrink: 0; /* Prevent buttons from shrinking if space is tight */
+}
+
+.profile-tab-button:hover {
+  transform: scale(1.05); /* hover:scale-105 */
+  border-color: #ffffff; /* hover:border-purple-300 for details/emails */
+  background-color: var(
+    --button-bg
+  ); /* hover:bg-purple-100 for details/emails */
+}
+
+/* Active Tab Button Styles (Details/Emails) */
+.profile-tab-button.active-purple {
+  /* background-image: linear-gradient(
+    to right,
+    #9333ea,
+    #6366f1
+  ); bg-gradient-to-r from-purple-500 to-indigo-500 */
+  color: white; /* text-white */
+  transform: scale(1.05); /* scale-105 */
+  border-color: #ffffff; /* border-yellow-300 */
+}
+
+/* Active Tab Button Styles (Delete Account) */
+.profile-tab-button.active-red {
+  /* background-image: linear-gradient(
+    to right,
+    #ef4444,
+    #ec4899
+  ); bg-gradient-to-r from-red-500 to-pink-500 */
+  color: white; /* text-white */
+  transform: scale(1.05); /* scale-105 */
+  border-color: #ffffff;
+}
+
+/* Inactive Delete Account Button Hover (specific background and text color) */
+.profile-tab-button.inactive-red:hover {
+  /* background-image: linear-gradient(
+    to right,
+    #fee2e2,
+    #fce7f3
+  ); from-red-100 to-pink-100 */
+
+  border-color: #ffffff; /* hover:border-red-300 */
+  /* color: #ffffff; text-red-800 */
+}
+
+/* Emoji + Text inside button */
+.profile-tab-button span {
+  font-size: 1.25rem; /* text-xl */
+  margin-right: 0.25rem; /* mr-1 */
+  display: inline-block; /* Ensure span respects margin-right */
+  vertical-align: middle; /* Align emoji nicely */
+}
+
+/* Content Area */
+.profile-content-area {
+  flex: 1; /* flex-1 */
+  margin-top: 6rem; /* mt-24 (96px) */
+  padding: 1rem; /* p-4 */
+  overflow: auto; /* overflow: auto allows scrolling when content overflows */
+
+  /* Styles to hide the scrollbar visually while allowing scrolling */
+  scrollbar-width: none; /* For Firefox */
+  -ms-overflow-style: none; /* For Internet Explorer and Edge */
+}
+/* For Webkit browsers (Chrome, Safari, newer Edge) */
+.profile-content-area::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for Webkit */
+  width: 0; /* Also set width to 0 for good measure */
+  height: 0; /* Also set height to 0 for good measure */
+}
+
+/* Delete Account Specific Styles */
+.delete-account-warning {
+  text-align: center; /* text-center */
+}
+.delete-account-warning h2 {
+  color: #dc2626; /* text-red-600 */
+  font-size: 1.25rem; /* text-xl */
+  margin-bottom: 0.5rem; /* mb-2 */
+}
+
+.delete-account-warning p {
+  color: #991b1b; /* text-red-800 */
+  font-size: 0.875rem; /* text-sm */
+  margin-bottom: 1rem; /* mb-4 */
+}
+
+/* General utility class that might be used by child components */
+.text-center {
+  text-align: center;
+}

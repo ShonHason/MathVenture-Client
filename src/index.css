@@ -1,12 +1,54 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 .font-heebo {
-    font-family: 'Heebo', sans-serif;
-  }
-  
-  .rtl {
-    direction: rtl;
-    text-align: right;
-  }
-  
+  font-family: "Heebo", sans-serif;
+}
+
+.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+:root {
+  --font-base: "Heebo", sans-serif;
+  /* --page-bg: rgb(133, 5, 133); */
+  --page-bg: #281cd8;
+  /* --page-bg: #21c4da; */
+  /* --page-bg: #1e13c0; */
+  /* --page-bg: #106ebe; */
+  --button-bg: #0ffcbf;
+  /* --button-bg: #130ffc; */
+  --text-color: #ffffff;
+  --sidebar-color: #ffffff;
+  --border-color: #ccefff;
+}
+:root {
+  --page-bg: #4b0082; /* Indigo */
+  --button-bg: #9370db; /* Medium Purple */
+  --text-color: #ffffff; /* White */
+  --sidebar-color: #6a5acd; /* Slate Blue */
+  --border-color: #dda0dd; /* Plum */
+  --main-bg: linear-gradient(135deg, #667eea 0%, #764ba2 60%);
+  --myprofile-bg1: linear-gradient(to right, #4c1ff1, #a75dfc);
+  --myprofile-bg2: linear-gradient(to left, #4c1ff1, #a75dfc);
+}
+[data-theme="dark"] {
+  --page-bg: #1e1e1e;
+  --button-bg: #4b4848;
+  --text-color: #ffffff;
+  /* --sidebar-color: hsl(0, 1%, 25%); */
+  --sidebar-color: hsl(0, 0%, 48%);
+  --border-color: #333333;
+  --main-bg: linear-gradient(135deg, #1e1e1e 0%, #333333 60%);
+  --myprofile-bg1: linear-gradient(to right, #363131, grey);
+  --myprofile-bg2: linear-gradient(to left, #363131, grey);
+}
+
+body {
+  /* background-color: var(--page-bg); */
+  color: var(--text-color);
+  font-family: var(--font-base);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}

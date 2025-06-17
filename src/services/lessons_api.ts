@@ -1,7 +1,8 @@
 import axios from "axios";
 import { User } from "../context/UserContext";
 import { sampleQuestionsByGrade } from "../components/SampleQuestionsByGrade";
-import { U } from "framer-motion/dist/types.d-CtuPurYT";
+// import { U } from "framer-motion/dist/types.d-CtuPurYT";
+
 const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 
 export const getAllLessonsByUserId = async (
@@ -17,14 +18,11 @@ export const getAllLessonsByUserId = async (
 export const getCurrentSubjectList = async (
   userId: string
 ): Promise<string[]> => {
-  const response = await axios.get(
-    `${baseUrl}/subjects/${userId}`,
-    {
-      headers: {
-        Authorization: "jwt " + localStorage.getItem("accessToken"),
-      },
-    }
-  );
+  const response = await axios.get(`${baseUrl}/subjects/${userId}`, {
+    headers: {
+      Authorization: "jwt " + localStorage.getItem("accessToken"),
+    },
+  });
 
   const topics = response.data.topics;
   localStorage.setItem("subjects", JSON.stringify(topics)); // שמירה ב-localStorage כמחרוזת JSON
@@ -78,7 +76,7 @@ export interface StartLessonResponse {
 export const startLesson = async (
   user: User,
   subject: string,
-  lessonId?: string,
+  lessonId?: string
 ): Promise<StartLessonResponse> => {
   const endpoint = lessonId
     ? `${baseUrl}/lessons/start/${lessonId}`
@@ -89,65 +87,58 @@ export const startLesson = async (
 
   console.log("endpoint: ", endpoint);
   const payload = {
-    userId:   user._id,
-    grade:    user.grade,
-    rank:     user.rank,
+    userId: user._id,
+    grade: user.grade,
+    rank: user.rank,
     username: user.username,
     subject,
     sampleQuestions,
   };
   console.log("sampleQustions: ", sampleQuestions);
-  const response = await axios.post(
-    endpoint,
-    payload,
-    {
-      headers: {
-        Authorization: `jwt ${user.accessToken}`,
-      },
-    }
-  );
+  const response = await axios.post(endpoint, payload, {
+    headers: {
+      Authorization: `jwt ${user.accessToken}`,
+    },
+  });
   console.log("lessonid: ", lessonId);
   return response.data as StartLessonResponse;
 };
 
-
-//const getDynamicQuestion 
+//const getDynamicQuestion
 //should send grade + rank + subject
 
-
-const deleteLesson = async (lessonId:string ) => {
-const response = await axios.delete(`${baseUrl}/deleteLesson/${lessonId}`, {
-  headers: {
-    Authorization: "jwt " + localStorage.getItem("accessToken"),
-  },
-});
-return response.data;
-
-}
+const deleteLesson = async (lessonId: string) => {
+  const response = await axios.delete(`${baseUrl}/deleteLesson/${lessonId}`, {
+    headers: {
+      Authorization: "jwt " + localStorage.getItem("accessToken"),
+    },
+  });
+  return response.data;
+};
 export async function checkOpenLesson(userId: string, subject: string) {
-  console.log("Send Req to :" , `${baseUrl}/lessons/check-open-lesson`);
+  console.log("Send Req to :", `${baseUrl}/lessons/check-open-lesson`);
   const response = await axios.post(`${baseUrl}/lessons/check-open-lesson`, {
     userId,
     subject,
   });
   return response.data;
 }
-export async function finishLessonFunction(lessonId: string, user: User , subject: string) {
-  console.log("Send Req to :" , `${baseUrl}/lessons/analyze-lesson`);
+export async function finishLessonFunction(
+  lessonId: string,
+  user: User,
+  subject: string
+) {
+  console.log("Send Req to :", `${baseUrl}/lessons/analyze-lesson`);
   const subjectText = "סיכום שיעור בנושא " + subject + " לכיתה " + user?.grade;
   const body = {
-    lessonId : lessonId,
-    user: user, 
-    subject : subjectText,
-  }
-  const response = await axios.post(
-    `${baseUrl}/lessons/analyze-lesson`,
-     body ,
-    {
-      headers: {
-        Authorization: "jwt " + localStorage.getItem("accessToken"),
-      },
-    }
-  );
+    lessonId: lessonId,
+    user: user,
+    subject: subjectText,
+  };
+  const response = await axios.post(`${baseUrl}/lessons/analyze-lesson`, body, {
+    headers: {
+      Authorization: "jwt " + localStorage.getItem("accessToken"),
+    },
+  });
   return response.data;
 }

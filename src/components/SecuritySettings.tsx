@@ -11,21 +11,21 @@ const SecuritySettings = () => {
         <span>{user?.email || "לא ידוע"}</span>
         <p>:אימייל</p>
       </div>
-      <div className="security-setting">
+      <span className="security-setting">
         <button>
           <span>שינוי סיסמא</span>
         </button>
         <p>:סיסמה</p>
-      </div>
-      <div className="security-setting">
+      </span>
+      <span className="security-setting">
         <span>{user?.parent_phone || "לא ידוע"}</span>
         <p>:מספר טלפון</p>
-      </div>
-      <div className="security-setting">
+      </span>
+      <span className="security-setting">
         <span>{user?.opportunities || "לא ידוע"}</span>
         <p>:מספר הזדמנויות</p>
-      </div>
-      <div className="security-setting security-setting-auth">
+      </span>
+      <span className="security-setting security-setting-auth">
         <label className="toggle-container">
           <input
             type="checkbox"
@@ -34,7 +34,7 @@ const SecuritySettings = () => {
           />
         </label>
         <p>:אימות דו שלבי</p>
-      </div>
+      </span>
       <div className="security-setting">
         <button className="security-setting-codes">Generate new codes</button>
       </div>

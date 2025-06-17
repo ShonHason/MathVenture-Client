@@ -1,0 +1,170 @@
+/* DeleteAccount.css */
+
+/* Main Container */
+.delete-account-container {
+  max-width: 42rem; /* max-w-2xl (42rem = 672px) */
+  margin-left: auto; /* mx-auto */
+  margin-right: auto; /* mx-auto */
+  padding: 1rem; /* p-4 */
+  /* background-color: #d8b4fe; bg-purple-300 */
+  background: var(--myprofile-bg1);
+
+  border-radius: 0.5rem; /* rounded-lg */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+  margin-top: 1rem; /* my-4 (top and bottom) */
+  margin-bottom: 1rem; /* my-4 */
+  /* border: 2px solid #c084fc; border-2 border-purple-400 */
+  direction: rtl; /* rtl */
+}
+
+/* Warning Header Section */
+.delete-account-header {
+  text-align: center; /* text-center */
+  margin-bottom: 0.75rem; /* mb-3 */
+  background-color: #ffffff; /* bg-yellow-50 */
+  padding: 0.75rem; /* p-3 */
+  border-radius: 0.5rem; /* rounded-lg */
+}
+
+.delete-account-header .warning-icon {
+  font-size: 1.875rem; /* text-3xl */
+  margin-bottom: 0.25rem; /* mb-1 */
+}
+
+.delete-account-header h1 {
+  font-size: 1.25rem; /* text-xl */
+  font-weight: 700; /* font-bold */
+  color: #2d3748; /* text-gray-800 */
+}
+
+.delete-account-header p {
+  color: #ef4444; /* text-red-500 */
+  font-weight: 600; /* font-semibold */
+  font-size: 0.875rem; /* text-sm */
+}
+
+/* Input Section */
+.delete-account-input-section {
+  margin-bottom: 0.5rem; /* mb-2 */
+}
+
+.delete-account-input-section label {
+  display: block; /* block */
+  font-size: 1rem; /* text-base */
+  font-weight: 500; /* font-medium */
+  color: #ffffff; /* text-gray-700 */
+  margin-bottom: 0.25rem; /* mb-1 */
+}
+
+.delete-account-input-section input {
+  width: 100%; /* w-full */
+  padding: 0.5rem; /* p-2 */
+  border: 1px solid #cbd5e0; /* border border-gray-300 */
+  border-radius: 0.5rem; /* rounded-lg */
+  outline: none; /* remove default outline */
+  transition-property: all; /* transition for focus */
+  transition-duration: 200ms; /* duration-200 */
+  transition-timing-function: ease-in-out; /* ease-in-out */
+}
+
+.delete-account-input-section input:focus {
+  border-color: #3b82f6; /* focus:border-blue-500 */
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* focus:ring-2 focus:ring-blue-500 */
+}
+
+/* Warning Box */
+.delete-account-warning-box {
+  background-color: #ffffff; /* bg-orange-50 */
+  padding: 0.75rem; /* p-3 */
+  border-radius: 0.5rem; /* rounded-lg */
+}
+
+.delete-account-warning-box h3 {
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 700; /* font-bold */
+  color: #c2410c; /* text-orange-700 */
+  margin-bottom: 0.5rem; /* mb-2 */
+  display: flex;
+  align-items: center; /* items-center */
+}
+
+.delete-account-warning-box p {
+  color: #4a5568; /* text-gray-700 */
+  margin-bottom: 0.5rem; /* mb-2 */
+  font-size: 0.875rem; /* text-sm */
+}
+
+.delete-account-warning-box ul {
+  list-style: none; /* remove default list style */
+  padding: 0;
+  margin: 0;
+  line-height: 1.5; /* for better readability */
+}
+
+.delete-account-warning-box li {
+  display: flex;
+  align-items: center; /* items-center */
+  color: #4a5568; /* text-gray-700 */
+  font-size: 0.875rem; /* text-sm */
+  margin-bottom: 0.25rem; /* space-y-1 equivalent */
+}
+
+.delete-account-warning-box li:last-child {
+  margin-bottom: 0;
+}
+
+.delete-account-warning-box li span {
+  margin-left: 0.5rem; /* ml-2 */
+}
+
+/* Button Section */
+.delete-account-buttons {
+  display: flex;
+  flex-direction: column; /* flex-col */
+  row-gap: 0.5rem; /* space-y-2 */
+  margin-top: 0.75rem; /* mb-3 equivalent in original code for space-y */
+}
+
+/* Delete Button */
+.delete-button {
+  width: 100%; /* w-full */
+  padding: 0.5rem 1rem; /* py-2 px-4 */
+  background-color: var(--button-bg); /* bg-red-500 */
+  color: white; /* text-white */
+  font-weight: 700; /* font-bold */
+  border-radius: 0.5rem; /* rounded-lg */
+  transition-property: background-color; /* transition-colors */
+  transition-duration: 200ms; /* duration-200 */
+  display: flex;
+  align-items: center; /* items-center */
+  justify-content: center; /* justify-center */
+  cursor: pointer;
+  border: none; /* Remove default button border */
+}
+
+.delete-button:hover {
+  background-color: var(--page-bg); /* hover:bg-red-600 */
+}
+
+.delete-button .icon {
+  margin-right: 0.5rem; /* mr-2 */
+}
+
+/* Back Button */
+.back-button {
+  color: #ffffff; /* text-blue-600 */
+  font-weight: 500; /* font-medium */
+  padding: 0.25rem 0; /* py-1 */
+  background: none; /* remove default background */
+  border: none; /* remove default border */
+  cursor: pointer;
+  width: 100%; /* w-full */
+  text-align: center; /* center the text */
+  transition-property: color; /* transition */
+  transition-duration: 200ms; /* duration-200 */
+}
+
+.back-button:hover {
+  color: #000000; /* hover:text-blue-800 */
+}
