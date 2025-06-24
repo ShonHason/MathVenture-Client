@@ -1,7 +1,7 @@
 // "use client";
 
 // import type React from "react";
-// import { useEffect, useState } from "react";
+// import { useEffect, useState, useRef, useMemo } from "react";
 // import axios from "axios";
 // import { useNavigate } from "react-router-dom";
 // import { useUser } from "../context/UserContext";
@@ -18,7 +18,10 @@
 //   ChevronLeft,
 // } from "lucide-react";
 
-// // The LoaderVideo import from your original code
+// // Import the CSS file
+// import "./MyLessons.css";
+
+// // The LoaderVideo import from your original code (assuming it's still needed, though not directly used in the provided JSX)
 // const LoaderVideo = process.env.PUBLIC_URL + "/Loader.mp4";
 
 // interface Lesson {
@@ -29,25 +32,35 @@
 //   progress: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
 // }
 
+// // Keep these mappings
 // const statusLabels: Record<Lesson["progress"], string> = {
 //   NOT_STARTED: "התחל",
 //   IN_PROGRESS: "המשך",
 //   COMPLETED: "הושלם",
 // };
 
-// const statusIcons: Record<string, React.ReactNode> = {
-//   NOT_STARTED: <PlayCircle className="w-5 h-5" />,
-//   IN_PROGRESS: <BookOpen className="w-5 h-5" />,
-//   COMPLETED: <CheckCircle className="w-5 h-5" />,
-// };
+// // These are directly used in JSX now, not as part of an object map
+// // const statusIcons: Record<string, React.ReactNode> = {
+// //   NOT_STARTED: <PlayCircle className="w-5 h-5" />,
+// //   IN_PROGRESS: <BookOpen className="w-5 h-5" />,
+// //   COMPLETED: <CheckCircle className="w-5 h-5" />,
+// // }
 
-// const statusColors: Record<string, string> = {
+// // Map progress to custom CSS classes for backgrounds
+// const statusHeaderColors: Record<Lesson["progress"], string> = {
 //   NOT_STARTED: "status-not-started",
 //   IN_PROGRESS: "status-in-progress",
 //   COMPLETED: "status-completed",
 // };
 
-// // Simple Badge component to replace the missing import
+// // Map progress to custom CSS classes for button colors
+// const statusButtonColors: Record<Lesson["progress"], string> = {
+//   NOT_STARTED: "bg-blue-500-hover-600",
+//   IN_PROGRESS: "bg-yellow-500-hover-600",
+//   COMPLETED: "bg-green-500-hover-600",
+// };
+
+// // Simple Badge component
 // const Badge = ({
 //   children,
 //   className = "",
@@ -55,13 +68,7 @@
 //   children: React.ReactNode;
 //   className?: string;
 // }) => {
-//   return (
-//     <span
-//       className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium ${className}`}
-//     >
-//       {children}
-//     </span>
-//   );
+//   return <span className={`badge ${className}`}>{children}</span>;
 // };
 
 // // Simple Card component
@@ -72,13 +79,7 @@
 //   children: React.ReactNode;
 //   className?: string;
 // }) => {
-//   return (
-//     <div
-//       className={`bg-white rounded-xl shadow-lg overflow-hidden ${className}`}
-//     >
-//       {children}
-//     </div>
-//   );
+//   return <div className={`lesson-card ${className}`}>{children}</div>;
 // };
 
 // // Simple Button component
@@ -95,17 +96,31 @@
 //   onClick?: () => void;
 //   variant?: "default" | "outline";
 // }) => {
-//   const baseClass =
-//     variant === "outline"
-//       ? "border-2 bg-transparent rounded-full px-4 py-2 flex items-center justify-center transition-colors duration-200"
-//       : "text-white rounded-full px-4 py-2 flex items-center justify-center transition-colors duration-200";
+// <<<<<<< HEAD
+//   let buttonClasses = `custom-button`;
+//   if (variant === "outline") {
+//     buttonClasses += ` variant-outline`;
+//   } else {
+//     buttonClasses += ` variant-default`;
+//   }
+//   if (disabled) {
+//     buttonClasses += ` disabled`;
+//   }
 
 //   return (
 //     <button
-//       className={`${baseClass} ${className} ${
-//         disabled ? "opacity-50 cursor-not-allowed" : ""
-//       }`}
+//       className={`${buttonClasses} ${className}`}
 //       disabled={disabled}
+// =======
+//   const baseClass = variant === "outline"
+//     ? "border-2 bg-transparent rounded-full px-4 py-2.5 flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-md"
+//     : "text-white rounded-full px-4 py-2.5 flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-md transform hover:-translate-y-0.5";
+
+//   return (
+//     <button
+//       className={`${baseClass} ${className} ${disabled ? "opacity-60 cursor-not-allowed transform-none hover:shadow-sm" : ""}`}
+//       disabled={disabled}
+// >>>>>>> dc7d70a4c9c7ace0e52a756ba3cb151ab3aebebb
 //       onClick={onClick}
 //     >
 //       {children}
@@ -116,8 +131,7 @@
 // // Improved confetti function with more kid-friendly animation
 // const triggerConfetti = () => {
 //   const confettiContainer = document.createElement("div");
-//   confettiContainer.className =
-//     "fixed inset-0 z-50 pointer-events-none overflow-hidden";
+//   confettiContainer.className = "confetti-container";
 //   document.body.appendChild(confettiContainer);
 
 //   // Create more shapes for a more playful effect
@@ -125,7 +139,7 @@
 
 //   for (let i = 0; i < 100; i++) {
 //     const confetti = document.createElement("div");
-//     confetti.className = "absolute animate-fall";
+//     confetti.className = "confetti-piece"; // Apply base animation class
 
 //     const shape = shapes[Math.floor(Math.random() * shapes.length)];
 //     const size = Math.random() * 15 + 8;
@@ -134,7 +148,7 @@
 //     confetti.style.width = size + "px";
 //     confetti.style.height = size + "px";
 //     confetti.style.animationDuration = Math.random() * 3 + 2 + "s";
-//     confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+//     confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`; // Dynamic color
 
 //     if (shape === "circle") {
 //       confetti.style.borderRadius = "50%";
@@ -192,7 +206,6 @@
 //         setLoading(false);
 
 //         // Set up animation timing for each card
-//         const newAnimatedItems = new Set<string>();
 //         resp.data.forEach((lesson, index) => {
 //           setTimeout(() => {
 //             setAnimatedItems((prev) => {
@@ -292,28 +305,24 @@
 
 //   if (loading) {
 //     return (
-//       <div className="flex items-center justify-center min-h-screen ">
-//         <div className="text-center">
-//           <div className="relative inline-block">
-//             <Loader2 className="w-16 h-16 text-purple-600 animate-spin" />
-//             <div className="absolute top-0 right-0">
-//               <Star className="w-6 h-6 text-yellow-400 animate-bounce" />
-//             </div>
+//       <div className="loading-state-container">
+//         <div className="loading-state-spinner-wrapper">
+//           <Loader2 className="loading-state-spinner animate-spin-custom" />
+//           <div className="loading-state-star-overlay">
+//             <Star className="animate-bounce-custom" />
 //           </div>
-//           <p className="mt-4 text-xl font-medium text-purple-700">
-//             טוען שיעורים...
-//           </p>
 //         </div>
+//         <p className="loading-state-text">טוען שיעורים...</p>
 //       </div>
 //     );
 //   }
 
 //   if (error) {
 //     return (
-//       <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-50 to-purple-50">
-//         <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md text-center">
-//           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-//           <p className="text-xl font-medium text-red-700">{error}</p>
+//       <div className="error-state-container">
+//         <div className="error-state-box">
+//           <AlertCircle />
+//           <p>{error}</p>
 //         </div>
 //       </div>
 //     );
@@ -321,24 +330,17 @@
 
 //   if (lessons.length === 0) {
 //     return (
-//       <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-50 to-purple-50">
-//         <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md text-center">
-//           <div className="relative inline-block bg-blue-100 p-6 rounded-full mb-4">
-//             <BookOpen className="w-16 h-16 text-blue-600" />
-//             <div className="absolute top-0 right-0">
-//               <Star className="w-6 h-6 text-yellow-400 animate-bounce" />
+//       <div className="no-lessons-state-container">
+//         <div className="no-lessons-state-box">
+//           <div className="no-lessons-state-icon-wrapper">
+//             <BookOpen />
+//             <div className="star-overlay">
+//               <Star className="animate-bounce-custom" />
 //             </div>
 //           </div>
-//           <p className="text-2xl font-bold text-gray-800 mb-2">
-//             אין שיעורים פעילים כרגע
-//           </p>
-//           <p className="text-lg text-gray-600 mb-6">
-//             כשיהיו לך שיעורים חדשים, הם יופיעו כאן
-//           </p>
-//           <button
-//             className="bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-full px-6 py-3"
-//             onClick={() => navigate("/home/LearningBoard")}
-//           >
+//           <h2>אין שיעורים פעילים כרגע</h2>
+//           <p>כשיהיו לך שיעורים חדשים, הם יופיעו כאן</p>
+//           <button onClick={() => navigate("/home/LearningBoard")}>
 //             חזרה לדף הבית
 //           </button>
 //         </div>
@@ -347,114 +349,164 @@
 //   }
 
 //   return (
-//     <div className="min-h-screen py-8 px-4" dir="rtl">
-//       <div className="max-w-7xl mx-auto">
-//         <div className="text-center mb-10">
+//     <div className="my-lessons-container">
+//       <div className="my-lessons-wrapper">
+//         <div className="my-lessons-header">
 //           <div className="inline-block">
-//             <h2 className="text-3xl font-bold text-purple-800 inline-flex items-center">
+//             <h2>
 //               השיעורים שלי
-//               <span className="ml-2">
-//                 <Star className="w-8 h-8 text-yellow-400 animate-pulse" />
+//               <span className="star-icon-title">
+//                 <Star className="animate-pulse-custom" />
 //               </span>
 //             </h2>
-//             <div className="h-2 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full mt-2"></div>
+//             <div className="underline-div"></div>
 //           </div>
 //         </div>
 
-//         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+//         <div className="lessons-grid">
 //           {currentLessons.map((lesson) => (
 //             <Card
 //               key={lesson._id}
-//               className={`transform transition-all duration-500 hover:scale-105 ${
-//                 animatedItems.has(lesson._id)
-//                   ? "translate-y-0 opacity-100"
-//                   : "translate-y-8 opacity-0"
-//               }`}
+//               className={`${animatedItems.has(lesson._id) ? "animated" : ""}`}
 //             >
+// <<<<<<< HEAD
 //               <div
-//                 className={`p-4 relative ${
-//                   lesson.progress === "COMPLETED"
-//                     ? "bg-gradient-to-r from-green-400 to-green-500"
-//                     : lesson.progress === "IN_PROGRESS"
-//                     ? "bg-gradient-to-r from-yellow-300 to-yellow-400"
-//                     : "bg-gradient-to-r from-blue-400 to-blue-500"
+//                 className={`lesson-card-header ${
+//                   statusHeaderColors[lesson.progress]
 //                 }`}
 //               >
 //                 {lesson.progress === "COMPLETED" && (
-//                   <div className="absolute top-2 right-2 bg-yellow-300 rounded-full p-1">
-//                     <Star className="w-5 h-5 text-yellow-600" />
+//                   <div className="completed-star-icon">
+//                     <Star />
 //                   </div>
 //                 )}
-//                 <h3 className="text-xl font-bold text-white">
-//                   {lesson.subject}
-//                 </h3>
-//                 <div className="flex flex-wrap gap-2 mt-2">
-//                   <Badge className="bg-white/20 text-white">
+//                 <h3>{lesson.subject}</h3>
+//                 <div className="lesson-card-badges">
+//                   <Badge className="white-alpha-20">
 //                     {formatDate(lesson.startTime)}
 //                   </Badge>
+//                   <Badge className="white-alpha-30">
+// =======
+//               <div className={`p-4 relative ${
+//                 lesson.progress === "COMPLETED"
+//                   ? "bg-gradient-to-r from-green-400 to-green-500"
+//                   : lesson.progress === "IN_PROGRESS"
+//                     ? "bg-gradient-to-r from-yellow-300 to-yellow-400"
+//                     : "bg-gradient-to-r from-blue-400 to-blue-500"
+//               }`}>
+//                 <div className="flex items-center justify-between">
+//                   <h3 className="text-xl font-bold text-white">{lesson.subject}</h3>
+//                   <div className="w-9 h-9 flex items-center justify-center">
+//                     {lesson.progress === "COMPLETED" && (
+//                       <CheckCircle className="w-9 h-9 text-white" />
+//                     )}
+//                   </div>
+//                 </div>
+//                 <div className="flex flex-wrap gap-2 mt-2">
+//                   <Badge className="bg-white/20 text-white">{formatDate(lesson.startTime)}</Badge>
 //                   <Badge className="bg-white/30 text-white">
+// >>>>>>> dc7d70a4c9c7ace0e52a756ba3cb151ab3aebebb
 //                     {statusLabels[lesson.progress]}
 //                   </Badge>
 //                 </div>
 //               </div>
 
-//               <div className="p-4">
-//                 <div
-//                   className="text-xs text-gray-500 mb-4 truncate"
-//                   title={lesson._id}
-//                 >
+// <<<<<<< HEAD
+//               <div className="lesson-card-body">
+//                 <div className="lesson-id" title={lesson._id}>
 //                   מזהה: {lesson._id}
 //                 </div>
 
-//                 <div className="space-y-4">
+//                 <div className="lesson-card-buttons-section">
 //                   <Button
-//                     className={`w-full ${
-//                       lesson.progress === "NOT_STARTED"
-//                         ? "bg-blue-500 hover:bg-blue-600"
-//                         : lesson.progress === "IN_PROGRESS"
-//                         ? "bg-yellow-500 hover:bg-yellow-600"
-//                         : "bg-green-500 hover:bg-green-600"
-//                     }`}
+//                     className={`w-full ${statusButtonColors[lesson.progress]}`}
 //                     disabled={lesson.progress === "COMPLETED"}
 //                     onClick={() => handleStatusClick(lesson)}
 //                   >
 //                     <span
-//                       className={`w-5 h-5 mr-2 ${
+//                       className={`button-icon-large ${
 //                         lesson.progress === "COMPLETED"
 //                           ? "text-green-200"
 //                           : "text-white"
 //                       }`}
 //                     >
 //                       {lesson.progress === "NOT_STARTED" ? (
-//                         <PlayCircle className="w-5 h-5" />
+//                         <PlayCircle />
 //                       ) : lesson.progress === "IN_PROGRESS" ? (
-//                         <BookOpen className="w-5 h-5" />
+//                         <BookOpen />
 //                       ) : (
-//                         <CheckCircle className="w-5 h-5" />
+//                         <CheckCircle />
 //                       )}
 //                     </span>
 //                     {statusLabels[lesson.progress]}
 //                   </Button>
 
-//                   <div className="grid grid-cols-2 gap-3">
+//                   <div className="lesson-card-sub-buttons-grid">
 //                     <Button
 //                       variant="outline"
-//                       className="border-blue-500 text-blue-600 hover:bg-blue-50"
+//                       className="border-blue-500-text-blue-600-hover-bg-blue-50"
 //                       onClick={() => handleReport(lesson)}
 //                     >
-//                       <FileText className="w-4 h-4 mr-2" />
+//                       <FileText className="button-icon-small" />
 //                       הפק דו"ח
 //                     </Button>
 
 //                     <Button
 //                       variant="outline"
-//                       className="border-red-500 text-red-600 hover:bg-red-50"
+//                       className="border-red-500-text-red-600-hover-bg-red-50"
 //                       onClick={() => handleDelete(lesson._id)}
 //                     >
-//                       <Trash2 className="w-4 h-4 mr-2" />
+//                       <Trash2 className="button-icon-small" />
 //                       מחק
 //                     </Button>
 //                   </div>
+// =======
+//               <div className="p-4">
+//                 <div className="text-xs text-gray-500 mb-4 truncate" title={lesson._id}>
+
+//                 </div>
+
+//                 <div className="space-y-4">
+//                   {/* Primary action button - shows Start/Continue or Report based on progress */}
+//                   {lesson.progress !== "COMPLETED" ? (
+//                     <Button
+//                       className={`w-full font-medium text-white ${
+//                         lesson.progress === "NOT_STARTED"
+//                           ? "bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+//                           : "bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600"
+//                       }`}
+//                       onClick={() => handleStatusClick(lesson)}
+//                     >
+//                       <span className="w-5 h-5 mr-2 text-white">
+//                         {lesson.progress === "NOT_STARTED"
+//                           ? <PlayCircle className="w-5 h-5" />
+//                           : <BookOpen className="w-5 h-5" />
+//                         }
+//                       </span>
+//                       {statusLabels[lesson.progress]}
+//                     </Button>
+//                   ) : (
+//                     <Button
+//                       className="w-full text-white bg-gradient-to-r from-blue-400 to-blue-500 opacity-40 cursor-not-allowed"
+//                       disabled={true}
+//                     >
+//                       <span className="w-5 h-5 mr-2 text-white">
+//                         <FileText className="w-5 h-5" />
+//                       </span>
+//                       <span className="text-xs">סיכום שיעור נשלח למייל</span>
+//                     </Button>
+//                   )}
+
+//                   {/* Delete button - always shows */}
+//                   <Button
+//                     variant="outline"
+//                     className="w-full border-red-400 text-red-500 hover:bg-red-50 rounded-full px-7 py-3 flex items-center justify-center gap-3 transition-all duration-200 hover:border-red-500"
+//                     onClick={() => handleDelete(lesson._id)}
+//                   >
+//                     <Trash2 className="w-6 h-6" />
+//                     <span className="font-medium text-base">מחק</span>
+//                   </Button>
+// >>>>>>> dc7d70a4c9c7ace0e52a756ba3cb151ab3aebebb
 //                 </div>
 //               </div>
 //             </Card>
@@ -463,60 +515,48 @@
 
 //         {/* Pagination */}
 //         {totalPages > 1 && (
+// <<<<<<< HEAD
+//           <div className="pagination-container">
+//             <button
+//               onClick={() => paginate(currentPage - 1)}
+//               disabled={currentPage === 1}
+//               className="pagination-button"
+// =======
 //           <div className="flex justify-center items-center mt-8 space-x-4 space-x-reverse">
 //             <button
 //               onClick={() => paginate(currentPage - 1)}
 //               disabled={currentPage === 1}
-//               className="p-2 rounded-full bg-white shadow-md disabled:opacity-50 transition-colors hover:bg-gray-100"
+//               className="p-2.5 rounded-full bg-white shadow-md disabled:opacity-50 transition-all duration-300 hover:bg-purple-50 hover:shadow-lg transform hover:-translate-y-0.5 disabled:transform-none disabled:hover:shadow-md"
+// >>>>>>> dc7d70a4c9c7ace0e52a756ba3cb151ab3aebebb
 //             >
-//               <ChevronRight className="w-6 h-6 text-purple-700" />
+//               <ChevronRight />
 //             </button>
 
-//             <div className="bg-white px-4 py-2 rounded-full shadow-md text-purple-800 font-medium">
+// <<<<<<< HEAD
+//             <div className="pagination-info">
 //               עמוד {currentPage} מתוך {totalPages}
 //             </div>
 
 //             <button
 //               onClick={() => paginate(currentPage + 1)}
 //               disabled={currentPage === totalPages}
-//               className="p-2 rounded-full bg-white shadow-md disabled:opacity-50 transition-colors hover:bg-gray-100"
+//               className="pagination-button"
+// =======
+//             <div className="bg-white px-5 py-2.5 rounded-full shadow-md text-purple-800 font-medium">
+//               עמוד {currentPage} מתוך {totalPages}
+//             </div>
+
+//             <button
+//               onClick={() => paginate(currentPage + 1)}
+//               disabled={currentPage === totalPages}
+//               className="p-2.5 rounded-full bg-white shadow-md disabled:opacity-50 transition-all duration-300 hover:bg-purple-50 hover:shadow-lg transform hover:-translate-y-0.5 disabled:transform-none disabled:hover:shadow-md"
+// >>>>>>> dc7d70a4c9c7ace0e52a756ba3cb151ab3aebebb
 //             >
-//               <ChevronLeft className="w-6 h-6 text-purple-700" />
+//               <ChevronLeft />
 //             </button>
 //           </div>
 //         )}
 //       </div>
-
-//       <style>{`
-//         @keyframes fall {
-//           0% {
-//             transform: translateY(-10vh) rotate(0deg);
-//             opacity: 1;
-//           }
-//           85% {
-//             opacity: 1;
-//           }
-//           100% {
-//             transform: translateY(100vh) rotate(360deg);
-//             opacity: 0;
-//           }
-//         }
-//         .animate-fall {
-//           animation: fall 4s ease-in-out forwards;
-//         }
-
-//         /* Add some simple animations for Tailwind to use */
-//         @keyframes bounce-slow {
-//           0%, 100% {
-//             transform: translateY(-25%);
-//             animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
-//           }
-//           50% {
-//             transform: translateY(0);
-//             animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
-//           }
-//         }
-//       `}</style>
 //     </div>
 //   );
 // };
@@ -545,8 +585,7 @@ import {
 // Import the CSS file
 import "./MyLessons.css";
 
-// The LoaderVideo import from your original code (assuming it's still needed, though not directly used in the provided JSX)
-const LoaderVideo = process.env.PUBLIC_URL + "/Loader.mp4";
+const LoaderVideo = process.env.PUBLIC_URL + "/Loader.mp4"; // Assuming this path is correct
 
 interface Lesson {
   _id: string;
@@ -556,35 +595,27 @@ interface Lesson {
   progress: "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED";
 }
 
-// Keep these mappings
 const statusLabels: Record<Lesson["progress"], string> = {
   NOT_STARTED: "התחל",
   IN_PROGRESS: "המשך",
   COMPLETED: "הושלם",
 };
 
-// These are directly used in JSX now, not as part of an object map
-// const statusIcons: Record<string, React.ReactNode> = {
-//   NOT_STARTED: <PlayCircle className="w-5 h-5" />,
-//   IN_PROGRESS: <BookOpen className="w-5 h-5" />,
-//   COMPLETED: <CheckCircle className="w-5 h-5" />,
-// }
-
-// Map progress to custom CSS classes for backgrounds
+// Map progress to custom CSS classes for backgrounds (assuming these are defined in MyLessons.css)
 const statusHeaderColors: Record<Lesson["progress"], string> = {
-  NOT_STARTED: "status-not-started",
-  IN_PROGRESS: "status-in-progress",
-  COMPLETED: "status-completed",
+  NOT_STARTED: "status-not-started-header", // New specific class for header
+  IN_PROGRESS: "status-in-progress-header", // New specific class for header
+  COMPLETED: "status-completed-header", // New specific class for header
 };
 
-// Map progress to custom CSS classes for button colors
+// Map progress to custom CSS classes for button colors (assuming these are defined in MyLessons.css)
 const statusButtonColors: Record<Lesson["progress"], string> = {
-  NOT_STARTED: "bg-blue-500-hover-600",
-  IN_PROGRESS: "bg-yellow-500-hover-600",
-  COMPLETED: "bg-green-500-hover-600",
+  NOT_STARTED: "button-bg-blue",
+  IN_PROGRESS: "button-bg-yellow",
+  COMPLETED: "button-bg-green",
 };
 
-// Simple Badge component
+// Simple Badge component - adjusted classes to use your custom ones while incorporating Tailwind effects
 const Badge = ({
   children,
   className = "",
@@ -595,7 +626,7 @@ const Badge = ({
   return <span className={`badge ${className}`}>{children}</span>;
 };
 
-// Simple Card component
+// Simple Card component - adjusted classes
 const Card = ({
   children,
   className = "",
@@ -606,7 +637,7 @@ const Card = ({
   return <div className={`lesson-card ${className}`}>{children}</div>;
 };
 
-// Simple Button component
+// Simple Button component - Merged logic
 const Button = ({
   children,
   className = "",
@@ -620,12 +651,17 @@ const Button = ({
   onClick?: () => void;
   variant?: "default" | "outline";
 }) => {
+  // Your base styling
   let buttonClasses = `custom-button`;
+
+  // Apply variant styles
   if (variant === "outline") {
     buttonClasses += ` variant-outline`;
   } else {
     buttonClasses += ` variant-default`;
   }
+
+  // Apply disabled state
   if (disabled) {
     buttonClasses += ` disabled`;
   }
@@ -647,12 +683,11 @@ const triggerConfetti = () => {
   confettiContainer.className = "confetti-container";
   document.body.appendChild(confettiContainer);
 
-  // Create more shapes for a more playful effect
   const shapes = ["circle", "square", "triangle"];
 
   for (let i = 0; i < 100; i++) {
     const confetti = document.createElement("div");
-    confetti.className = "confetti-piece"; // Apply base animation class
+    confetti.className = "confetti-piece";
 
     const shape = shapes[Math.floor(Math.random() * shapes.length)];
     const size = Math.random() * 15 + 8;
@@ -661,7 +696,7 @@ const triggerConfetti = () => {
     confetti.style.width = size + "px";
     confetti.style.height = size + "px";
     confetti.style.animationDuration = Math.random() * 3 + 2 + "s";
-    confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`; // Dynamic color
+    confetti.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
 
     if (shape === "circle") {
       confetti.style.borderRadius = "50%";
@@ -691,7 +726,6 @@ export const MyLessons: React.FC = () => {
   const [animatedItems, setAnimatedItems] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [lessonsPerPage] = useState(6);
   const [totalPages, setTotalPages] = useState(1);
@@ -718,7 +752,6 @@ export const MyLessons: React.FC = () => {
         setTotalPages(Math.ceil(resp.data.length / lessonsPerPage));
         setLoading(false);
 
-        // Set up animation timing for each card
         resp.data.forEach((lesson, index) => {
           setTimeout(() => {
             setAnimatedItems((prev) => {
@@ -726,7 +759,7 @@ export const MyLessons: React.FC = () => {
               updated.add(lesson._id);
               return updated;
             });
-          }, index * 150); // Stagger the animations
+          }, index * 150);
         });
       })
       .catch((err) => {
@@ -755,7 +788,6 @@ export const MyLessons: React.FC = () => {
         },
       });
     } else {
-      // Trigger confetti for completed lessons when clicked
       triggerConfetti();
     }
   };
@@ -783,14 +815,12 @@ export const MyLessons: React.FC = () => {
     try {
       await axios.delete(`${baseUrl}/lessons/${lessonId}`);
 
-      // Animate the card out before removing it
       setAnimatedItems((prev) => {
         const updated = new Set(prev);
         updated.delete(lessonId);
         return updated;
       });
 
-      // Remove after animation completes
       setTimeout(() => {
         setLessons((prevLessons) => {
           const updatedLessons = prevLessons.filter(
@@ -808,12 +838,10 @@ export const MyLessons: React.FC = () => {
     }
   };
 
-  // Get current lessons for pagination
   const indexOfLastLesson = currentPage * lessonsPerPage;
   const indexOfFirstLesson = indexOfLastLesson - lessonsPerPage;
   const currentLessons = lessons.slice(indexOfFirstLesson, indexOfLastLesson);
 
-  // Change page
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   if (loading) {
@@ -882,57 +910,77 @@ export const MyLessons: React.FC = () => {
               key={lesson._id}
               className={`${animatedItems.has(lesson._id) ? "animated" : ""}`}
             >
+              {/* Lesson Card Header - Merged */}
               <div
                 className={`lesson-card-header ${
                   statusHeaderColors[lesson.progress]
                 }`}
               >
-                {lesson.progress === "COMPLETED" && (
-                  <div className="completed-star-icon">
-                    <Star />
-                  </div>
-                )}
-                <h3>{lesson.subject}</h3>
-                <div className="lesson-card-badges">
-                  <Badge className="white-alpha-20">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-white">
+                    {lesson.subject}
+                  </h3>{" "}
+                  {/* Combined attributes */}
+                  {lesson.progress === "COMPLETED" && (
+                    <div className="w-9 h-9 flex items-center justify-center">
+                      <CheckCircle className="w-9 h-9 text-white" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <Badge className="white-alpha-20 text-white">
                     {formatDate(lesson.startTime)}
-                  </Badge>
-                  <Badge className="white-alpha-30">
+                  </Badge>{" "}
+                  {/* Adjusted Badge class */}
+                  <Badge className="white-alpha-30 text-white">
                     {statusLabels[lesson.progress]}
                   </Badge>
                 </div>
               </div>
 
+              {/* Lesson Card Body & Buttons - Merged */}
               <div className="lesson-card-body">
+                {" "}
+                {/* Kept your class */}
+                {/* Your lesson ID display */}
                 <div className="lesson-id" title={lesson._id}>
+                  {" "}
+                  {/* Kept your class */}
                   מזהה: {lesson._id}
                 </div>
-
                 <div className="lesson-card-buttons-section">
-                  <Button
-                    className={`w-full ${statusButtonColors[lesson.progress]}`}
-                    disabled={lesson.progress === "COMPLETED"}
-                    onClick={() => handleStatusClick(lesson)}
-                  >
-                    <span
-                      className={`button-icon-large ${
-                        lesson.progress === "COMPLETED"
-                          ? "text-green-200"
-                          : "text-white"
+                  {" "}
+                  {/* Kept your class */}
+                  {lesson.progress !== "COMPLETED" ? (
+                    <Button
+                      className={`w-full font-medium text-white ${
+                        statusButtonColors[lesson.progress]
                       }`}
+                      onClick={() => handleStatusClick(lesson)}
                     >
-                      {lesson.progress === "NOT_STARTED" ? (
-                        <PlayCircle />
-                      ) : lesson.progress === "IN_PROGRESS" ? (
-                        <BookOpen />
-                      ) : (
-                        <CheckCircle />
-                      )}
-                    </span>
-                    {statusLabels[lesson.progress]}
-                  </Button>
-
+                      <span className={`button-icon-large`}>
+                        {lesson.progress === "NOT_STARTED" ? (
+                          <PlayCircle className="w-5 h-5" />
+                        ) : (
+                          <BookOpen className="w-5 h-5" />
+                        )}
+                      </span>
+                      {statusLabels[lesson.progress]}
+                    </Button>
+                  ) : (
+                    <Button
+                      className="w-full text-white bg-gradient-to-r from-blue-400 to-blue-500 opacity-40 cursor-not-allowed"
+                      disabled={true}
+                    >
+                      <span className="button-icon-large">
+                        <FileText className="w-5 h-5" />
+                      </span>
+                      <span className="text-xs">סיכום שיעור נשלח למייל</span>
+                    </Button>
+                  )}
                   <div className="lesson-card-sub-buttons-grid">
+                    {" "}
+                    {/* Kept your class */}
                     <Button
                       variant="outline"
                       className="border-blue-500-text-blue-600-hover-bg-blue-50"
@@ -941,7 +989,6 @@ export const MyLessons: React.FC = () => {
                       <FileText className="button-icon-small" />
                       הפק דו"ח
                     </Button>
-
                     <Button
                       variant="outline"
                       className="border-red-500-text-red-600-hover-bg-red-50"
@@ -960,22 +1007,24 @@ export const MyLessons: React.FC = () => {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="pagination-container">
+            {" "}
+            {/* Kept your class */}
             <button
               onClick={() => paginate(currentPage - 1)}
               disabled={currentPage === 1}
-              className="pagination-button"
+              className="pagination-button" /* Kept your class */
             >
               <ChevronRight />
             </button>
-
             <div className="pagination-info">
+              {" "}
+              {/* Kept your class */}
               עמוד {currentPage} מתוך {totalPages}
             </div>
-
             <button
               onClick={() => paginate(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="pagination-button"
+              className="pagination-button" /* Kept your class */
             >
               <ChevronLeft />
             </button>

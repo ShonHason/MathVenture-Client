@@ -276,9 +276,6 @@
   cursor: not-allowed; /* cursor-not-allowed */
 }
 
-.custom-button.variant-default {
-  /* No specific default background, handled by conditional classes */
-}
 
 .custom-button.variant-outline {
   border-width: 2px; /* border-2 */

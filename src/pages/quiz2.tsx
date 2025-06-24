@@ -6,7 +6,8 @@ import subjectsByGrade, {
 import allQuestions, { type QuestionItem } from "../components/QuestionBank";
 import "./quiz2.css";
 import { endOfRegistration } from "../services/user_api";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify"; // Add ToastContainer
+import "react-toastify/dist/ReactToastify.css"; // Add the CSS import
 import { useNavigate } from "react-router-dom";
 import { SubjectSelect } from "../components/SubjectSelect";
 
@@ -22,6 +23,7 @@ interface QuizValues {
   parent_phone_suffix?: string;
   parent_email?: string;
   level?: string;
+  gender?: string; // Add gender to the interface
   [key: string]: any;
 }
 
@@ -45,6 +47,7 @@ export default function Quiz2() {
     parent_phone_suffix: "",
     parent_email: "",
     currentSubjects: [],
+    gender: "", // Initialize gender in form data
   });
 
   // Load saved data on mount
@@ -59,6 +62,7 @@ export default function Quiz2() {
       parent_phone_suffix: localStorage.getItem("parent_phone_suffix") || "",
       parent_email: localStorage.getItem("parent_email") || "",
       imageUrl: localStorage.getItem("imageUrl") || "",
+      gender: localStorage.getItem("gender") || "", // Load saved gender
     };
 
     // Split existing phone number if it exists
@@ -147,7 +151,7 @@ export default function Quiz2() {
 
   const validateCurrentStep = (): boolean => {
     if (currentStep === 0) {
-      // Validate personal info - update the phone validation
+      // Validate personal info - update to include gender validation
       const required = [
         "grade",
         "dateOfBirth",
@@ -155,22 +159,59 @@ export default function Quiz2() {
         "parent_phone_prefix",
         "parent_phone_suffix",
         "parent_email",
+        "gender", // Add gender to required fields
       ];
-      return required.every((field) => formData[field as keyof QuizValues]);
+
+      // Check which fields are missing
+      const missingFields = required.filter(
+        (field) => !formData[field as keyof QuizValues]
+      );
+
+      if (missingFields.length > 0) {
+        // Log missing fields for debugging
+        console.log("Missing required fields:", missingFields);
+        return false;
+      }
+
+      return true;
     }
 
     // Validate quiz questions
     const stepQuestions = questionPool[currentStep - 1];
-    return (
-      stepQuestions?.every(
-        (q) => formData[q.name as keyof QuizValues] !== undefined
-      ) || false
+    if (!stepQuestions) return true;
+
+    const unansweredQuestions = stepQuestions.filter(
+      (q) => formData[q.name as keyof QuizValues] === undefined
     );
+
+    if (unansweredQuestions.length > 0) {
+      // Log unanswered questions for debugging
+      console.log(
+        "Unanswered questions:",
+        unansweredQuestions.map((q) => q.name)
+      );
+      return false;
+    }
+
+    return true;
   };
 
   const handleNext = () => {
-    if (!validateCurrentStep()) {
-      alert("אנא מלא את כל השדות הנדרשים");
+    console.log("Next button clicked");
+    const isValid = validateCurrentStep();
+    console.log("Validation result:", isValid);
+
+    if (!isValid) {
+      // Configure toast with 1-second timer
+      toast.error("אנא מלא את כל השדות הנדרשים", {
+        position: "top-center",
+        autoClose: 200, // Changed from 5000 to 1000 (1 second)
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "colored",
+      });
       return;
     }
 
@@ -187,8 +228,21 @@ export default function Quiz2() {
   };
 
   const handleFinish = async () => {
-    if (!validateCurrentStep()) {
-      alert("אנא מלא את כל השדות הנדרשים");
+    console.log("Finish button clicked");
+    const isValid = validateCurrentStep();
+    console.log("Validation result:", isValid);
+
+    if (!isValid) {
+      // Configure toast with 1-second timer
+      toast.error("אנא מלא את כל השדות הנדרשים", {
+        position: "top-center",
+        autoClose: 1000, // Changed from 5000 to 1000 (1 second)
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "colored",
+      });
       return;
     }
 
@@ -232,6 +286,7 @@ export default function Quiz2() {
         dateOfBirth: formData.dateOfBirth || "",
         rank: mappedRank,
         imageUrl: imagePreview || "",
+        gender: formData.gender || "", // Include gender in the data sent to API
       };
 
       await endOfRegistration(userDataToSend);
@@ -326,6 +381,31 @@ export default function Quiz2() {
                 </div>
               )}
             </label>
+          </div>
+        </div>
+
+        {/* Improved gender selection UI with closer text to icon */}
+        <div className="form-group">
+          <label>מין 👫</label>
+          <div className="gender-selection-cards">
+            <div
+              className={`gender-card ${
+                formData.gender === "male" ? "gender-selected" : ""
+              }`}
+              onClick={() => handleInputChange("gender", "male")}
+            >
+              <div className="gender-icon">👦</div>
+              <div className="gender-label">זכר</div>
+            </div>
+            <div
+              className={`gender-card ${
+                formData.gender === "female" ? "gender-selected" : ""
+              }`}
+              onClick={() => handleInputChange("gender", "female")}
+            >
+              <div className="gender-icon">👧</div>
+              <div className="gender-label">נקבה</div>
+            </div>
           </div>
         </div>
 
@@ -452,6 +532,18 @@ export default function Quiz2() {
 
   return (
     <div className="quiz-container">
+      <ToastContainer
+        rtl={true}
+        position="top-center"
+        autoClose={1000} // Changed from 5000 to 1000 (1 second)
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+      />
       <div className="quiz-header">
         <h1>המשך הרשמה 🚀</h1>
         <div className="progress-bar">
@@ -483,7 +575,6 @@ export default function Quiz2() {
             type="button"
             onClick={handleNext}
             className="btn btn-primary"
-            disabled={!validateCurrentStep()}
           >
             הבא →
           </button>
@@ -492,7 +583,6 @@ export default function Quiz2() {
             type="button"
             onClick={handleFinish}
             className="btn btn-success"
-            disabled={!validateCurrentStep()}
           >
             סיים! 🎯
           </button>

@@ -98,7 +98,7 @@ export default function LearningBoard() {
 
       <header className="fun-header">
         <h1>Learning Adventure</h1>
-        <p>כיתה {grade} — נושאים מותאמים אישית 🎓</p>
+        <p>כיתה {grade}' — נושאים מותאמים אישית 🎓</p>
       </header>
 
       <div className="fun-content">

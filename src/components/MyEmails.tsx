@@ -3,7 +3,6 @@
 import type React from "react"
 
 import { useEffect, useState } from "react"
-import "./MyEmails.css"
 import axios from "axios"
 const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000"
 

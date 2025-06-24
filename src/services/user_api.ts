@@ -46,30 +46,52 @@ export const loginUser = async (userData: {
   email: string;
   password: string;
 }): Promise<User> => {
-  const response = await axios.post(`${baseUrl}/user/login`, userData);
-  const data = response.data;
-  console.log("Login response:", data);
-  localStorage.setItem("accessToken", data.accessToken);
-  localStorage.setItem("refreshToken", data.refreshToken);
-  localStorage.setItem("userId", data._id);
-  return {
-    _id: data._id,
-    username: data.username,
-    email: data.email,
-    gender: data.gender,
-    parent_email: data.parent_email,
-    parent_name: data.parent_name,
-    parent_phone: data.parent_phone,
-    grade: data.grade,
-    rank: data.rank,
-    dateOfBirth: data.DateOfBirth, // הקפד על תיאום שם
-    imageUrl: data.imageUrl,
-    accessToken: data.accessToken,
-    refreshToken: data.refreshToken,
-    opportunities: data.opportunities ?? "לא ידוע", // אם קיים
-    twoFactorAuth: data.twoFactorAuth ?? false, // אם קיים
-    subjectsList: data.subjectsList ?? [], // אם קיים
-  };
+  try {
+    const response = await axios.post(`${baseUrl}/user/login`, userData);
+    const data = response.data;
+    console.log("Login response:", data);
+    localStorage.setItem("accessToken", data.accessToken);
+    localStorage.setItem("refreshToken", data.refreshToken);
+    localStorage.setItem("userId", data._id);
+    return {
+      _id: data._id,
+      username: data.username,
+      email: data.email,
+      gender: data.gender,
+      parent_email: data.parent_email,
+      parent_name: data.parent_name,
+      parent_phone: data.parent_phone,
+      grade: data.grade,
+      rank: data.rank,
+      dateOfBirth: data.DateOfBirth, // הקפד על תיאום שם
+      imageUrl: data.imageUrl,
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken,
+      opportunities: data.opportunities ?? "לא ידוע", // אם קיים
+      twoFactorAuth: data.twoFactorAuth ?? false, // אם קיים
+      subjectsList: data.subjectsList ?? [], // אם קיים
+    };
+  } catch (error: any) {
+    // Enhanced error handling
+    if (error.response) {
+      // The server responded with a status code outside the 2xx range
+      if (error.response.status === 401) {
+        throw new Error("כתובת אימייל או סיסמה שגויים");
+      } else if (error.response.status === 429) {
+        throw new Error("יותר מדי ניסיונות התחברות, אנא נסה שוב מאוחר יותר");
+      } else {
+        // Use server message if available
+        const message = error.response.data?.message || "אירעה שגיאה בהתחברות";
+        throw new Error(message);
+      }
+    } else if (error.request) {
+      // The request was made but no response was received
+      throw new Error("לא ניתן להתחבר לשרת, אנא בדוק את החיבור שלך");
+    } else {
+      // Something happened in setting up the request
+      throw new Error("אירעה שגיאה בעת ביצוע הבקשה");
+    }
+  }
 };
 
 export const endOfRegistration = async (userData: {
@@ -95,7 +117,6 @@ export const endOfRegistration = async (userData: {
     }
   );
 
-  // מחזירים את האובייקט המעודכן לשימוש ב־Context
   return {
     _id: response.data._id,
     username: response.data.username,
@@ -108,7 +129,7 @@ export const endOfRegistration = async (userData: {
     rank: response.data.rank,
     dateOfBirth: response.data.DateOfBirth,
     imageUrl: response.data.imageUrl,
-    subjectList : response.data.subjectsList,
+    subjectList: response.data.subjectsList,
   };
 };
 
@@ -173,9 +194,8 @@ const checkTokenExp = async () => {
   }
 };
 
-checkTokenExp(); 
+checkTokenExp();
 setInterval(checkTokenExp, 100000);
-
 
 // Delete user
 export const deleteUser = async () => {
@@ -242,8 +262,16 @@ export const removeSubject = async (userId: string, subject: string) => {
   return response.data;
 };
 
+
+export const googleSignIn = async (credential: string) => {
+  const response = await axios.post(`${baseUrl}/auth/google-signin`, {
+    token: credential,
+  });
+
+  return response.data;
+};
+
 export default {
-  
   loginUser,
   endOfRegistration,
   register,
