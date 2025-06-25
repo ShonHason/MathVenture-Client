@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const baseUrl = process.env.SERVER_API_URL || 'https://localhost:4000';
+const baseUrl = process.env.SERVER_API_URL || 'http://localhost:4000';
 
 export async function scanMathServer(
   canvas: HTMLCanvasElement

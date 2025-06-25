@@ -21,7 +21,7 @@ import {
 } from "../context/ControlPanelContext"; // Import provider and hook
 import PushToTalkButton from "../components/PushToTalkButton";
 
-const socketServerUrl = process.env.SERVER_API_URL || "https://localhost:4000";
+const socketServerUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 
 type LocationState = {
   state: {
@@ -34,6 +34,48 @@ interface AIResponse {
   text: string;
   counter?: number;
 }
+
+// Replace the extractTextFromMessage function with this more robust version
+const extractTextFromMessage = (message: string): string => {
+  if (!message) return "";
+  
+  try {
+    // Handle case where message is already clean (no JSON formatting)
+    if (!message.includes('{') && !message.includes('}') && !message.includes('```')) {
+      return message;
+    }
+    
+    // Case 1: Extract from ```json { "text": "content" } ``` format
+    let match = message.match(/```json\s*{\s*"text"\s*:\s*"(.*?)"\s*}\s*```/s);
+    if (match && match[1]) {
+      return match[1].replace(/\\"/g, '"');
+    }
+
+    // Case 2: Extract from simple JSON { "text": "content" }
+    match = message.match(/{\s*"text"\s*:\s*"(.*?)"\s*}/s);
+    if (match && match[1]) {
+      return match[1].replace(/\\"/g, '"');
+    }
+
+    // Case 3: Extract from JSON with additional fields { "text": "content", "other": "value" }
+    match = message.match(/"text"\s*:\s*"(.*?)"/s);
+    if (match && match[1]) {
+      return match[1].replace(/\\"/g, '"');
+    }
+
+    // Case 4: Extract from Markdown with JSON { "text": "content" } ```json
+    match = message.match(/```json\s*{\s*"text"\s*:\s*"(.*?)"\s*}/s);
+    if (match && match[1]) {
+      return match[1].replace(/\\"/g, '"');
+    }
+
+    // Default: Return original message if no patterns match
+    return message;
+  } catch (e) {
+    console.error("Error extracting message text:", e);
+    return message;
+  }
+};
 
 function LearningSessionContent() {
   const recorderRef = useRef<any>(null);
@@ -116,7 +158,7 @@ function LearningSessionContent() {
       try {
         const { data } = await axios.get(
           `${socketServerUrl}/lessons/${lessonId}/messages`,
-          { headers: { Authorization: `Bearer ${user?.accessToken}` } }
+          { headers: { Authorization: `JWT ${user?.accessToken}` } }
         );
         const raw = data.messages as Array<{
           role: string;
@@ -124,7 +166,7 @@ function LearningSessionContent() {
         }>;
         const formatted = raw.slice(1).map((m) => ({
           sender: m.role === "user" ? "user" : "bot",
-          text: m.content,
+          text: extractTextFromMessage(m.content), // Clean messages on load
         })) as { sender: "bot" | "user"; text: string }[];
         setMessages(formatted);
 
@@ -322,7 +364,7 @@ function LearningSessionContent() {
       }
 
       // 8) Strip stray "*" so TTS won't read "כוכבית"
-      const aiClean = onlyText.replace(/\*/g, "");
+      let aiClean = extractTextFromMessage(onlyText).replace(/\*/g, "");
 
       // 9) Push the bot's cleaned text into messages (so it appears in chat)
       setMessages((m) => [...m, { sender: "bot", text: aiClean }]);
@@ -435,7 +477,7 @@ function LearningSessionContent() {
       }
 
       // 8) Strip stray "*" so TTS won't read "כוכבית"
-      const aiClean = onlyText.replace(/\*/g, "");
+      let aiClean = extractTextFromMessage(onlyText).replace(/\*/g, "");
 
       // 9) Push the bot's cleaned text into messages (so it appears in chat)
       setMessages((m) => [...m, { sender: "bot", text: aiClean }]);
@@ -542,9 +584,7 @@ function LearningSessionContent() {
         onReturnToMain={handleReturnToMainActual} // Pass the actual handler
         isPushToTalkMode={isPushToTalkMode}
         onTogglePushToTalk={setPushToTalkMode}
-        onRepeatMessage={function (): void {
-          throw new Error("Function not implemented.");
-        }}
+        onRepeatMessage={onRepeatMessage} // Use the function from context instead of the error-throwing function
       />
 
       <div className="main-content-panels">
@@ -555,9 +595,11 @@ function LearningSessionContent() {
           </div>{" "}
           {/* From context */}
           <Avatar />
-          <div className="bot-speech-display">{botSpeech}</div>{" "}
+          <div className="bot-speech-display" style={{ color: 'black' }}>
+            {extractTextFromMessage(botSpeech)}
+          </div>{" "}
           {/* From context */}
-          <div className="user-message-display">
+          <div className="user-message-display" style={{ color: 'black' }}>
             <span className="username">
               {user?.username ? `${user.username}:` : "את/ה:"}
             </span>
