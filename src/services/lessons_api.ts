@@ -1,7 +1,6 @@
 import axios from "axios";
 import { User } from "../context/UserContext";
 import { sampleQuestionsByGrade } from "../components/SampleQuestionsByGrade";
-// import { U } from "framer-motion/dist/types.d-CtuPurYT";
 const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
 
 export const getAllLessonsByUserId = async (

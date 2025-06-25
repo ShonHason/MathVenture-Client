@@ -159,6 +159,8 @@ const triggerConfetti = () => {
 };
 
 export const MyLessons: React.FC = () => {
+
+  const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000"
   const { user } = useUser();
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
@@ -185,7 +187,6 @@ export const MyLessons: React.FC = () => {
       return () => clearTimeout(retryTimer);
     }
 
-    const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
     axios
       .get<Lesson[]>(`${baseUrl}/lessons/getLessons/${user._id}`)
       .then((resp) => {
@@ -237,7 +238,6 @@ export const MyLessons: React.FC = () => {
   };
 
   const handleReport = (lesson: Lesson) => {
-    const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
     try {
       axios.post(`${baseUrl}/lessons/report/${lesson._id}`);
       const email = localStorage.getItem("parent_email");
@@ -254,8 +254,7 @@ export const MyLessons: React.FC = () => {
   };
 
   const handleDelete = async (lessonId: string) => {
-    const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
-    if (!window.confirm("האם אתה בטוח שברצונך למחוק את השיעור?")) return;
+    if (!window.confirm("האם אתה בטוח שברצונך למחוק את השיעור?")) return
     try {
       await axios.delete(`${baseUrl}/lessons/${lessonId}`);
 
