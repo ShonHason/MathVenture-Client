@@ -1,0 +1,283 @@
+/* Sidebar.css */
+
+/* Base Sidebar Container */
+.sidebar-container {
+  height: 100vh; /* h-screen */
+  width: 16rem; /* w-64 */
+  /* Using the original gradient from the first sidebar, as it defines the overall look.
+     If var(--sidebar-color) is meant to override this for dark mode, you would uncomment the line below
+     and ensure --sidebar-color is defined appropriately for dark mode in your root CSS. */
+  background-color: var(
+    --sidebar-color
+  ); /* bg-gradient-to-r from-indigo-200 to-purple-200 */
+  /* background-color: var(--sidebar-color); */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  right: 0;
+  direction: rtl;
+  border-top-left-radius: 1rem;
+  border-bottom-left-radius: 1rem;
+  overflow: hidden;
+}
+
+/* --- Profile Section --- */
+.profile-section {
+  padding: 1rem 1rem; /* px-4 py-4 */
+  /* Using the original gradient from the first sidebar */
+  /* bg-gradient-to-r from-indigo-200 to-purple-200 */
+}
+
+.mathventure-text {
+  font-size: 0.75rem; /* text-xs */
+  opacity: 0.7; /* opacity-70 */
+  margin-bottom: 0.25rem; /* mb-1 */
+  display: block;
+}
+
+.profile-image-container {
+  position: relative;
+  width: 5rem; /* w-20 */
+  height: 5rem; /* h-20 */
+  overflow: hidden;
+  border-radius: 9999px; /* rounded-full */
+  border: 2px solid #ffffff; /* border-2 border-white */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+  margin-bottom: 0.5rem; /* mb-2 */
+}
+
+.profile-image-container > div {
+  transform: scale(1); /* scale-100 */
+}
+
+.user-info {
+  text-align: center;
+  color: #ffffff;
+}
+
+.user-info h3 {
+  font-weight: 700; /* font-bold */
+}
+
+.user-info p {
+  font-size: 0.875rem; /* text-sm */
+}
+
+/* --- Main Menu (Top & Bottom) --- */
+.sidebar-main-content {
+  padding: 0.5rem 1rem; /* px-4 py-2 */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* space-y-2 */
+}
+
+/* Common Item Styles for BOTH Active and Inactive */
+.sidebar-menu-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem; /* p-3 */
+  border-radius: 0.75rem; /* rounded-xl */
+  cursor: pointer;
+  transition: all 0.2s ease-in-out; /* transition-all duration-200 */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  /* Default inactive styles, will be overridden by .active-* classes when present */
+  background-color: var(
+    --button-bg
+  ); /* Use theme variable for inactive background */
+  color: var(--text-color); /* Use theme variable for inactive text color */
+  gap: 10px;
+}
+
+.sidebar-menu-item:hover {
+  transform: scale(1.05);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  background-color: var(
+    --page-bg
+  ); /* Use theme variable for hover background */
+}
+
+/* Specific Inactive Icon Wrapper Background */
+.sidebar-menu-item-icon-wrapper.icon-inactive {
+  background-color: var(
+    --page-bg
+  ); /* Use theme variable for inactive icon background */
+  /* Ensure icon color adapts if needed, but default icon color might be dark/light */
+}
+
+.sidebar-menu-item-icon-wrapper {
+  width: 40px; /* w-10 */
+  height: 40px; /* h-10 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem; /* rounded-lg */
+  margin-right: 0.75rem; /* mr-3 */
+  /* Default background for icon wrapper - will be overridden by specific active/inactive rules */
+  background-color: var(
+    --page-bg
+  ); /* Defaulting to page-bg, specific overrides follow */
+}
+
+.sidebar-menu-item-icon {
+  font-size: 1.25rem; /* text-xl */
+  /* Default icon color, can be overridden by specific active states */
+  color: var(--text-color);
+}
+
+.sidebar-menu-item-text {
+  font-weight: 700; /* font-bold */
+  font-size: 1.125rem; /* text-lg */
+}
+
+/* --- Active States for Specific Menu Items (Matching First Sidebar's Colors) --- */
+
+/* Home */
+.sidebar-menu-item.active-home {
+  background: var(
+    --siderbar-btn-active-color
+  ); /* bg-pink-200 from first sidebar */
+  /* From first sidebar */
+  color: #ffffff; /* From first sidebar */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06); /* From first sidebar */
+  transform: scale(1.05);
+}
+.sidebar-menu-item.active-home .sidebar-menu-item-icon-wrapper {
+  background: var(
+    --siderbar-btn-active-color
+  ); /* bg-pink-200 from first sidebar */
+}
+.sidebar-menu-item.active-home .sidebar-menu-item-icon {
+  color: #ffffff; /* Icon color matches text for gradient items */
+}
+
+/* Lessons */
+.sidebar-menu-item.active-lessons {
+  background: var(
+    --siderbar-btn-active-color
+  ); /* bg-pink-200 from first sidebar */
+  /* From first sidebar */
+  color: #ffffff; /* From first sidebar */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06); /* From first sidebar */
+  transform: scale(1.05);
+}
+.sidebar-menu-item.active-lessons .sidebar-menu-item-icon-wrapper {
+  background-color: rgba(255, 255, 255, 0.3); /* From first sidebar */
+}
+.sidebar-menu-item.active-lessons .sidebar-menu-item-icon {
+  color: #ffffff; /* Icon color matches text for gradient items */
+}
+
+/* Games */
+.sidebar-menu-item.active-games {
+  background: var(
+    --siderbar-btn-active-color
+  ); /* bg-pink-200 from first sidebar */
+  /* From first sidebar */
+  color: #ffffff; /* From first sidebar */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06); /* From first sidebar */
+  transform: scale(1.05);
+}
+.sidebar-menu-item.active-games .sidebar-menu-item-icon-wrapper {
+  background-color: rgba(255, 255, 255, 0.3); /* From first sidebar */
+}
+.sidebar-menu-item.active-games .sidebar-menu-item-icon {
+  color: #ffffff; /* Icon color matches text for gradient items */
+}
+/* Ensure text color is white for active games (it's already white from above but good to be explicit) */
+.sidebar-menu-item.active-games .sidebar-menu-item-text {
+  color: white;
+}
+
+/* Profile */
+.sidebar-menu-item.active-profile {
+  background: var(
+    --siderbar-btn-active-color
+  ); /* bg-pink-200 from first sidebar */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform: scale(1.05);
+}
+.sidebar-menu-item-icon-wrapper.icon-profile {
+  /* Specific icon wrapper for profile */
+}
+.sidebar-menu-item-icon.icon-profile-color {
+  /* Specific icon color for profile */
+}
+
+/* Help */
+.sidebar-menu-item.active-help {
+  background: var(
+    --siderbar-btn-active-color
+  ); /* bg-pink-200 from first sidebar */
+  /* bg-purple-200 from first sidebar */
+  /* text-purple-600 from first sidebar */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transform: scale(1.05);
+}
+.sidebar-menu-item-icon-wrapper.icon-help {
+  /* Specific icon wrapper for help */
+}
+.sidebar-menu-item-icon.icon-help-color {
+  /* Specific icon color for help */
+}
+
+/* Settings */
+.sidebar-menu-item.active-settings {
+  background: var(
+    --siderbar-btn-active-color
+  ); /* bg-pink-200 from first sidebar */
+  /* bg-blue-200 from first sidebar */
+  /* text-blue-600 from first sidebar */
+  transform: scale(1.05);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+.sidebar-menu-item-icon-wrapper.icon-settings {
+  /* Specific icon wrapper for settings */
+}
+.sidebar-menu-item-icon.icon-settings-color {
+  /* Specific icon color for settings */
+}
+
+/* Logout Item Styles (Adapting to dark mode vars for base, keeping red for highlights) */
+.sidebar-menu-item.sidebar-logout-item {
+  background-color: var(
+    --button-bg
+  ); /* Use theme variable for inactive background */
+  color: #ef4444; /* text-red-500 (from first sidebar) */
+}
+.sidebar-menu-item.sidebar-logout-item:hover {
+  background-color: var(
+    --page-bg
+  ); /* Use theme variable for hover background */
+}
+.sidebar-menu-item-icon-wrapper.icon-logout {
+  background-color: var(--page-bg); /* Use theme variable for icon background */
+}
+.sidebar-menu-item-icon.icon-logout-color {
+  color: #ef4444; /* text-red-500 (from first sidebar) */
+}
+
+/* --- Divider --- */
+.sidebar-divider-container {
+  margin-top: 0.5rem; /* my-2 */
+  margin-bottom: 0.5rem; /* my-2 */
+}
+.sidebar-divider {
+  border-top: 1px solid rgba(255, 255, 255, 0.4); /* border-t border-white/40 */
+}
