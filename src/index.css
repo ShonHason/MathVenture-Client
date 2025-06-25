@@ -1,12 +1,87 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 .font-heebo {
-    font-family: 'Heebo', sans-serif;
-  }
-  
-  .rtl {
-    direction: rtl;
-    text-align: right;
-  }
-  
+  font-family: "Heebo", sans-serif;
+}
+
+.rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+:root {
+  /* Existing theme variables */
+  --page-bg: #4b0082;
+  --button-bg: #9370db;
+  --text-color: #ffffff;
+  --sidebar-color: #6a5acd;
+  --border-color: #dda0dd;
+  --main-bg: linear-gradient(135deg, #667eea 0%, #764ba2 60%);
+  --myprofile-bg1: linear-gradient(to right, #4c1ff1, #a75dfc);
+  --myprofile-bg2: linear-gradient(to left, #4c1ff1, #a75dfc);
+  --start-game-btn: rgb(186, 103, 241);
+  --underline-div: linear-gradient(to right, #c084fc, #ec4899);
+  --save-btn-hover: rgb(154, 0, 214);
+  --siderbar-btn-active-color: #630ea0;
+
+  /* Default values for your dynamic settings */
+  --global-font-size: 16px; /* Default for DisplaySettingsContext */
+  --global-line-height: 1.5; /* Default for DisplaySettingsContext */
+  --formula-font-size: 24px; /* Default for DisplaySettingsContext */
+  --primary-color: #6a4cff; /* Default for DisplaySettingsContext, ensure you add this if it's not there already */
+}
+
+[data-theme="dark"] {
+  /* Existing dark mode variables */
+  --save-btn-hover: rgb(105, 103, 103);
+  --siderbar-btn-active-color: #2e2e2e;
+
+  --page-bg: #1e1e1e;
+  --button-bg: #4b4848;
+  --text-color: #ffffff;
+  --sidebar-color: hsl(0, 0%, 48%);
+  --border-color: #333333;
+  --main-bg: linear-gradient(135deg, #1e1e1e 0%, #333333 60%);
+  --myprofile-bg1: linear-gradient(to right, #363131, grey);
+  --myprofile-bg2: linear-gradient(to left, #363131, grey);
+  --start-game-btn: rgb(48, 48, 48);
+  --underline-div: #ffffff;
+}
+
+body {
+  background-color: var(--page-bg);
+  color: var(--text-color);
+  font-family: var(--font-base, "Heebo", sans-serif); /* Use a fallback font */
+  transition: background-color 0.3s ease, color 0.3s ease;
+
+  /* THE FIXES ARE HERE: Apply the CSS variables for font size and line height */
+  font-size: var(--global-font-size);
+  line-height: var(--global-line-height);
+}
+
+/* For formula font size, you'll need to apply it to the specific elements
+   that display your formulas. For example: */
+.formula-display {
+  /* Replace .formula-display with the actual class/tag for your formulas */
+  font-size: var(--formula-font-size);
+}
+
+/* Ensure your primary color variable is also used where needed */
+.some-element-that-uses-primary-color {
+  color: var(--primary-color);
+}
+.some-button {
+  background-color: var(--primary-color);
+}
+
+/* High contrast (if still in use) should also consider theme variables */
+.high-contrast {
+  /* This class is applied to <html> by DisplaySettingsContext.
+     It should ideally override specific properties or apply filters. */
+  /* filter: contrast(1.4) brightness(1.1); */
+  /* Or, to explicitly change colors in high contrast mode: */
+  /* --text-color: yellow !important; */
+  /* --page-bg: black !important; */
+}

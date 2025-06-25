@@ -1,4 +1,4 @@
-/* SettingsPage.css */
+/* 
 
 
 :root {
@@ -75,6 +75,104 @@
   line-height: 1.5;
 }
 
+@media (max-width: 600px) {
+  .settings-nav li {
+    padding: 6px 12px;
+    font-size: 14px;
+  }
+  .settings-content {
+    padding: 16px;
+  }
+} */
+:root {
+  --font-kids: "Comic Sans MS", cursive, sans-serif;
+
+  /* Light Mode */
+  --page-bg: #106ebe;
+  --button-bg: #0ffcbf;
+  --text-color: #ffffff;
+}
+
+[data-theme="dark"] {
+  /* Dark Mode */
+  --page-bg: #1e1e1e;
+  --button-bg: #000000;
+  --text-color: #ffffff;
+}
+
+/* מבנה כללי */
+.settings-container {
+  max-width: 700px;
+  margin: 40px auto;
+  padding: 0 16px;
+  font-family: var(--font-kids);
+  background-color: var(--page-bg);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
+  border-radius: 32px;
+}
+
+/* ניווט */
+.settings-nav {
+  display: flex;
+  justify-content: center;
+  /* margin-bottom: 24px; */
+}
+
+.settings-nav ul {
+  list-style: none;
+
+  /* margin: 0; */
+  padding-top: 10px;
+  display: inline-flex;
+  /* background: transparent; */
+  /* overflow: hidden; */
+}
+.settings-nav li {
+  cursor: pointer;
+  padding: 8px 24px;
+  font-size: 16px;
+  background-color: transparent;
+  /* color: var(--text-color); */
+  border: 2px solid var(--button-bg);
+  transition: background 0.2s, color 0.2s;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.settings-nav li.active {
+  background-color: var(--button-bg);
+  /* color: var(--page-bg); */
+  font-weight: bold;
+  transition: 0.7s ease;
+}
+
+.settings-nav li:hover:not(.active) {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* תוכן ההגדרות */
+.settings-content {
+  background: transparent;
+  padding: 24px;
+  border-radius: 0 0 12px 12px;
+}
+
+.settings-content > * {
+  margin-bottom: 16px;
+}
+
+.settings-content h2,
+.settings-content p {
+  margin: 0;
+  color: var(--text-color);
+  line-height: 1.5;
+}
+
+/* מובייל */
 @media (max-width: 600px) {
   .settings-nav li {
     padding: 6px 12px;
