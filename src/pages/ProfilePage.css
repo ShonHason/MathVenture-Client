@@ -1,0 +1,96 @@
+/* ProfilePage.css */
+
+.profile-page-container {
+  width: 100%; /* w-full */
+  max-width: 1024px; /* max-w-screen-lg */
+  margin-left: auto; /* mx-auto */
+  margin-right: auto; /* mx-auto */
+  padding: 1rem; /* p-4 */
+  height: calc(100vh - 10px); /* h-[calc(100vh-120px)] */
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: visible;
+}
+
+.profile-tabs-wrapper {
+  position: absolute;
+  left: 50%; /* left-1/2 */
+  transform: translateX(-50%); /* -translate-x-1/2 */
+  display: flex;
+  gap: 1rem; /* gap-4 */
+  z-index: 10;
+}
+
+.profile-tab-button {
+  padding: 0.75rem 1.5rem; /* px-6 py-3 */
+  border-radius: 1rem; /* rounded-2xl */
+  font-weight: 700; /* font-bold */
+  font-size: 1rem; /* text-base */
+  transition: all 0.3s ease; /* transition-all duration-300 */
+  display: flex; /* To align icon and text */
+  align-items: center; /* To align icon and text */
+  justify-content: center; /* To align icon and text */
+  white-space: nowrap; /* Prevent text wrapping */
+  background-color: var(--sidebar-color);
+}
+
+.profile-tab-button:hover {
+  transition: 0.3s ease; /* transition-all duration-300 */
+  transform: scale(1.05); /* hover:scale-105 */
+  border: 1px solid #ffffff;
+}
+
+.profile-tab-icon {
+  font-size: 1.25rem; /* text-xl */
+  margin-right: 0.25rem; /* mr-1 */
+}
+
+/* Active Tab Styles - Details & Emails */
+.profile-tab-button.active-tab-details {
+  border: 1px solid #ffffff; /* border-2 border-white */
+  transform: scale(1.05); /* hover:scale-105 */
+}
+
+/* Inactive Tab Styles - Purple (for Details & Emails when not active) */
+.profile-tab-button.inactive-tab-purple {
+  /* bg-gradient-to-r from-blue-100 to-purple-100 */
+  /* color: white; */
+  /* border: 2px solid transparent; border-2 border-transparent */
+}
+
+.profile-tab-button.inactive-tab-purple:hover {
+  /* border-color: #ffffff; hover:border-purple-300 */
+}
+
+/* Active Tab Styles - Delete Account */
+.profile-tab-button.active-tab-delete {
+  /* bg-gradient-to-r from-red-500 to-pink-500 */
+  color: #ffffff; /* text-white */
+  transform: scale(1.05); /* scale-105 */
+  border: 1px solid #ffffff; /* border-2 border-white */
+  transform: scale(1.05); /* hover:scale-105 */
+}
+
+/* Inactive Tab Styles - Red (for Delete Account when not active) */
+.profile-tab-button.inactive-tab-red {
+  /* bg-gradient-to-r from-red-100 to-pink-100 */
+  /* border-color: #ffffff; hover:border-purple-300 */
+}
+
+.profile-tab-button.inactive-tab-red:hover {
+  /* border-color: #fca5a5; hover:border-red-300 */
+}
+
+/* Content Area */
+.profile-content-area {
+  flex: 1; /* flex-1 */
+  margin-top: 6rem; /* mt-24 (96px) */
+  padding: 1rem; /* p-4 */
+  overflow: auto; /* overflow-auto */
+  scrollbar-width: none;
+}
+
+.profile-info-center {
+  text-align: center;
+}

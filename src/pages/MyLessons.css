@@ -3,7 +3,8 @@
   padding: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    sans-serif;
 }
 
 /* Title styles */
@@ -102,22 +103,38 @@
 }
 
 .card-header {
-  background: linear-gradient(to right, #8b5cf6, #3b82f6); /* purple-500 to blue-500 */
+  background: linear-gradient(
+    to right,
+    #8b5cf6,
+    #3b82f6
+  ); /* purple-500 to blue-500 */
   padding: 1rem;
   position: relative;
   overflow: hidden;
 }
 
 .card-header.completed {
-  background: linear-gradient(to right, #10b981, #059669); /* green-500 to green-600 */
+  background: linear-gradient(
+    to right,
+    #10b981,
+    #059669
+  ); /* green-500 to green-600 */
 }
 
 .card-header.in_progress {
-  background: linear-gradient(to right, #f59e0b, #d97706); /* amber-500 to amber-600 */
+  background: linear-gradient(
+    to right,
+    #f59e0b,
+    #d97706
+  ); /* amber-500 to amber-600 */
 }
 
 .card-header.not_started {
-  background: linear-gradient(to right, #3b82f6, #2563eb); /* blue-500 to blue-600 */
+  background: linear-gradient(
+    to right,
+    #3b82f6,
+    #2563eb
+  ); /* blue-500 to blue-600 */
 }
 
 .completion-badge {

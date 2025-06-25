@@ -1,4 +1,4 @@
-.security-settings-container {
+/* .security-settings-container {
   display: flex;
   flex-direction: column;
   padding: 20px;
@@ -12,7 +12,7 @@
 
 .security-setting {
   display: flex;
-  /* justify-content: start; */
+
 
   padding: 10px 0;
   border-bottom: 1px solid #ccc;
@@ -33,8 +33,8 @@
 
 .security-setting span,
 .security-setting button {
-  flex-grow: 1; /* Allow inputs and buttons to grow and fill space */
-  text-align: left; /* Align text to the left */
+  flex-grow: 1; 
+  text-align: left; 
 }
 
 .security-setting button {
@@ -52,10 +52,77 @@
 }
 
 .toggle-container input[type="checkbox"] {
-  margin-right: 10px; /* Right margin for LTR layout */
+  margin-right: 10px; 
 }
 .security-setting-auth {
-  justify-content: end; /* Align items to the start (left) */
+  justify-content: end; 
+}
+
+.security-setting-codes {
+  background-color: #9b9898;
+  display: flex;
+  justify-content: center;
+}
+ */
+.security-settings-container {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  gap: 20px;
+  /* background-color: #ffffff; */
+
+  border: 2px solid var(--button-bg);
+  border-radius: 8px;
+  width: 100%;
+  max-width: 900px;
+  font-weight: bold;
+}
+
+.security-setting {
+  display: flex;
+
+  padding: 10px 0;
+  border-bottom: 1px solid #ccc;
+}
+.security-setting span {
+  display: flex;
+  justify-content: center;
+}
+
+.security-setting:last-child {
+  border-bottom: none;
+}
+
+.security-setting p {
+  min-width: 100px;
+  margin: 0 10px 0 0;
+}
+
+.security-setting span,
+.security-setting button {
+  flex-grow: 1;
+  text-align: left;
+}
+
+.security-setting button {
+  padding: 5px 20px;
+  border: 1px solid #007bff;
+  background-color: #f8f9fa;
+  color: #007bff;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-container input[type="checkbox"] {
+  margin-right: 10px;
+}
+.security-setting-auth {
+  justify-content: end;
 }
 
 .security-setting-codes {
