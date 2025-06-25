@@ -21,7 +21,7 @@ import {
 } from "../context/ControlPanelContext"; // Import provider and hook
 import PushToTalkButton from "../components/PushToTalkButton";
 
-const socketServerUrl = process.env.SERVER_API_URL || "http://localhost:4000";
+const socketServerUrl = process.env.SERVER_API_URL || "https://localhost:4000";
 
 type LocationState = {
   state: {

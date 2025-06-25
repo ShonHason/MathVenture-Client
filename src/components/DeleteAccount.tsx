@@ -23,7 +23,7 @@ const DeleteAccount = () => {
     setError(null)
     
     try {
-      const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
+      const baseUrl = process.env.SERVER_API_URL || "https://localhost:4000";
       // Make the delete request to your backend with token authentication
       console.log("Using base URL:", baseUrl)
       const accessToken = user?.accessToken;

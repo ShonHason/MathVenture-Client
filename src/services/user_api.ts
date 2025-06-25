@@ -47,6 +47,7 @@ export const loginUser = async (userData: {
   password: string;
 }): Promise<User> => {
   try {
+    console.log(`${baseUrl}/user/login`);
     const response = await axios.post(`${baseUrl}/user/login`, userData);
     const data = response.data;
     console.log("Login response:", data);

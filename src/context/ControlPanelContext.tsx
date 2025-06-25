@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import axios from "axios";
 
-const socketServerUrl = process.env.SERVER_API_URL || "http://localhost:4000";
+const socketServerUrl = process.env.SERVER_API_URL || "https://localhost:4000";
 
 interface ControlPanelContextType {
   isVisible: boolean;

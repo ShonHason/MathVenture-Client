@@ -55,7 +55,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     } else if (accessToken) {
       // fallback: קבלת פרופיל מהשרת
       axios
-        .get("http://localhost:4000/user/getUserProfile", {
+        .get("https://localhost:4000/user/getUserProfile", {
           headers: { Authorization: `JWT ${accessToken}` },
         })
         .then((res) => {

@@ -11,7 +11,7 @@ import { useUser } from "../context/UserContext"
 import axios from "axios"
 import { toast } from "react-toastify"
 
-const baseUrl = process.env.SERVER_API_URL || "http://localhost:4000";
+const baseUrl = process.env.SERVER_API_URL || "https://localhost:4000";
 
 export default function MathMiniGame() {
   const navigate = useNavigate()
