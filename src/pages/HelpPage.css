@@ -149,7 +149,8 @@ body {
 }
 
 .help-character {
-  position: absolute;
+  margin-top: -150px; /* Adjust this negative margin to move everything higher */
+  position: relative;
   bottom: -40px; /* מוריד אותה מעט כלפי מטה ביחס לתחתית ה־help-page */
   right: -150px; /* יזיז את הדמות 100px ימינה מחוץ לגבול ה־help-page */
   display: flex;
@@ -158,6 +159,8 @@ body {
 }
 
 .character-image {
+  position: relative;
+  top: -20px; /* Move the image higher */
   width: 120px;
   height: 120px;
   border-radius: 50%;
@@ -169,6 +172,7 @@ body {
 
 .speech-bubble {
   position: relative;
+  top: -30px; /* Move the speech bubble higher */
   bottom: 10px;
   right: 10px;
   background: #ffde59;

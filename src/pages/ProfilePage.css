@@ -33,6 +33,7 @@
   justify-content: center; /* To align icon and text */
   white-space: nowrap; /* Prevent text wrapping */
   background-color: var(--sidebar-color);
+  color: #333333; /* Adding default text color */
 }
 
 .profile-tab-button:hover {
@@ -50,13 +51,14 @@
 .profile-tab-button.active-tab-details {
   border: 1px solid #ffffff; /* border-2 border-white */
   transform: scale(1.05); /* hover:scale-105 */
+  background-color: #6366f1; /* Adding purple background */
+  color: white; /* Setting text to white for contrast */
 }
 
 /* Inactive Tab Styles - Purple (for Details & Emails when not active) */
 .profile-tab-button.inactive-tab-purple {
-  /* bg-gradient-to-r from-blue-100 to-purple-100 */
-  /* color: white; */
-  /* border: 2px solid transparent; border-2 border-transparent */
+  background-color: #e0e7ff; /* Light purple background */
+  color: #4338ca; /* Dark purple text for contrast */
 }
 
 .profile-tab-button.inactive-tab-purple:hover {
@@ -70,12 +72,16 @@
   transform: scale(1.05); /* scale-105 */
   border: 1px solid #ffffff; /* border-2 border-white */
   transform: scale(1.05); /* hover:scale-105 */
+  background-color: #ef4444; /* Red background */
+  color: white; /* White text */
 }
 
 /* Inactive Tab Styles - Red (for Delete Account when not active) */
 .profile-tab-button.inactive-tab-red {
   /* bg-gradient-to-r from-red-100 to-pink-100 */
   /* border-color: #ffffff; hover:border-purple-300 */
+  background-color: #fee2e2; /* Light red background */
+  color: #b91c1c; /* Dark red text for contrast */
 }
 
 .profile-tab-button.inactive-tab-red:hover {
@@ -89,6 +95,7 @@
   padding: 1rem; /* p-4 */
   overflow: auto; /* overflow-auto */
   scrollbar-width: none;
+  color: #333333; /* Adding default text color for content */
 }
 
 .profile-info-center {

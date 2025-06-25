@@ -315,32 +315,32 @@ export default function MathMiniGame() {
           {/* Game setup form */}
           <Card className="bg-white/95 backdrop-blur-sm shadow-2xl h-full">
             <CardContent className="p-8 h-full flex flex-col">
-              <h2 className="text-2xl font-bold text-center mb-6 text-gray-800 flex items-center justify-center gap-2">
+              <h2 className="text-2xl font-bold text-center mb-6 text-black flex items-center justify-center gap-2">
                 🎮 הגדרות משחק
               </h2>
 
               <div className="space-y-6 flex-1">
                 {/* Player name input */}
                 <div>
-                  <label className="block text-lg font-bold text-gray-800 mb-3">👤 שם השחקן:</label>
+                  <label className="block text-lg font-bold text-black mb-3">👤 שם השחקן:</label>
                   <Input
                     type="text"
                     value={effectivePlayerName}
                     onChange={user?.username ? undefined : handlePlayerNameChange}
                     readOnly={!!user?.username}
-                    className={`text-xl p-4 text-center border-2 
+                    className={`text-xl p-4 text-center border-2 text-black
                       ${user?.username ? "border-gray-300 bg-gray-100 cursor-not-allowed" : "border-purple-300 focus:border-purple-500"}`}
                     placeholder={user?.username ? "" : "הכנס את שמך"}
                   />
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-black font-medium mt-1">
                     שם נוכחי: {effectivePlayerName || "לא הוכנס"}
-                    {user?.username && <span className="text-blue-600"> (מחובר)</span>}
+                    {user?.username && <span className="text-blue-800 font-bold"> (מחובר)</span>}
                   </p>
                 </div>
 
                 {/* Difficulty selection */}
                 <div className="flex-1">
-                  <label className="block text-lg font-bold text-gray-800 mb-4 text-right">🎯 רמת קושי:</label>
+                  <label className="block text-lg font-bold text-black mb-4 text-right">🎯 רמת קושי:</label>
                   <div className="flex flex-col gap-3 w-full" dir="rtl">
                     {[
                       { level: "easy", text: "קל", icon: "⭐", color: "from-green-400 to-green-600" },
@@ -354,7 +354,7 @@ export default function MathMiniGame() {
                         className={`w-full h-16 text-lg font-bold transition-all duration-300 flex items-center justify-center gap-3 ${
                           difficulty === level
                             ? `bg-gradient-to-r ${color} text-white shadow-lg scale-105 border-2 border-white`
-                            : "hover:scale-105 bg-white border-2 border-gray-300 text-gray-700 hover:border-purple-400"
+                            : "hover:scale-105 bg-white border-2 border-gray-300 text-black hover:border-purple-400"
                         }`}
                         dir="rtl"
                       >
@@ -382,7 +382,7 @@ export default function MathMiniGame() {
           {/* Leaderboard */}
           <Card className="bg-white/95 backdrop-blur-sm shadow-2xl h-full">
             <CardContent className="p-8 h-full flex flex-col">
-              <h3 className="text-2xl font-bold text-center mb-6 text-gray-800 flex items-center justify-center gap-2">
+              <h3 className="text-2xl font-bold text-center mb-6 text-black flex items-center justify-center gap-2">
                 <Trophy className="w-8 h-8 text-yellow-500" />🏆 לוח תוצאות 🏆
               </h3>
 
@@ -401,9 +401,9 @@ export default function MathMiniGame() {
                     }`}
                   >
                     <div className="text-right">
-                      <div className="font-bold text-lg text-green-600 flex items-center gap-2">
+                      <div className="font-bold text-lg text-black flex items-center gap-2">
                         <span>{entry.score} נקודות</span>
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs text-black border-black">
                           {entry.gameDifficulty === "easy" ? "קל" : entry.gameDifficulty === "medium" ? "בינוני" : "קשה"}
                         </Badge>
                       </div>
@@ -412,14 +412,14 @@ export default function MathMiniGame() {
                       <span className="text-2xl">
                         {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `${index + 1}.`}
                       </span>
-                      <span className="font-bold text-lg">{entry.username}</span>
+                      <span className="font-bold text-lg text-black">{entry.username}</span>
                     </div>
                   </div>
                 ))}
               </div>
 
               <div className="mt-6 text-center">
-                <p className="text-purple-600 text-sm font-medium">💡 עצה: התחילו ממשחק קל והתקדמו לרמות קשות יותר!</p>
+                <p className="text-black text-sm font-medium">💡 עצה: התחילו ממשחק קל והתקדמו לרמות קשות יותר!</p>
               </div>
             </CardContent>
           </Card>
@@ -456,34 +456,34 @@ export default function MathMiniGame() {
             <Card className="bg-white/90 backdrop-blur-sm">
               <CardContent className="p-4 text-center">
                 <Clock className="w-8 h-8 mx-auto mb-2 text-blue-500" />
-                <div className={`text-2xl font-bold ${timeLeft <= 10 ? "text-red-500 animate-pulse" : "text-blue-600"}`}>
+                <div className={`text-2xl font-bold ${timeLeft <= 10 ? "text-red-600 animate-pulse" : "text-blue-800"}`}>
                   {timeLeft}s
                 </div>
-                <div className="text-sm text-gray-600">זמן נותר</div>
+                <div className="text-sm text-black font-medium">זמן נותר</div>
               </CardContent>
             </Card>
 
             <Card className="bg-white/90 backdrop-blur-sm">
               <CardContent className="p-4 text-center">
                 <Target className="w-8 h-8 mx-auto mb-2 text-green-500" />
-                <div className="text-2xl font-bold text-green-600">{score}</div>
-                <div className="text-sm text-gray-600">ניקוד</div>
+                <div className="text-2xl font-bold text-green-800">{score}</div>
+                <div className="text-sm text-black font-medium">ניקוד</div>
               </CardContent>
             </Card>
 
             <Card className="bg-white/90 backdrop-blur-sm">
               <CardContent className="p-4 text-center">
                 <Zap className="w-8 h-8 mx-auto mb-2 text-orange-500" />
-                <div className="text-2xl font-bold text-orange-600">{streak}</div>
-                <div className="text-sm text-gray-600">רצף נכון</div>
+                <div className="text-2xl font-bold text-orange-800">{streak}</div>
+                <div className="text-sm text-black font-medium">רצף נכון</div>
               </CardContent>
             </Card>
 
             <Card className="bg-white/90 backdrop-blur-sm">
               <CardContent className="p-4 text-center">
                 <Star className="w-8 h-8 mx-auto mb-2 text-purple-500" />
-                <div className="text-2xl font-bold text-purple-600">{bestStreak}</div>
-                <div className="text-sm text-gray-600">שיא רצף</div>
+                <div className="text-2xl font-bold text-purple-800">{bestStreak}</div>
+                <div className="text-sm text-black font-medium">שיא רצף</div>
               </CardContent>
             </Card>
           </div>
@@ -501,7 +501,7 @@ export default function MathMiniGame() {
         >
           <CardContent className="p-12 text-center relative">
             {/* Display subtraction correctly: larger number first */}
-            <div className="text-8xl font-bold text-gray-800 mb-8 animate-pulse">
+            <div className="text-8xl font-bold text-black mb-8 animate-pulse">
             ? = {displayLeft} {operator} {displayRight}
             </div>
 
@@ -510,7 +510,7 @@ export default function MathMiniGame() {
               value={userAnswer}
               onChange={(e) => setUserAnswer(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="text-4xl p-6 text-center border-4 border-purple-300 focus:border-purple-500 mb-8"
+              className="text-4xl p-6 text-center border-4 border-purple-300 focus:border-purple-500 mb-8 text-black"
               placeholder="הכנס תשובה"
               autoFocus
             />
@@ -569,21 +569,21 @@ export default function MathMiniGame() {
         <Card className="w-full max-w-lg mb-8 bg-white/95 backdrop-blur-sm shadow-2xl">
           <CardContent className="p-8 text-center">
             <div className="text-6xl mb-6">🏆</div>
-            <h2 className="text-4xl font-bold text-gray-800 mb-4">הניקוד הסופי שלך:</h2>
-            <div className="text-6xl font-bold text-green-600 mb-6">{score}</div>
+            <h2 className="text-4xl font-bold text-black mb-4">הניקוד הסופי שלך:</h2>
+            <div className="text-6xl font-bold text-green-800 mb-6">{score}</div>
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div className="bg-gray-50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-purple-600">{bestStreak}</div>
-                <div className="text-sm text-gray-600">שיא רצף</div>
+                <div className="text-2xl font-bold text-purple-800">{bestStreak}</div>
+                <div className="text-sm text-black font-medium">שיא רצף</div>
               </div>
               <div className="bg-gray-50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-blue-600">
+                <div className="text-2xl font-bold text-blue-800">
                   {difficulty === "easy" ? "קל" : difficulty === "medium" ? "בינוני" : "קשה"}
                 </div>
-                <div className="text-sm text-gray-600">רמת קושי</div>
+                <div className="text-sm text-black font-medium">רמת קושי</div>
               </div>
             </div>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-black font-medium">
               שחקן: <span className="font-bold">{effectivePlayerName}</span>
             </p>
           </CardContent>
@@ -607,7 +607,7 @@ export default function MathMiniGame() {
         {/* Updated Leaderboard */}
         <Card className="w-full max-w-lg bg-white/95 backdrop-blur-sm shadow-2xl">
           <CardContent className="p-6">
-            <h3 className="text-2xl font-bold text-center mb-6 text-gray-800 flex items-center justify-center gap-2">
+            <h3 className="text-2xl font-bold text-center mb-6 text-black flex items-center justify-center gap-2">
               <Trophy className="w-8 h-8 text-yellow-500" />
               לוח התוצאות המעודכן
             </h3>
@@ -628,9 +628,9 @@ export default function MathMiniGame() {
                   }`}
                 >
                   <div className="text-right">
-                    <div className="font-bold text-lg text-green-600 flex items-center gap-2">
+                    <div className="font-bold text-lg text-black flex items-center gap-2">
                       <span>{entry.score} נקודות</span>
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-xs text-black border-black">
                         {entry.gameDifficulty === "easy" ? "קל" : entry.gameDifficulty === "medium" ? "בינוני" : "קשה"}
                       </Badge>
                     </div>
@@ -639,7 +639,7 @@ export default function MathMiniGame() {
                     <span className="text-2xl">
                       {index === 0 ? "🥇" : index === 1 ? "🥈" : index === 2 ? "🥉" : `${index + 1}.`}
                     </span>
-                    <span className="font-bold text-lg">{entry.username}</span>
+                    <span className="font-bold text-lg text-black">{entry.username}</span>
                     {entry.username === effectivePlayerName && entry.score === score && (
                       <Badge className="bg-purple-500 text-white">חדש!</Badge>
                     )}
